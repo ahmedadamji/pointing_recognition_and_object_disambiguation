@@ -19,7 +19,9 @@
       <arg name="extra_gazebo_args" value="$(arg extra_gazebo_args)"/>
     </include>
 
-    <!-- Load srdf that links robot's base frame to map frame, creates groups and declares pairs to avoid collision checking -->
-    <param name="robot_description_semantic" textfile="$(find pointing_recognition)/config/tiago_gripper_map.srdf" />
+    <!-- Loading the custom motions and map of fruit and guest locations into the parameter server -->
+    <!-- Dont know what to do with these yet -->
+    <rosparam command="load" file="$(find pointing_recognition)/config/motions.yaml" />
+    <rosparam command="load" file="$(find pointing_recognition)/config/item_map.yaml" />
 
 </launch>

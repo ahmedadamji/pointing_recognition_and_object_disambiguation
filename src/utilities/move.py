@@ -13,13 +13,13 @@ def move():
     # create the Pose and MoveBaseGoal:
     
     pose = Pose()
-    pose.position.x = 1
-    pose.position.y = 1
+    pose.position.x = 2.5
+    pose.position.y = -2.2
     pose.position.z = 0
     pose.orientation.x = 0
     pose.orientation.y = 0
     pose.orientation.z = 1
-    pose.orientation.w = 0
+    pose.orientation.w = 3
     
     # Fill in the goal here
     goal = MoveBaseGoal()
