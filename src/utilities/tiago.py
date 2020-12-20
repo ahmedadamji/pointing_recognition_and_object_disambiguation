@@ -60,16 +60,18 @@ class Tiago:
         self.velocity_publisher.publish(self.velocity)
 
 
-    def play(self, motion_name, skip_planning=True):
-        # send prescribed play motion goals
-        self.play_motion_goal_sent = True
-        play_goal = PlayMotionGoal()
-        play_goal.motion_name = motion_name
-        play_goal.skip_planning = skip_planning
+    def lift_torso_head_default(wait=False):
+        # lift torso high and head to default
+        play_motion_client = actionlib.SimpleActionClient('/play_motion', PlayMotionAction)
+        play_motion_client.wait_for_server()
+        pm_goal = PlayMotionGoal('back_to_default', True, 0)
+        test_goal = PlayMotionGoal()
+        print test_goal.priority
+        play_motion_client.send_goal(pm_goal)
+        rospy.loginfo('play motion: back to default')
 
-        self.play_motion.send_goal_and_wait(play_goal)
-        rospy.loginfo('Sent play_motion goal and waiting for robot to carry it out... ')
-
+        if wait:
+            play_motion_client.wait_for_result()
 
 
     def shutdown(self):

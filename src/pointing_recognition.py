@@ -10,8 +10,7 @@ if __name__ == '__main__':
 
     tiago = Tiago()
 
-    tiago.play('home')
-
+    tiago.lift_torso_head_default()
     sm = StateMachine(outcomes=['success', 'failure'])  # the end states of the machine
 
     """ with sm:
@@ -21,4 +20,4 @@ if __name__ == '__main__':
         StateMachine.add('deposit', Deposit(tiago), transitions={'fetch_more':'manipulate', 'deposit_done': 'success'})
         sm.execute() """
 
-    rospy.spin()
+    #rospy.spin()

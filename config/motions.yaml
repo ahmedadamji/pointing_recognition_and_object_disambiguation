@@ -3,7 +3,7 @@ play_motion:
     head_look_down:
       joints: [torso_lift_joint, head_1_joint, head_2_joint, gripper_left_finger_joint, gripper_right_finger_joint]
       points:
-      - positions: [0.08, 0.0, -0.4, 0.05, 0.05]
+      - positions: [0.34, 0.0, -0.4, 0.05, 0.05]
         time_from_start: 2.0
 
     open_gripper:
@@ -27,7 +27,7 @@ play_motion:
     back_to_default:
       joints: [torso_lift_joint, head_1_joint, head_2_joint]
       points:
-      - positions: [0.22, 0.0, 0.0]
+      - positions: [0.34, 0.0, 0.0]
         time_from_start: 2.0
 
     pick_final_pose:
