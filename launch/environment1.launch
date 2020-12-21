@@ -22,6 +22,6 @@
     <!-- Loading the custom motions and map of fruit and guest locations into the parameter server -->
     <!-- Dont know what to do with these yet -->
     <rosparam command="load" file="$(find pointing_recognition)/config/motions.yaml" />
-    <rosparam command="load" file="$(find pointing_recognition)/config/item_map.yaml" />
+    <rosparam command="load" file="$(find pointing_recognition)/config/locations.yaml" />
 
 </launch>
