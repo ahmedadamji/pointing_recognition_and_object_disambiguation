@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import rospy
-import actionlib
 from smach import State, StateMachine
 
 
 from utilities import Tiago
 from states import ApproachPointingGirl
+from states import GetPose
 
 
 # main
@@ -23,7 +23,8 @@ def main():
 
     with sm:
         # Add states to the container
-        StateMachine.add('ApproachPointingGirl', ApproachPointingGirl(), transitions={'outcome1':'end', 'outcome2': 'end'})
+        StateMachine.add('approach_pointing_girl', ApproachPointingGirl(), transitions={'outcome1':'get_pose', 'outcome2': 'get_pose'})
+        StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
 
     #rospy.spin()
