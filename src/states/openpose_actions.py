@@ -9,9 +9,9 @@ import sys
 sys.path.append('/tiago_ws/src/openpose/build/python')
 
 from openpose import pyopenpose as op
-from math import atan2, pi
-import time
-import numpy as np
+#from math import atan2, pi
+#import time
+#import numpy as np
 
 # cap = cv2.VideoCapture(0)
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
@@ -26,10 +26,11 @@ class GetPose(State):
         params['model_folder'] = '/tiago_ws/src/openpose/models/'
         params['hand'] = True
         params['net_resolution'] = '320x176'
-
-        opWrapper = op.WrapperPython()
-        opWrapper.configure(params)
-        opWrapper.start()
+        params["face"] = False
+        params["body"] = 1
+        self.bridge = CvBridge()
+        img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
+        img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
 
         # time.sleep(1)
         # print 'TAKING THE PICTURE IN:'
@@ -38,27 +39,33 @@ class GetPose(State):
         #     time.sleep(1)
 
         try:
+            cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+
+        try:
+            
             # grabbed, frame = cap.read()
             # frame = cv2.imread('juan_wave.jpg')
             # do this twice because gazebo sim
-            img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
-            img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
-            frame = CvBridge().imgmsg_to_cv2(img_msg, "bgr8")
 
+            # Starting OpenPose
+            opWrapper = op.WrapperPython()
+            opWrapper.configure(params)
+            opWrapper.start()
+
+            # Process Image
             datum = op.Datum()
-            datum.cvInputData = frame
+            datum.cvInputData = cv_image
             opWrapper.emplaceAndPop([datum])
-            image = datum.cvOutputData
 
-            no_people = 0
-            try:
-                no_people = len(datum.poseKeypoints)
-            except:
-                pass
+            human_count = len(datum.poseKeypoints)
+            print('Number of humans in frame: {}'.format(human_count))
+            print("Body keypoints: \n" + str(datum.poseKeypoints))
 
-            for i in range(no_people):
-                person = datum.poseKeypoints[i]
-                
+            # Display Image
+            cv2.imshow("Image Window", datum.cvOutputData)
+            cv2.waitKey(0)
 
         
         except Exception as e:
