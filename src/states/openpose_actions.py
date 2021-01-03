@@ -57,8 +57,9 @@ class GetPose(State):
             # Process Image
             datum = op.Datum()
             datum.cvInputData = cv_image
-            opWrapper.emplaceAndPop([datum])
+            opWrapper.emplaceAndPop(op.VectorDatum([datum]))
 
+            #Print keypoints data
             human_count = len(datum.poseKeypoints)
             print('Number of humans in frame: {}'.format(human_count))
             print("Body keypoints: \n" + str(datum.poseKeypoints))
@@ -69,7 +70,8 @@ class GetPose(State):
 
         
         except Exception as e:
-            print e
+            print(e)
+            sys.exit(-1)
 
-        opWrapper.stop()
+        #opWrapper.stop()
         return outcome1
