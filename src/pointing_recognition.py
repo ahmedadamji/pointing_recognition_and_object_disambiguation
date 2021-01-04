@@ -4,6 +4,7 @@ from smach import State, StateMachine
 
 
 from utilities import Tiago
+from utilities import GetPosee
 from states import ApproachPointingGirl
 from states import GetPose
 
@@ -12,9 +13,12 @@ from states import GetPose
 def main():
     rospy.init_node('pointing_recognition')
 
-    tiago = Tiago()
+    actions = GetPosee()
+    actions.execute()
 
+    tiago = Tiago()
     tiago.lift_torso_head_default()
+
 
 
     # Create a SMACH state machine

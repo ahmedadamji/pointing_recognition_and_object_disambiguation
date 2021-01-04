@@ -24,11 +24,16 @@ def get_elbow_angle(shoulder,elbow,hand_tip):
     rospy.loginfo('angle:%f'%(angle))
     return angle
 
+def get_hand_tip_delta(hand_tip, chest):
+    return handTip - chest
+
 def get_body_points(human, pos):
     pnts = []
     # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 
-    if pos == 'RShoulder':
+    if pos == 'Neck':
+        pnt_index = 1
+    elif pos == 'RShoulder':
         pnt_index = 2
     elif pos == 'RElbow':
         pnt_index = 3
@@ -132,6 +137,8 @@ def is_pointing():
         #get_body_angle(datum.poseKeypoints[i], 'waist')
         #angle = get_body_angle(datum.poseKeypoints[i], 'left_elbow')
 
+        chest = get_body_points(datum.poseKeypoints[i], 'Neck')
+        right_shoulder = get_body_points(datum.poseKeypoints[i], 'RShoulder')
         left_shoulder = get_body_points(datum.poseKeypoints[i], 'LShoulder')
         right_shoulder = get_body_points(datum.poseKeypoints[i], 'RShoulder')
         left_elbow = get_body_points(datum.poseKeypoints[i], 'LElbow')
