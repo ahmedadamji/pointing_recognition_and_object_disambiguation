@@ -4,7 +4,8 @@ from smach import State, StateMachine
 
 
 from utilities import Tiago
-from utilities import GetPosee
+# Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
+#from utilities import GetPoseBeforeGazebo
 from states import ApproachPointingGirl
 from states import GetPose
 
@@ -13,13 +14,13 @@ from states import GetPose
 def main():
     rospy.init_node('pointing_recognition')
 
-    actions = GetPosee()
-    actions.execute()
+    # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
+    #actions = GetPoseBeforeGazebo()
+    #actions.execute()
 
     tiago = Tiago()
+    
     tiago.lift_torso_head_default()
-
-
 
     # Create a SMACH state machine
     sm = StateMachine(outcomes=['outcome1', 'end'])
