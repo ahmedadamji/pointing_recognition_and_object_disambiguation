@@ -12,6 +12,7 @@ def get_segmentation_from_webcam():
         # Custom Params
         params = dict()
         params['model_folder'] = '/tiago_ws/src/openpose/models/'
+        params['model_pose'] = 'COCO'
         params['net_resolution'] = '320x176'
         params['hand'] = True
         params["face"] = False

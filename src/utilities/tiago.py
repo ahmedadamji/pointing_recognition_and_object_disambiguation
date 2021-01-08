@@ -60,7 +60,8 @@ class Tiago:
         self.velocity_publisher.publish(self.velocity)
 
 
-    def lift_torso_head_default(wait=False):
+    # True passed so that we wait for the result before any other code is performed
+    def lift_torso_head_default(wait=True):
         # lift torso high and head to default
         play_motion_client = actionlib.SimpleActionClient('/play_motion', PlayMotionAction)
         play_motion_client.wait_for_server()

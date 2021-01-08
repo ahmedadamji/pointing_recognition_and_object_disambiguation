@@ -5,6 +5,7 @@ import sys
 sys.path.append('/tiago_ws/src/openpose/build/python')
 from openpose import pyopenpose as op
 import numpy as np
+import argparse
 
 # Document somehow that I got this from body_from_camera.py that Juan sent me
 def angle_between_points( a, b, c ):
@@ -76,12 +77,19 @@ def get_hand_points(hand, pos):
     pnt = [int(hand[pnt_index][0]), int(hand[pnt_index][1])]
     return pnt
 
+
+def set_flags(self):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--num_gpu", default=op.get_gpu_number(), help="Number of GPUs.")
+    return parser.parse_known_args()
+
 def set_params():
     params = dict()
     params['model_folder'] = '/tiago_ws/src/openpose/models/'
-    params['net_resolution'] = '320x176'
+    params['model_pose'] = 'COCO'
+    params['net_resolution'] = '160x80'
     params['hand'] = True
-    params["face"] = True
+    params["face"] = False
     return params
 
 def get_image_path():

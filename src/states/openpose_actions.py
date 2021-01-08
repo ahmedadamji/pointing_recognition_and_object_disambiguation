@@ -1,8 +1,10 @@
 #!/usr/bin/python
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, PointCloud2, PointField
 from smach import State
+
+import sensor_msgs.point_cloud2 as pc2
 
 import cv2
 import sys
@@ -12,6 +14,8 @@ from openpose import pyopenpose as op
 #from math import atan2, pi
 #import time
 import numpy as np
+import ros_numpy
+import argparse
 
 # cap = cv2.VideoCapture(0)
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
@@ -90,13 +94,28 @@ class GetPose(State):
         pnt = [int(hand[pnt_index][0]), int(hand[pnt_index][1])]
         return pnt
 
+    # def set_flags(self):
+    #     parser = argparse.ArgumentParser()
+    #     parser.add_argument("--num_gpu", default=op.get_gpu_number(), help="Number of GPUs.")
+    #     return parser.parse_known_args()
+
     def set_params(self):
         params = dict()
-        params['model_folder'] = '/tiago_ws/src/openpose/models/'
-        params['hand'] = True
-        params['net_resolution'] = '160x80'
-        params["face"] = False
         params["body"] = 1
+        params["number_people_max"] = 1
+        params['model_folder'] = '/tiago_ws/src/openpose/models/'
+        params['model_pose'] = 'COCO'
+        # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
+        # will use the fairly accurate 320x160
+        params['net_resolution'] = '320x160' # 368x368 (multiples of 16)
+        # params['face_net_resolution'] = '160x80' # 368x368 (multiples of 16)
+        # params['hand_net_resolution'] = '160x80' # 368x368 (multiples of 16)
+        # params['flir_camera'] = True # Used when using Flir camera
+        # params['frame_undistort'] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
+        params['hand'] = True
+        params["face"] = False
+        # params["3d"] = True
+        # params['3d_views'] = 2
         return params
 
     def print_body_parameters(self, datum):
@@ -105,14 +124,25 @@ class GetPose(State):
         print("Left hand keypoints: \n" + str(datum.handKeypoints[0]))
         print("Right hand keypoints: \n" + str(datum.handKeypoints[1]))
 
-
     def execute(self, userdata):
+        # # Flags
+        # args = self.set_flags()
+
         # Set Params
         params = self.set_params()
 
         self.bridge = CvBridge()
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
-        #img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
+        img_msg2 = rospy.wait_for_message('/xtion/depth_registered/image_raw',Image)
+        Points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
+        #sizeof
+        xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(Points, remove_nans=False)
+        print(np.shape(xyz_array))
+        print(xyz_array[0])
+        print(xyz_array[333][210])
+        #print(Points.height, Points.width)
+        #print(img_msg.height, img_msg.width)
+        #print(img_msg2.height, img_msg2.width)
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")

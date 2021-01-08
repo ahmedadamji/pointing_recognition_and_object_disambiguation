@@ -12,7 +12,7 @@ class ApproachPointingGirl(State):
     def __init__(self):
         State.__init__(self, outcomes=['outcome1', 'outcome2'])
 
-    def execute(self, userdata):
+    def execute(self, userdata, wait=True):
 
         # create the action client:
         movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
@@ -34,12 +34,13 @@ class ApproachPointingGirl(State):
         rospy.loginfo('GOAL SENT! o:')
 
         # waits for the server to finish performing the action
-        if movebase_client.wait_for_result():
-            rospy.loginfo('Goal location achieved!')
-            # operator = getLocation()           
-            # if operator:
-            #     return get_closer_to_person(operator)
-        else:
-            rospy.logwarn("Couldn't reach the goal!")
+        if wait:
+            if movebase_client.wait_for_result():
+                rospy.loginfo('Goal location achieved!')
+                # operator = getLocation()           
+                # if operator:
+                #     return get_closer_to_person(operator)
+            else:
+                rospy.logwarn("Couldn't reach the goal!")
         
         return 'outcome1'
