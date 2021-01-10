@@ -106,8 +106,8 @@ class GetPose(State):
         params['model_folder'] = '/tiago_ws/src/openpose/models/'
         params['model_pose'] = 'COCO'
         # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
-        # will use the fairly accurate 320x160
-        params['net_resolution'] = '320x160' # 368x368 (multiples of 16)
+        # will use the fairly accurate 320x240
+        params['net_resolution'] = '320x240' # 368x368 (multiples of 16)
         # params['face_net_resolution'] = '160x80' # 368x368 (multiples of 16)
         # params['hand_net_resolution'] = '160x80' # 368x368 (multiples of 16)
         # params['flir_camera'] = True # Used when using Flir camera
@@ -119,10 +119,10 @@ class GetPose(State):
         return params
 
     def print_body_parameters(self, datum):
-        print("Body keypoints: \n" + str(datum.poseKeypoints))
-        print("Face keypoints: \n" + str(datum.faceKeypoints))
-        print("Left hand keypoints: \n" + str(datum.handKeypoints[0]))
-        print("Right hand keypoints: \n" + str(datum.handKeypoints[1]))
+        print("Body keypoints: \n" + str(np.around(datum.poseKeypoints).astype(int)))
+        #print("Face keypoints: \n" + str(np.around(datum.faceKeypoints).fillna(0.0).astype(int)))
+        print("Left hand keypoints: \n" + str(np.around(datum.handKeypoints[0]).astype(int)))
+        print("Right hand keypoints: \n" + str(np.around(datum.handKeypoints[1]).astype(int)))
 
     def execute(self, userdata):
         # # Flags
@@ -138,11 +138,14 @@ class GetPose(State):
         #sizeof
         xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(Points, remove_nans=False)
         print(np.shape(xyz_array))
-        print(xyz_array[0])
-        print(xyz_array[333][210])
-        #print(Points.height, Points.width)
-        #print(img_msg.height, img_msg.width)
-        #print(img_msg2.height, img_msg2.width)
+        print(xyz_array[224][487])
+        # To check the range of the rgbd camera
+        print(xyz_array[479][639])
+        print(xyz_array[0][0])
+        print(Points.header.frame_id)
+        print(Points.height, Points.width)
+        print(img_msg.height, img_msg.width)
+        print(img_msg2.height, img_msg2.width)
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
