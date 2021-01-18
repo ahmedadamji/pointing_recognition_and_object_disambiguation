@@ -1,13 +1,13 @@
 play_motion:
   motions:
     head_look_down:
-      joints: [torso_lift_joint, head_1_joint, head_2_joint, gripper_left_finger_joint, gripper_right_finger_joint]
+      joints: ['torso_lift_joint', 'head_1_joint', 'head_2_joint', 'gripper_left_finger_joint', 'gripper_right_finger_joint']
       points:
       - positions: [0.34, 0.0, -0.4, 0.05, 0.05]
         time_from_start: 2.0
 
     open_gripper:
-      joints: [gripper_left_finger_joint, gripper_right_finger_joint]
+      joints: ['gripper_left_finger_joint', 'gripper_right_finger_joint']
       points:
       - positions: [0.05, 0.05]
         time_from_start: 4.0
@@ -25,19 +25,19 @@ play_motion:
         time_from_start: 2.0
 
     back_to_default:
-      joints: [torso_lift_joint, head_1_joint, head_2_joint]
+      joints: ['torso_lift_joint', 'head_1_joint', 'head_2_joint']
       points:
       - positions: [0.34, 0.0, 0.0]
-        time_from_start: 2.0
+        time_from_start: 0.0
 
     pick_final_pose:
-      joints: [arm_1_joint, arm_2_joint, arm_3_joint, arm_4_joint]
+      joints: ['arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint']
       points:
       - positions: [0.21, -0.2, -2.2, 1.15]
         time_from_start: 10.0
 
     head_look_around:
-      joints: [head_1_joint, head_2_joint]
+      joints: ['head_1_joint', 'head_2_joint']
       points:
       - positions: [0, 0]
         time_from_start: 0.1
