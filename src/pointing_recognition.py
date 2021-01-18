@@ -20,7 +20,7 @@ def main():
 
     tiago = Tiago()
     
-    tiago.lift_torso_head_default()
+    tiago.lift_torso_head_default(True)
 
     # Create a SMACH state machine
     sm = StateMachine(outcomes=['outcome1', 'end'])

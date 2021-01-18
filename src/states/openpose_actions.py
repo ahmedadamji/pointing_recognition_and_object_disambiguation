@@ -36,17 +36,19 @@ class GetPose(State):
         print np.degrees(angle)
         return np.degrees(angle)
 
-    def get_elbow_angle(self, shoulder,elbow,hand_tip):
+    def get_elbow_angle(self, shoulder,elbow,hand_tip, hand):
         angle = 0
         angle = self.angle_between_points(shoulder, elbow, hand_tip)
-        rospy.loginfo('angle:%f'%(angle))
+        rospy.loginfo('%s angle:%f'%(hand,angle))
         return angle
 
-    # def get_hand_tip_delta(self, hand_tip, chest):
-    #     return handTip - chest
+    def get_hand_tip_delta(self, hand_tip, chest, hand):
+        #comparing the x coordinate of chest and hand tip
+        handtipdelta = hand_tip[0] - chest[0]
+        rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
+        return handtipdelta
 
-    def get_body_points(self, human, pos):
-        pnts = []
+    def get_body_points(self, human, pos, xyz_array):
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 
         if pos == 'Neck':
@@ -74,9 +76,10 @@ class GetPose(State):
             return None
 
         pnt = [int(human[pnt_index][0]), int(human[pnt_index][1])]
-        return pnt
+        # returns the x,y,z coordinates in meters
+        return self.get_depth(pnt, xyz_array)
 
-    def get_hand_points(self,hand, pos):
+    def get_hand_points(self, hand, pos, xyz_array):
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 
         if pos == 'first_finger_tip':
@@ -92,7 +95,28 @@ class GetPose(State):
             return None
         
         pnt = [int(hand[pnt_index][0]), int(hand[pnt_index][1])]
-        return pnt
+        # returns the x,y,z coordinates in meters
+        return self.get_depth(pnt, xyz_array)
+
+    def get_depth(self, pnt, xyz_array):
+        # Gets the z distance from tiago to the object at pixel x,y in the camera image.
+        # x and y are in pixels
+        x = pnt[0]
+        y = pnt[1]
+
+
+        #print(np.shape(xyz_array))
+        # transposing to get output using format xyz_array[x][y] instead of xyz_array[y][x]
+        #print(xyz_array[487][224]) # reading random coordinate, supposed to be chest / head
+        # To check the range of the rgbd camera
+        #print(xyz_array[479][639])
+        #print(xyz_array[0][0])
+        #print(points.header.frame_id)
+        #print(points.height, points.width)
+
+        # xyz_array returns in meters
+        return xyz_array[x][y]
+
 
     # def set_flags(self):
     #     parser = argparse.ArgumentParser()
@@ -133,19 +157,16 @@ class GetPose(State):
 
         self.bridge = CvBridge()
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
-        img_msg2 = rospy.wait_for_message('/xtion/depth_registered/image_raw',Image)
-        Points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
-        #sizeof
-        xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(Points, remove_nans=False)
-        print(np.shape(xyz_array))
-        print(xyz_array[224][487])
-        # To check the range of the rgbd camera
-        print(xyz_array[479][639])
-        print(xyz_array[0][0])
-        print(Points.header.frame_id)
-        print(Points.height, Points.width)
-        print(img_msg.height, img_msg.width)
-        print(img_msg2.height, img_msg2.width)
+        
+        # To save the depth coordinates once so that I don't have to call it again and doesnt slow everything
+        points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
+        xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(points, remove_nans=False)
+        xyz_array = np.transpose(xyz_array, (1, 0, 2))
+
+
+        #img_msg2 = rospy.wait_for_message('/xtion/depth_registered/image_raw',Image)
+        #print(img_msg.height, img_msg.width)
+        #print(img_msg2.height, img_msg2.width)
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
@@ -176,22 +197,26 @@ class GetPose(State):
                 #get_body_angle(datum.poseKeypoints[i], 'waist')
                 #angle = get_body_angle(datum.poseKeypoints[i], 'left_elbow')
 
-                chest = self.get_body_points(datum.poseKeypoints[i], 'Neck')
-                right_shoulder = self.get_body_points(datum.poseKeypoints[i], 'RShoulder')
-                left_shoulder = self.get_body_points(datum.poseKeypoints[i], 'LShoulder')
-                right_shoulder = self.get_body_points(datum.poseKeypoints[i], 'RShoulder')
-                left_elbow = self.get_body_points(datum.poseKeypoints[i], 'LElbow')
-                right_elbow = self.get_body_points(datum.poseKeypoints[i], 'RElbow')
-                left_hand_tip = self.get_hand_points(datum.handKeypoints[0][i], 'first_finger_tip')
-                right_hand_tip = self.get_hand_points(datum.handKeypoints[1][i], 'first_finger_tip')
-                left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip)
-                right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip)
-                if left_elbow_angle > 120:
-                    print('left hand raised')
-                elif right_elbow_angle > 120:
-                    print('right hand raised')
+                chest = self.get_body_points(datum.poseKeypoints[i], 'Neck', xyz_array)
+                right_shoulder = self.get_body_points(datum.poseKeypoints[i], 'RShoulder', xyz_array)
+                left_shoulder = self.get_body_points(datum.poseKeypoints[i], 'LShoulder', xyz_array)
+                right_shoulder = self.get_body_points(datum.poseKeypoints[i], 'RShoulder', xyz_array)
+                left_elbow = self.get_body_points(datum.poseKeypoints[i], 'LElbow', xyz_array)
+                right_elbow = self.get_body_points(datum.poseKeypoints[i], 'RElbow', xyz_array)
+                left_hand_tip = self.get_hand_points(datum.handKeypoints[0][i], 'first_finger_tip', xyz_array)
+                right_hand_tip = self.get_hand_points(datum.handKeypoints[1][i], 'first_finger_tip', xyz_array)
+                left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
+                right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
+                left_hand_tip_delta = self.get_hand_tip_delta(left_hand_tip,chest,'left')
+                right_hand_tip_delta = self.get_hand_tip_delta(right_hand_tip,chest,'right')
+
+                # Parameters that need to be satisfied in case hand is pointing based on observed data points
+                if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
+                    print('left hand pointing')
+                elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
+                    print('right hand pointing')
                 else:
-                    print('hand not raised')
+                    print('hand not pointing')
 
             cv2.imshow("Image Window", datum.cvOutputData)
             cv2.waitKey(0)
