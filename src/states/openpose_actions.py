@@ -78,37 +78,15 @@ class GetPose(State):
             Point3D(np.array(end_point)[0],np.array(end_point)[1],np.array(end_point)[2]))
         for x in range(640 - tip[0]):
             for y in range(480 - tip[1]):
-                point = Point3D(0,0,0) if (math.isnan(xyz_array[x+tip[0]][y+tip[1]])) else Point3D(
-                    np.array(xyz_array[x+tip[0]][y+tip[1]])[0],np.array(xyz_array[x+tip[0]][y+tip[1]])[1],np.array(xyz_array[x+tip[0]][y+tip[1]])[2])
-                line.intersection(point)
-
-        # # estimate radius for rolling ball
-        # distances = points.compute_nearest_neighbor_distance()
-        # avg_dist = np.mean(distances)
-        # radius = 1.5 * avg_dist   
-        # mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(points,o3d.utility.DoubleVector([radius, radius * 2]))
-
-        # # run the mesh- ray test
-        # locations, index_ray, index_tri = mesh.ray.intersects_location(
-        #     ray_origins=ray_origins,
-        #     ray_directions=ray_directions)
-
-        # # stack rays into line segments for visualization as Path3D
-        # ray_visualize = trimesh.load_path(np.hstack((
-        #     ray_origins,
-        #     ray_origins + ray_directions)).reshape(-1, 2, 3))
-
-        # # make mesh transparent- ish
-        # mesh.visual.face_colors = [100, 100, 100, 100]
-
-        # # create a visualization scene with rays, hits, and mesh
-        # scene = trimesh.Scene([
-        #     mesh,
-        #     ray_visualize,
-        #     trimesh.points.PointCloud(locations)])
-
-        # # display the scene
-        # scene.show()
+                if math.isnan((xyz_array[x+tip[0]][y+tip[1]])[0]):
+                    point = Point3D(0,0,0)
+                else:
+                    recorded_point = np.array(xyz_array[x+tip[0]][y+tip[1]])
+                    point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
+                
+                intersection = np.array(line.intersection(point))
+                if intersection.size > 0:
+                    print(line.intersection(point))
         
 
     def get_body_points(self, human, pos, xyz_array):
