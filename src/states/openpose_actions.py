@@ -12,6 +12,7 @@ import sys
 sys.path.append('/tiago_ws/src/openpose/build/python')
 
 from openpose import pyopenpose as op
+import math
 #from math import atan2, pi
 #import time
 import numpy as np
@@ -54,18 +55,20 @@ class GetPose(State):
         rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
         return handtipdelta
 
-<<<<<<< HEAD
     def normalize(self, array):
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
-    def get_pointing_line(self, hand_tip, head, points):
+    def get_pointing_line(self, hand_tip, head, xyz_array, hand):
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
         # https://github.com/mikedh/trimesh/issues/211
         # find a way to get the depth mesh from the rgbd camera
 
+        # Later change code so that it changes detection side according to if it is right or left hand
+        tip = [int(hand[8][0]), int(hand[8][1])]
+
         direction = self.normalize(hand_tip - head)
-        print(np.shape(direction))
+        # print(np.shape(direction))
         ray_directions = direction
         # Do not start the line right at the hand-tip to avoid having an intersection with the mesh around the hand.
         start_point = hand_tip + (direction*0.2)
@@ -73,6 +76,11 @@ class GetPose(State):
         end_point = hand_tip + (direction*0.3)
         line = Line3D(Point3D(np.array(start_point)[0],np.array(start_point)[1],np.array(start_point)[2]), 
             Point3D(np.array(end_point)[0],np.array(end_point)[1],np.array(end_point)[2]))
+        for x in range(640 - tip[0]):
+            for y in range(480 - tip[1]):
+                point = Point3D(0,0,0) if (math.isnan(xyz_array[x+tip[0]][y+tip[1]])) else Point3D(
+                    np.array(xyz_array[x+tip[0]][y+tip[1]])[0],np.array(xyz_array[x+tip[0]][y+tip[1]])[1],np.array(xyz_array[x+tip[0]][y+tip[1]])[2])
+                line.intersection(point)
 
         # # estimate radius for rolling ball
         # distances = points.compute_nearest_neighbor_distance()
@@ -103,8 +111,6 @@ class GetPose(State):
         # scene.show()
         
 
-=======
->>>>>>> 6d11e9be96630627fabd12365a1a8e1e05ffacd0
     def get_body_points(self, human, pos, xyz_array):
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 
@@ -256,10 +262,7 @@ class GetPose(State):
                 #get_body_angle(datum.poseKeypoints[i], 'waist')
                 #angle = get_body_angle(datum.poseKeypoints[i], 'left_elbow')
 
-<<<<<<< HEAD
                 head = self.get_body_points(datum.poseKeypoints[i], 'Head', xyz_array)
-=======
->>>>>>> 6d11e9be96630627fabd12365a1a8e1e05ffacd0
                 chest = self.get_body_points(datum.poseKeypoints[i], 'Neck', xyz_array)
                 right_shoulder = self.get_body_points(datum.poseKeypoints[i], 'RShoulder', xyz_array)
                 left_shoulder = self.get_body_points(datum.poseKeypoints[i], 'LShoulder', xyz_array)
@@ -274,20 +277,17 @@ class GetPose(State):
                 right_hand_tip_delta = self.get_hand_tip_delta(right_hand_tip,chest,'right')
 
                 # Parameters that need to be satisfied in case hand is pointing based on observed data points
-<<<<<<< HEAD
                 # Later try to shift this functionality to is_pointing() funtion
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
-                    self.get_pointing_line(left_hand_tip_delta, head, points)
+                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i])
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
-                    self.get_pointing_line(right_hand_tip_delta, head, points)
-=======
+                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i])
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
->>>>>>> 6d11e9be96630627fabd12365a1a8e1e05ffacd0
                 else:
                     print('hand not pointing')
 
