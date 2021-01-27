@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+from smach import State
+from geometry_msgs.msg import Point, Pose
+from collections import namedtuple
+
+# Refered catering_erl for yolo_object_recognition
+class ObjectDetection(State):
+    def __init__(self, classify):
+        State.__init__(self, outcomes=['outcome1', 'outcome2'])
+        self.classify = classify
+
+
+    def detect_objects(self):
+
+        self.classify.subscribe_to_vision_messages()
+        yolo_detections = self.classify.yolo_object_detection()
+
+        if not len(yolo_detections):
+            return None
+
+
+    def execute(self, userdata):
+
+        self.detect_objects()
+
+        #opWrapper.stop()
+        return 'outcome1'
