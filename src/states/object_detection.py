@@ -15,9 +15,11 @@ class ObjectDetection(State):
 
         self.classify.subscribe_to_vision_messages()
         yolo_detections = self.classify.yolo_object_detection()
-
+        # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
             return None
+        self.classify.yolo_get_object_coordinates()
+        
 
 
     def execute(self, userdata):
