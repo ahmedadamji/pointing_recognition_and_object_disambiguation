@@ -59,7 +59,7 @@ class GetPose(State):
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
-    def get_pointing_line(self, hand_tip, head, xyz_array, hand):
+    def get_pointing_line(self, hand_tip, head, xyz_array, hand, maxDistance = 5, skipFactor = 0.05):
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
         # https://github.com/mikedh/trimesh/issues/211
         # find a way to get the depth mesh from the rgbd camera
@@ -76,17 +76,36 @@ class GetPose(State):
         end_point = hand_tip + (direction*0.3)
         line = Line3D(Point3D(np.array(start_point)[0],np.array(start_point)[1],np.array(start_point)[2]), 
             Point3D(np.array(end_point)[0],np.array(end_point)[1],np.array(end_point)[2]))
-        for x in range(640 - tip[0]):
-            for y in range(480 - tip[1]):
-                if math.isnan((xyz_array[x+tip[0]][y+tip[1]])[0]):
-                    point = Point3D(0,0,0)
-                else:
-                    recorded_point = np.array(xyz_array[x+tip[0]][y+tip[1]])
-                    point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
+        
+        delta = skipFactor * self.normalize(end_point - start_point)
+        maxSteps = int(maxDistance / (np.linalg.norm(delta)))
+        hypothesisPoint = start_point
+        for i in range(maxSteps):
+            hypothesisPoint += delta
+            # get the mesh distance at the extended point
+            ## Fix this code as it doesnt make sense -->
+            meshDistance = xyz_array[hypothesisPoint[0]][hypothesisPoint[1]][2]
+            # if the mesh distance is less than the distance to the point we've hit the mesh
+            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
+                print(hypothesisPoint)
+
+        # exit = False
+        # for x in range(640 - tip[0] - 20):
+        #     for y in range(480 - tip[1] - 20):
+        #         if math.isnan((xyz_array[x+tip[0]+20][y+tip[1]+20])[0]):
+        #             point = Point3D(0,0,0)
+        #         else:
+        #             recorded_point = np.array(xyz_array[x+tip[0]+20][y+tip[1]+20])
+        #             point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
                 
-                intersection = np.array(line.intersection(point))
-                if intersection.size > 0:
-                    print(line.intersection(point))
+        #         intersection = np.array(line.intersection(point))
+        #         if intersection.size > 0:
+        #             print(line.intersection(point))
+        #             exit = True
+        #         if(exit):
+        #             break
+        #     if(exit):
+        #         break
         
 
     def get_body_points(self, human, pos, xyz_array):

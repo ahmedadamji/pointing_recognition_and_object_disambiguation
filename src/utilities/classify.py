@@ -34,7 +34,7 @@ class Classify:
             # running object recognition
             try:
                 detect_objects = rospy.ServiceProxy('/yolo_detection', YoloDetection)
-                self.detection_result = detect_objects(self.image_raw, self.dataset, 0.5, 0.3)
+                self.detection_result = detect_objects(self.image_raw, self.dataset, 0.1, 0.3)
                 print('YOLO detection results : ', self.detection_result.detected_objects)
             except rospy.ServiceException as e:
                 print('Object recognition failed')

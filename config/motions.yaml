@@ -27,7 +27,7 @@ play_motion:
     back_to_default:
       joints: ['torso_lift_joint', 'head_1_joint', 'head_2_joint']
       points:
-      - positions: [0.34, 0.0, 0.0]
+      - positions: [0.34, 0.0, -0.15]
         time_from_start: 0.0
 
     pick_final_pose:

@@ -20,7 +20,7 @@ def main():
     tiago = Tiago()
     classify = Classify(dataset='coco') # default dataset for yolo3 is coco unless change needed for more accurate detection from a distance, which is passed here.
     
-    # tiago.lift_torso_head_default(True)
+    tiago.lift_torso_head_default(True)
 
     # Create a SMACH state machine
     sm = StateMachine(outcomes=['outcome1', 'end'])
@@ -29,8 +29,8 @@ def main():
     with sm:
         # Add states to the container
         StateMachine.add('approach_pointing_girl', ApproachPointingGirl(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
-        StateMachine.add('detect_objects', ObjectDetection(classify), transitions={'outcome1':'end', 'outcome2': 'end'})
-        # StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'end', 'outcome2': 'end'})
+        StateMachine.add('detect_objects', ObjectDetection(classify), transitions={'outcome1':'get_pose', 'outcome2': 'get_pose'})
+        StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
 
     #rospy.spin()

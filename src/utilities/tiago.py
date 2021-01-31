@@ -2,7 +2,6 @@
 import rospy
 import actionlib
 from play_motion_msgs.msg import PlayMotionAction, PlayMotionGoal
-from trajectory_msgs.msg import JointTrajectory
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 
 
