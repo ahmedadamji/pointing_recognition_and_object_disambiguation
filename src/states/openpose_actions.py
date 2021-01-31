@@ -18,9 +18,9 @@ import math
 import numpy as np
 import open3d as o3d
 import sympy
-from sympy import Point3D
+from sympy import Point2D, Point3D
 from sympy.abc import L
-from sympy.geometry import Line3D, Segment3D
+from sympy.geometry import Line2D, Line3D, Segment3D
 import ros_numpy
 import argparse
 
@@ -59,6 +59,31 @@ class GetPose(State):
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
+    def GetMeshDepthAtPoint(self, ICameraIntrinsics depthIntrinsics, points, Point3D point, bool undistort):
+        Point2D depthSpacePoint = self.ToPixelSpace(point, undistort)
+
+        x = int (math.round(depthSpacePoint.x))
+        y = int (math.round(depthSpacePoint.y))
+        if ((x < 0) or (x >= points.width) or (y < 0) or (y >= points.height)):
+            return float('NaN')
+
+        byteOffset = int ((y * points.stride) + (x * 2))
+        depth = int(points.ReadBytes(2, byteOffset))
+        if (depth == 0):
+            return float('NaN')
+
+        return float (depth / 1000)
+
+    def ToPixelSpace(self, Point3D pt, bool distort):
+        # X points in the depth dimension. Y points to the left, and Z points up.
+        pixelPt = Point2D((-pt.y / pt.x), (-pt.z / pt.x))
+        if (distort):
+            this.DistortPoint(pixelPt, out pixelPt)
+
+        tmp = Point3D(pixelPt.x, pixelPt.y, 1.0)
+        tmp = tmp.TransformBy(this.transform)
+        return Point2D(tmp.x, tmp.y)
+
     def get_pointing_line(self, hand_tip, head, xyz_array, hand, maxDistance = 5, skipFactor = 0.05):
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
         # https://github.com/mikedh/trimesh/issues/211
@@ -84,8 +109,12 @@ class GetPose(State):
             hypothesisPoint += delta
             # get the mesh distance at the extended point
             ## Fix this code as it doesnt make sense -->
+            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesisPoint, undistort);
             meshDistance = xyz_array[hypothesisPoint[0]][hypothesisPoint[1]][2]
             # if the mesh distance is less than the distance to the point we've hit the mesh
+            # can do so that in the selected pixel space, I can compare the depth, if the
+            # depth of the pointcloud is less then it is intersecting
+            # or i can just check if the point is inside the box selected
             if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
                 print(hypothesisPoint)
 
