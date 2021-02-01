@@ -30,6 +30,7 @@ import argparse
 class GetPose(State):
     def __init__(self):
         State.__init__(self, outcomes=['outcome1', 'outcome2'])
+        self.image_sub = rospy.Subscriber("/xtion/rgb/image_color",Image,self.callback)
 
         # Document somehow that I got this from body_from_camera.py that Juan sent me
     def angle_between_points( self, a, b, c ):
@@ -59,30 +60,30 @@ class GetPose(State):
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
-    def GetMeshDepthAtPoint(self, ICameraIntrinsics depthIntrinsics, points, Point3D point, bool undistort):
-        Point2D depthSpacePoint = self.ToPixelSpace(point, undistort)
+    # def GetMeshDepthAtPoint(self, ICameraIntrinsics depthIntrinsics, points, Point3D point, bool undistort):
+    #     Point2D depthSpacePoint = self.ToPixelSpace(point, undistort)
 
-        x = int (math.round(depthSpacePoint.x))
-        y = int (math.round(depthSpacePoint.y))
-        if ((x < 0) or (x >= points.width) or (y < 0) or (y >= points.height)):
-            return float('NaN')
+    #     x = int (math.round(depthSpacePoint.x))
+    #     y = int (math.round(depthSpacePoint.y))
+    #     if ((x < 0) or (x >= points.width) or (y < 0) or (y >= points.height)):
+    #         return float('NaN')
 
-        byteOffset = int ((y * points.stride) + (x * 2))
-        depth = int(points.ReadBytes(2, byteOffset))
-        if (depth == 0):
-            return float('NaN')
+    #     byteOffset = int ((y * points.stride) + (x * 2))
+    #     depth = int(points.ReadBytes(2, byteOffset))
+    #     if (depth == 0):
+    #         return float('NaN')
 
-        return float (depth / 1000)
+    #     return float (depth / 1000)
 
-    def ToPixelSpace(self, Point3D pt, bool distort):
-        # X points in the depth dimension. Y points to the left, and Z points up.
-        pixelPt = Point2D((-pt.y / pt.x), (-pt.z / pt.x))
-        if (distort):
-            this.DistortPoint(pixelPt, out pixelPt)
+    # def ToPixelSpace(self, Point3D pt, bool distort):
+    #     # X points in the depth dimension. Y points to the left, and Z points up.
+    #     pixelPt = Point2D((-pt.y / pt.x), (-pt.z / pt.x))
+    #     if (distort):
+    #         this.DistortPoint(pixelPt, out pixelPt)
 
-        tmp = Point3D(pixelPt.x, pixelPt.y, 1.0)
-        tmp = tmp.TransformBy(this.transform)
-        return Point2D(tmp.x, tmp.y)
+    #     tmp = Point3D(pixelPt.x, pixelPt.y, 1.0)
+    #     tmp = tmp.TransformBy(this.transform)
+    #     return Point2D(tmp.x, tmp.y)
 
     def get_pointing_line(self, hand_tip, head, xyz_array, hand, maxDistance = 5, skipFactor = 0.05):
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
@@ -99,9 +100,22 @@ class GetPose(State):
         start_point = hand_tip + (direction*0.2)
         ray_origins = start_point
         end_point = hand_tip + (direction*0.3)
-        line = Line3D(Point3D(np.array(start_point)[0],np.array(start_point)[1],np.array(start_point)[2]), 
-            Point3D(np.array(end_point)[0],np.array(end_point)[1],np.array(end_point)[2]))
+        start_point_3d = Point3D(np.array(start_point)[0],np.array(start_point)[1],np.array(start_point)[2])
+        end_point_3d = Point3D(np.array(end_point)[0],np.array(end_point)[1],np.array(end_point)[2])
         
+        line = Line3D(start_point_3d, end_point_3d)
+        
+
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+        
+
+        cv2.line(datum.cvOutputData, (start_point_3d.x,start_point_3d.y), (end_point_3d.x,end_point_3d.y), (0,0,255), 2)
+        cv2.imshow("Pointing Line Results", cv_image)
+        cv2.waitKey(3)
+""" 
         delta = skipFactor * self.normalize(end_point - start_point)
         maxSteps = int(maxDistance / (np.linalg.norm(delta)))
         hypothesisPoint = start_point
@@ -116,7 +130,7 @@ class GetPose(State):
             # depth of the pointcloud is less then it is intersecting
             # or i can just check if the point is inside the box selected
             if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
-                print(hypothesisPoint)
+                print(hypothesisPoint) """
 
         # exit = False
         # for x in range(640 - tip[0] - 20):
@@ -317,7 +331,8 @@ class GetPose(State):
                 else:
                     print('hand not pointing')
 
-            cv2.imshow("Image Window", datum.cvOutputData)
+
+            cv2.imshow("OpenPose Results", datum.cvOutputData)
             cv2.waitKey(0)
 
         
