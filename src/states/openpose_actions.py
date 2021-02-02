@@ -1,28 +1,31 @@
 #!/usr/bin/env python
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image, PointCloud2, PointField
-from geometry_msgs.msg import PoseStamped
-from smach import State
 
+from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
+from sensor_msgs.srv import SetCameraInfo
 import sensor_msgs.point_cloud2 as pc2
 
-import cv2
+from geometry_msgs.msg import PoseStamped
+
+from smach import State
+
 import sys
 sys.path.append('/tiago_ws/src/openpose/build/python')
-
 from openpose import pyopenpose as op
+
+import cv2
 import math
-#from math import atan2, pi
-#import time
 import numpy as np
+import ros_numpy
+import argparse
 import open3d as o3d
+
 import sympy
 from sympy import Point2D, Point3D
 from sympy.abc import L
 from sympy.geometry import Line2D, Line3D, Segment3D
-import ros_numpy
-import argparse
+
 
 # cap = cv2.VideoCapture(0)
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
@@ -30,7 +33,8 @@ import argparse
 class GetPose(State):
     def __init__(self):
         State.__init__(self, outcomes=['outcome1', 'outcome2'])
-        self.image_sub = rospy.Subscriber("/xtion/rgb/image_color",Image,self.callback)
+        self.bridge = CvBridge()
+        
 
         # Document somehow that I got this from body_from_camera.py that Juan sent me
     def angle_between_points( self, a, b, c ):
@@ -85,52 +89,77 @@ class GetPose(State):
     #     tmp = tmp.TransformBy(this.transform)
     #     return Point2D(tmp.x, tmp.y)
 
+    def project_depth_array_to_2d_image(self, point_3d):
+        print("11")
+        camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
+        print("12")
+        depth_array = np.array([point_3d.x, point_3d.y, point_3d.z, 1])
+        print("13")
+        uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
+        print("14")
+        x = uvw[0] / uvw[2]
+        y = uvw[1] / uvw[1]
+
+        return x,y
+
+
     def get_pointing_line(self, hand_tip, head, xyz_array, hand, maxDistance = 5, skipFactor = 0.05):
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
         # https://github.com/mikedh/trimesh/issues/211
         # find a way to get the depth mesh from the rgbd camera
 
         # Later change code so that it changes detection side according to if it is right or left hand
-        tip = [int(hand[8][0]), int(hand[8][1])]
-
+        #tip = [int(hand[8][0]), int(hand[8][1])]
+        print("1")
         direction = self.normalize(hand_tip - head)
+        print("2")
         # print(np.shape(direction))
         ray_directions = direction
+        print("3")
         # Do not start the line right at the hand-tip to avoid having an intersection with the mesh around the hand.
         start_point = hand_tip + (direction*0.2)
+        print("4")
         ray_origins = start_point
+        print("5")
         end_point = hand_tip + (direction*0.3)
+        print("6")
         start_point_3d = Point3D(np.array(start_point)[0],np.array(start_point)[1],np.array(start_point)[2])
+        print("7")
         end_point_3d = Point3D(np.array(end_point)[0],np.array(end_point)[1],np.array(end_point)[2])
+        print("8")
+        # line = Line3D(start_point_3d, end_point_3d)
         
-        line = Line3D(start_point_3d, end_point_3d)
-        
+        image_sub = rospy.wait_for_message("/xtion/rgb/image_color",Image)
 
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            print("9")
+            cv_image = self.bridge.imgmsg_to_cv2(image_sub, "bgr8")
         except CvBridgeError as e:
             print(e)
         
-
-        cv2.line(datum.cvOutputData, (start_point_3d.x,start_point_3d.y), (end_point_3d.x,end_point_3d.y), (0,0,255), 2)
+        print("10")
+        start_point_2d = np.array(self.project_depth_array_to_2d_image(start_point_3d))
+        end_point_2d = np.array(self.project_depth_array_to_2d_image(end_point_3d))
+        print(start_point_2d[0], start_point_2d[1], end_point_2d[0], end_point_2d[1])
+        cv2.line(cv_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
         cv2.imshow("Pointing Line Results", cv_image)
         cv2.waitKey(3)
-""" 
-        delta = skipFactor * self.normalize(end_point - start_point)
-        maxSteps = int(maxDistance / (np.linalg.norm(delta)))
-        hypothesisPoint = start_point
-        for i in range(maxSteps):
-            hypothesisPoint += delta
-            # get the mesh distance at the extended point
-            ## Fix this code as it doesnt make sense -->
-            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesisPoint, undistort);
-            meshDistance = xyz_array[hypothesisPoint[0]][hypothesisPoint[1]][2]
-            # if the mesh distance is less than the distance to the point we've hit the mesh
-            # can do so that in the selected pixel space, I can compare the depth, if the
-            # depth of the pointcloud is less then it is intersecting
-            # or i can just check if the point is inside the box selected
-            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
-                print(hypothesisPoint) """
+
+        # delta = skipFactor * self.normalize(end_point - start_point)
+        # maxSteps = int(maxDistance / (np.linalg.norm(delta)))
+        # hypothesisPoint = start_point
+        # for i in range(maxSteps):
+        #     hypothesisPoint += delta
+        #     # get the mesh distance at the extended point
+        #     ## Fix this code as it doesnt make sense -->
+        #     # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesisPoint, undistort);
+        #     meshDistance = xyz_array[hypothesisPoint[0]][hypothesisPoint[1]][2]
+        #     # if the mesh distance is less than the distance to the point we've hit the mesh
+        #     # can do so that in the selected pixel space, I can compare the depth, if the
+        #     # depth of the pointcloud is less then it is intersecting
+        #     # or i can just check if the point is inside the box selected
+        #     if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
+        #         print(hypothesisPoint)
 
         # exit = False
         # for x in range(640 - tip[0] - 20):
@@ -149,8 +178,8 @@ class GetPose(State):
         #             break
         #     if(exit):
         #         break
-        
-
+    
+    
     def get_body_points(self, human, pos, xyz_array):
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 
@@ -260,7 +289,6 @@ class GetPose(State):
         # Set Params
         params = self.set_params()
 
-        self.bridge = CvBridge()
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
         
         # To save the depth coordinates once so that I don't have to call it again and doesnt slow everything
@@ -320,10 +348,10 @@ class GetPose(State):
                 # Later try to shift this functionality to is_pointing() funtion
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
-                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i])
+                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], 5, 0.05)
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
-                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i])
+                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], 5, 0.05)
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
