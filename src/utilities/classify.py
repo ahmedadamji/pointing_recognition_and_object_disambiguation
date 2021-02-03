@@ -44,11 +44,11 @@ class Classify:
 
             try:
                 frame = self.bridge.imgmsg_to_cv2(self.detection_result.image_bb, 'bgr8')
-                cv2.imshow('frame', frame)
+                # cv2.imshow('frame', frame)
             except CvBridgeError as ex:
                 rospy.logwarn(ex)
                 return
-            cv2.imshow('Detected Objects YOLO', frame)
+            cv2.imshow('YOLO Object Detection Results', frame)
             cv2.waitKey(5000)
 
             return self.detection_result.detected_objects
@@ -158,7 +158,7 @@ class Classify:
                 cv2.rectangle(frame, (bb.x_offset, bb.y_offset),
                     (bb.x_offset + bb.width, bb.y_offset + bb.height), (255, 0, 255), 1)
 
-            cv2.imshow('PCL segmented objects', frame)
+            cv2.imshow('PCL Object Segmentation Results', frame)
             cv2.waitKey(5000)
 
 

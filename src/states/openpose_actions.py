@@ -32,35 +32,37 @@ from sympy.geometry import Line2D, Line3D, Segment3D
 
 class GetPose(State):
     def __init__(self):
+        rospy.loginfo('GetPose state initialized')
         State.__init__(self, outcomes=['outcome1', 'outcome2'])
         self.bridge = CvBridge()
-        
-
-        # Document somehow that I got this from body_from_camera.py that Juan sent me
+    
     def angle_between_points( self, a, b, c ):
+        rospy.loginfo('Calculating angle between points')
         ba = np.array(a) - np.array(b)
         bc = np.array(c) - np.array(b)
 
         cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
         angle = np.arccos(cosine_angle)
 
-        # Must check when the distance between two points is 0. In that case return -1.0
         print np.degrees(angle)
         return np.degrees(angle)
 
     def get_elbow_angle(self, shoulder,elbow,hand_tip, hand):
+        rospy.loginfo('Calculating elbow angle')
         angle = 0
         angle = self.angle_between_points(shoulder, elbow, hand_tip)
         rospy.loginfo('%s angle:%f'%(hand,angle))
         return angle
 
     def get_hand_tip_delta(self, hand_tip, chest, hand):
+        rospy.loginfo('Calculating hand tip delta')
         #comparing the x coordinate of chest and hand tip
         handtipdelta = hand_tip[0] - chest[0]
         rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
         return handtipdelta
 
     def normalize(self, array):
+        #rospy.loginfo('normalizing recieved array')
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
@@ -89,14 +91,11 @@ class GetPose(State):
     #     tmp = tmp.TransformBy(this.transform)
     #     return Point2D(tmp.x, tmp.y)
 
-    def project_depth_array_to_2d_image(self, point_3d):
-        print("11")
+    def project_depth_array_to_2d_image_pixels(self, point_3d):
+        rospy.loginfo('projecting depth array to 2d image pixels')
         camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
-        print("12")
         depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
-        print("13")
         uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
-        print("14")
         x = int(uvw[0] / uvw[2])
         y = int(uvw[1] / uvw[2])
 
@@ -104,47 +103,44 @@ class GetPose(State):
 
 
     def get_pointing_line(self, hand_tip, head, xyz_array, hand, open_pose_output_image, maxDistance = 5, skipFactor = 0.05):
+        rospy.loginfo('calucating the line of pointing')
+        
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
         # https://github.com/mikedh/trimesh/issues/211
+        # http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/CameraInfo.html
+        # https://github.com/microsoft/psi
+        # https://github.com/microsoft/psi/blob/master/Sources/Calibration/Microsoft.Psi.Calibration/CalibrationExtensions.cs
+        # https://github.com/microsoft/psi/blob/dd60dbbc2651ed2a515b9d0b1c2ea2d2adfc2e25/Sources/Calibration/Microsoft.Psi.Calibration/CameraIntrinsics.cs#L101
+
         # find a way to get the depth mesh from the rgbd camera
 
-        # Later change code so that it changes detection side according to if it is right or left hand
+        # Finding tip location to determine which area of image to detect for overlap
         #tip = [int(hand[8][0]), int(hand[8][1])]
-        print("1")
+
         direction = self.normalize(hand_tip - head)
-        print("2")
         # print(np.shape(direction))
-        ray_directions = direction
-        print("3")
+
         # Do not start the line right at the hand-tip to avoid having an intersection with the mesh around the hand.
         start_point = hand_tip + (direction*0.2)
-        print("4")
-        ray_origins = start_point
-        print("5")
         end_point = hand_tip + (direction*0.3)
-        print("6")
-        start_point_3d = np.array(start_point)
-        print("7")
-        end_point_3d = np.array(end_point)
-        print("8")
-        # line = Line3D(start_point_3d, end_point_3d)
-        
-        # image_sub = rospy.wait_for_message("/xtion/rgb/image_color",Image)
 
-        # try:
-        #     print("9")
-        #     cv_image = self.bridge.imgmsg_to_cv2(image_sub, "bgr8")
-        # except CvBridgeError as e:
-        #     print(e)
-        
-        print("10")
-        start_point_2d = np.array(self.project_depth_array_to_2d_image(start_point_3d))
-        end_point_2d = np.array(self.project_depth_array_to_2d_image(end_point_3d))
-        print(start_point_3d, start_point_2d, end_point_3d, end_point_2d)
+        start_point_3d = np.array(start_point)
+        end_point_3d = np.array(end_point)
+
+        # line = Line3D(start_point_3d, end_point_3d)
+
+
+        start_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(start_point_3d))
+        end_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(end_point_3d))
+
+        # print(start_point_3d, start_point_2d, end_point_3d, end_point_2d)
+
+        rospy.loginfo('displaying pointing line')
         cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
         cv2.imshow("Pointing Line Results", open_pose_output_image)
         cv2.waitKey(3)
 
+        ## SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
         # delta = skipFactor * self.normalize(end_point - start_point)
         # maxSteps = int(maxDistance / (np.linalg.norm(delta)))
         # hypothesisPoint = start_point
@@ -161,6 +157,8 @@ class GetPose(State):
         #     if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
         #         print(hypothesisPoint)
 
+
+        ## FIRST ATTEMPTH AT FINDING COLLISION WITH MESH -->
         # exit = False
         # for x in range(640 - tip[0] - 20):
         #     for y in range(480 - tip[1] - 20):
@@ -181,8 +179,8 @@ class GetPose(State):
     
     
     def get_body_points(self, human, pos, xyz_array):
+        #rospy.loginfo('Requesting body keypoints')
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
-
         if pos == 'Head':
             pnt_index = 0
         elif pos == 'Neck':
@@ -214,6 +212,7 @@ class GetPose(State):
         return self.get_depth(pnt, xyz_array)
 
     def get_hand_points(self, hand, pos, xyz_array):
+        #rospy.loginfo('Requesting hand keypoints')
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 
         if pos == 'first_finger_tip':
@@ -233,6 +232,7 @@ class GetPose(State):
         return self.get_depth(pnt, xyz_array)
 
     def get_depth(self, pnt, xyz_array):
+        #rospy.loginfo('Requesting depth data at requested pixel')
         # Gets the z distance from tiago to the object at pixel x,y in the camera image.
         # x and y are in pixels
         x = pnt[0]
@@ -258,6 +258,7 @@ class GetPose(State):
     #     return parser.parse_known_args()
 
     def set_params(self):
+        rospy.loginfo('Setting OpenPose default parameters')
         params = dict()
         params["body"] = 1
         params["number_people_max"] = 1
@@ -277,6 +278,7 @@ class GetPose(State):
         return params
 
     def print_body_parameters(self, datum):
+        rospy.loginfo('Printing Body Parameters')
         print("Body keypoints: \n" + str(np.around(datum.poseKeypoints).astype(int)))
         #print("Face keypoints: \n" + str(np.around(datum.faceKeypoints).fillna(0.0).astype(int)))
         print("Left hand keypoints: \n" + str(np.around(datum.handKeypoints[0]).astype(int)))
@@ -325,6 +327,8 @@ class GetPose(State):
             print('Number of humans in frame: {}'.format(human_count))
             self.print_body_parameters(datum)
             open_pose_output_image = datum.cvOutputData
+            cv2.imshow("OpenPose Results", open_pose_output_image)
+            cv2.waitKey(0)
 
             for i in range(human_count):
                 print('=================================')
@@ -359,9 +363,6 @@ class GetPose(State):
                     print('right hand pointing')
                 else:
                     print('hand not pointing')
-
-            cv2.imshow("OpenPose Results", open_pose_output_image)
-            cv2.waitKey(0)
 
         
         except Exception as e:
