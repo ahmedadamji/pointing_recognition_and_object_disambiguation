@@ -93,17 +93,17 @@ class GetPose(State):
         print("11")
         camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
         print("12")
-        depth_array = np.array([point_3d.x, point_3d.y, point_3d.z, 1])
+        depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
         print("13")
         uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
         print("14")
-        x = uvw[0] / uvw[2]
-        y = uvw[1] / uvw[1]
+        x = int(uvw[0] / uvw[2])
+        y = int(uvw[1] / uvw[2])
 
         return x,y
 
 
-    def get_pointing_line(self, hand_tip, head, xyz_array, hand, maxDistance = 5, skipFactor = 0.05):
+    def get_pointing_line(self, hand_tip, head, xyz_array, hand, open_pose_output_image, maxDistance = 5, skipFactor = 0.05):
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
         # https://github.com/mikedh/trimesh/issues/211
         # find a way to get the depth mesh from the rgbd camera
@@ -123,26 +123,26 @@ class GetPose(State):
         print("5")
         end_point = hand_tip + (direction*0.3)
         print("6")
-        start_point_3d = Point3D(np.array(start_point)[0],np.array(start_point)[1],np.array(start_point)[2])
+        start_point_3d = np.array(start_point)
         print("7")
-        end_point_3d = Point3D(np.array(end_point)[0],np.array(end_point)[1],np.array(end_point)[2])
+        end_point_3d = np.array(end_point)
         print("8")
         # line = Line3D(start_point_3d, end_point_3d)
         
-        image_sub = rospy.wait_for_message("/xtion/rgb/image_color",Image)
+        # image_sub = rospy.wait_for_message("/xtion/rgb/image_color",Image)
 
-        try:
-            print("9")
-            cv_image = self.bridge.imgmsg_to_cv2(image_sub, "bgr8")
-        except CvBridgeError as e:
-            print(e)
+        # try:
+        #     print("9")
+        #     cv_image = self.bridge.imgmsg_to_cv2(image_sub, "bgr8")
+        # except CvBridgeError as e:
+        #     print(e)
         
         print("10")
         start_point_2d = np.array(self.project_depth_array_to_2d_image(start_point_3d))
         end_point_2d = np.array(self.project_depth_array_to_2d_image(end_point_3d))
-        print(start_point_2d[0], start_point_2d[1], end_point_2d[0], end_point_2d[1])
-        cv2.line(cv_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
-        cv2.imshow("Pointing Line Results", cv_image)
+        print(start_point_3d, start_point_2d, end_point_3d, end_point_2d)
+        cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
+        cv2.imshow("Pointing Line Results", open_pose_output_image)
         cv2.waitKey(3)
 
         # delta = skipFactor * self.normalize(end_point - start_point)
@@ -324,6 +324,7 @@ class GetPose(State):
             human_count = len(datum.poseKeypoints)
             print('Number of humans in frame: {}'.format(human_count))
             self.print_body_parameters(datum)
+            open_pose_output_image = datum.cvOutputData
 
             for i in range(human_count):
                 print('=================================')
@@ -348,10 +349,10 @@ class GetPose(State):
                 # Later try to shift this functionality to is_pointing() funtion
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
-                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], 5, 0.05)
+                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], open_pose_output_image, 5, 0.05)
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
-                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], 5, 0.05)
+                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], open_pose_output_image, 5, 0.05)
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
@@ -359,8 +360,7 @@ class GetPose(State):
                 else:
                     print('hand not pointing')
 
-
-            cv2.imshow("OpenPose Results", datum.cvOutputData)
+            cv2.imshow("OpenPose Results", open_pose_output_image)
             cv2.waitKey(0)
 
         
