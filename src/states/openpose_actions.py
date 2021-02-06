@@ -138,7 +138,9 @@ class GetPose(State):
         rospy.loginfo('displaying pointing line')
         cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
         cv2.imshow("Pointing Line Results", open_pose_output_image)
-        cv2.waitKey(3)
+        #cv2.waitKey(5000)
+        # comment this later to stop state machine automatically and move past this code
+        cv2.waitKey(0)
 
         ## SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
         # delta = skipFactor * self.normalize(end_point - start_point)
@@ -328,22 +330,27 @@ class GetPose(State):
             self.print_body_parameters(datum)
             open_pose_output_image = datum.cvOutputData
             cv2.imshow("OpenPose Results", open_pose_output_image)
-            cv2.waitKey(0)
+            cv2.waitKey(5000)
 
             for i in range(human_count):
                 print('=================================')
                 #get_body_angle(datum.poseKeypoints[i], 'waist')
                 #angle = get_body_angle(datum.poseKeypoints[i], 'left_elbow')
 
-                head = self.get_body_points(datum.poseKeypoints[i], 'Head', xyz_array)
-                chest = self.get_body_points(datum.poseKeypoints[i], 'Neck', xyz_array)
-                right_shoulder = self.get_body_points(datum.poseKeypoints[i], 'RShoulder', xyz_array)
-                left_shoulder = self.get_body_points(datum.poseKeypoints[i], 'LShoulder', xyz_array)
-                right_shoulder = self.get_body_points(datum.poseKeypoints[i], 'RShoulder', xyz_array)
-                left_elbow = self.get_body_points(datum.poseKeypoints[i], 'LElbow', xyz_array)
-                right_elbow = self.get_body_points(datum.poseKeypoints[i], 'RElbow', xyz_array)
-                left_hand_tip = self.get_hand_points(datum.handKeypoints[0][i], 'first_finger_tip', xyz_array)
-                right_hand_tip = self.get_hand_points(datum.handKeypoints[1][i], 'first_finger_tip', xyz_array)
+                poseKeypoints = datum.poseKeypoints[i]
+                handKeypointsL = datum.handKeypoints[0][i]
+                handKeypointsR = datum.handKeypoints[1][i]
+
+
+                head = self.get_body_points(poseKeypoints, 'Head', xyz_array)
+                chest = self.get_body_points(poseKeypoints, 'Neck', xyz_array)
+                right_shoulder = self.get_body_points(poseKeypoints, 'RShoulder', xyz_array)
+                left_shoulder = self.get_body_points(poseKeypoints, 'LShoulder', xyz_array)
+                right_shoulder = self.get_body_points(poseKeypoints, 'RShoulder', xyz_array)
+                left_elbow = self.get_body_points(poseKeypoints, 'LElbow', xyz_array)
+                right_elbow = self.get_body_points(poseKeypoints, 'RElbow', xyz_array)
+                left_hand_tip = self.get_hand_points(handKeypointsL, 'first_finger_tip', xyz_array)
+                right_hand_tip = self.get_hand_points(handKeypointsR, 'first_finger_tip', xyz_array)
                 left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
                 right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
                 left_hand_tip_delta = self.get_hand_tip_delta(left_hand_tip,chest,'left')
