@@ -190,11 +190,18 @@ class GetPose(State):
         hypothesis_point_3d, hypothesis_point_2d = self.intersect_line_with_depth_mesh(xyz_array, skipFactor, maxDistance, start_point, end_point)
         
         rospy.loginfo('displaying extended pointing line towards mesh')
-        cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (hypothesis_point_2d[0],hypothesis_point_2d[1]), (0,255,0), 1)
+        # Stores extended line upto mesh
+        cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (hypothesis_point_2d[0],hypothesis_point_2d[1]), (255,255,0), 1)
+        # Stores box around overlapping point
+        box_start_point = (hypothesis_point_2d[0]-25),(hypothesis_point_2d[1]-25)
+        box_end_point = hypothesis_point_2d[0]+25,hypothesis_point_2d[1]+25
+        cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
+        # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
         cv2.waitKey(5000)
 
         cv2.waitKey(0)
+
     
     
     def get_body_points(self, human, pos, xyz_array):
