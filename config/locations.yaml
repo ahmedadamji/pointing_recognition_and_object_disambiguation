@@ -1,10 +1,10 @@
 girl_pointing:
   position: 
-    x: -2.123
-    y: -6.726
+    x: -2.456
+    y: -6.697
     z: 0.0985
   orientation: 
     x: 0.0
     y: 0.0
-    z: -0.465
-    w: 0.885
+    z: -0.586
+    w: 0.810
