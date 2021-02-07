@@ -121,8 +121,8 @@ class GetPose(State):
         # print(np.shape(direction))
 
         # Do not start the line right at the hand-tip to avoid having an intersection with the mesh around the hand.
-        start_point = hand_tip + (direction*0.2)
-        end_point = hand_tip + (direction*0.3)
+        start_point = hand_tip + (direction*0.05)
+        end_point = hand_tip + (direction*0.15)
 
         start_point_3d = np.array(start_point)
         end_point_3d = np.array(end_point)
