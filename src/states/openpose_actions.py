@@ -101,6 +101,50 @@ class GetPose(State):
 
         return x,y
 
+    def intersect_line_with_depth_mesh(self, xyz_array, skipFactor, maxDistance, start_point, end_point):
+        # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
+        delta = skipFactor * self.normalize(end_point - start_point)
+        maxSteps = int(maxDistance / (np.linalg.norm(delta)))
+        hypothesis_point_3d = start_point
+        for i in range(maxSteps):
+            hypothesis_point_3d += delta
+            # Get 2D xy coordinate of the hypothesis point
+            hypothesis_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(hypothesis_point_3d))
+
+
+            # get the mesh distance at the extended point
+            ## Fix this code as it doesnt make sense -->
+            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesis_point_3d, undistort);
+            meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
+            # if the mesh distance is less than the distance to the point we've hit the mesh
+            # can do so that in the selected pixel space, I can compare the depth, if the
+            # depth of the pointcloud is less then it is intersecting
+            # or i can just check if the point is inside the box selected
+            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
+                print(hypothesis_point_2d)
+                return hypothesis_point_3d, hypothesis_point_2d
+        
+
+        ## FIRST ATTEMPTH AT FINDING COLLISION WITH MESH -->
+        # exit = False
+        # for x in range(640 - tip[0] - 20):
+        #     for y in range(480 - tip[1] - 20):
+        #         if math.isnan((xyz_array[x+tip[0]+20][y+tip[1]+20])[0]):
+        #             point = Point3D(0,0,0)
+        #         else:
+        #             recorded_point = np.array(xyz_array[x+tip[0]+20][y+tip[1]+20])
+        #             point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
+                
+        #         intersection = np.array(line.intersection(point))
+        #         if intersection.size > 0:
+        #             print(line.intersection(point))
+        #             exit = True
+        #         if(exit):
+        #             break
+        #     if(exit):
+        #         break
+
+
 
     def get_pointing_line(self, hand_tip, head, xyz_array, hand, open_pose_output_image, maxDistance = 5, skipFactor = 0.05):
         rospy.loginfo('calucating the line of pointing')
@@ -135,54 +179,22 @@ class GetPose(State):
 
         # print(start_point_3d, start_point_2d, end_point_3d, end_point_2d)
 
-        rospy.loginfo('displaying pointing line')
-        cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
-        cv2.imshow("Pointing Line Results", open_pose_output_image)
-        cv2.waitKey(5000)
+        # rospy.loginfo('displaying pointing line')
+        # cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
+        # cv2.imshow("Pointing Line Results", open_pose_output_image)
+        # cv2.waitKey(5000)
         # comment this later to stop state machine automatically and move past this code
         
         #cv2.waitKey(0)
 
-        # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
-        delta = skipFactor * self.normalize(end_point - start_point)
-        maxSteps = int(maxDistance / (np.linalg.norm(delta)))
-        hypothesisPoint = start_point
-        for i in range(maxSteps):
-            hypothesisPoint += delta
-            # Get 2D xy coordinate of the hypothesis point
-            hypothesis_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(hypothesisPoint))
-
-
-            # get the mesh distance at the extended point
-            ## Fix this code as it doesnt make sense -->
-            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesisPoint, undistort);
-            meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
-            # if the mesh distance is less than the distance to the point we've hit the mesh
-            # can do so that in the selected pixel space, I can compare the depth, if the
-            # depth of the pointcloud is less then it is intersecting
-            # or i can just check if the point is inside the box selected
-            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
-                print(hypothesis_point_2d)
+        hypothesis_point_3d, hypothesis_point_2d = self.intersect_line_with_depth_mesh(xyz_array, skipFactor, maxDistance, start_point, end_point)
+        
+        rospy.loginfo('displaying extended pointing line towards mesh')
+        cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (hypothesis_point_2d[0],hypothesis_point_2d[1]), (0,255,0), 1)
+        cv2.imshow("Pointing Line Results", open_pose_output_image)
+        cv2.waitKey(5000)
 
         cv2.waitKey(0)
-        ## FIRST ATTEMPTH AT FINDING COLLISION WITH MESH -->
-        # exit = False
-        # for x in range(640 - tip[0] - 20):
-        #     for y in range(480 - tip[1] - 20):
-        #         if math.isnan((xyz_array[x+tip[0]+20][y+tip[1]+20])[0]):
-        #             point = Point3D(0,0,0)
-        #         else:
-        #             recorded_point = np.array(xyz_array[x+tip[0]+20][y+tip[1]+20])
-        #             point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
-                
-        #         intersection = np.array(line.intersection(point))
-        #         if intersection.size > 0:
-        #             print(line.intersection(point))
-        #             exit = True
-        #         if(exit):
-        #             break
-        #     if(exit):
-        #         break
     
     
     def get_body_points(self, human, pos, xyz_array):
