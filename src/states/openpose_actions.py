@@ -138,28 +138,33 @@ class GetPose(State):
         rospy.loginfo('displaying pointing line')
         cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
         cv2.imshow("Pointing Line Results", open_pose_output_image)
-        #cv2.waitKey(5000)
+        cv2.waitKey(5000)
         # comment this later to stop state machine automatically and move past this code
+        
+        #cv2.waitKey(0)
+
+        # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
+        delta = skipFactor * self.normalize(end_point - start_point)
+        maxSteps = int(maxDistance / (np.linalg.norm(delta)))
+        hypothesisPoint = start_point
+        for i in range(maxSteps):
+            hypothesisPoint += delta
+            # Get 2D xy coordinate of the hypothesis point
+            hypothesis_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(hypothesisPoint))
+
+
+            # get the mesh distance at the extended point
+            ## Fix this code as it doesnt make sense -->
+            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesisPoint, undistort);
+            meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
+            # if the mesh distance is less than the distance to the point we've hit the mesh
+            # can do so that in the selected pixel space, I can compare the depth, if the
+            # depth of the pointcloud is less then it is intersecting
+            # or i can just check if the point is inside the box selected
+            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
+                print(hypothesis_point_2d)
+
         cv2.waitKey(0)
-
-        ## SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
-        # delta = skipFactor * self.normalize(end_point - start_point)
-        # maxSteps = int(maxDistance / (np.linalg.norm(delta)))
-        # hypothesisPoint = start_point
-        # for i in range(maxSteps):
-        #     hypothesisPoint += delta
-        #     # get the mesh distance at the extended point
-        #     ## Fix this code as it doesnt make sense -->
-        #     # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesisPoint, undistort);
-        #     meshDistance = xyz_array[hypothesisPoint[0]][hypothesisPoint[1]][2]
-        #     # if the mesh distance is less than the distance to the point we've hit the mesh
-        #     # can do so that in the selected pixel space, I can compare the depth, if the
-        #     # depth of the pointcloud is less then it is intersecting
-        #     # or i can just check if the point is inside the box selected
-        #     if (not(math.isnan(meshDistance)) and (meshDistance < hypothesisPoint[2])):
-        #         print(hypothesisPoint)
-
-
         ## FIRST ATTEMPTH AT FINDING COLLISION WITH MESH -->
         # exit = False
         # for x in range(640 - tip[0] - 20):
@@ -360,10 +365,10 @@ class GetPose(State):
                 # Later try to shift this functionality to is_pointing() funtion
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
-                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], open_pose_output_image, 5, 0.05)
+                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], open_pose_output_image, 1, 0.05)
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
-                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], open_pose_output_image, 5, 0.05)
+                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], open_pose_output_image, 1, 0.05)
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
