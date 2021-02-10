@@ -202,6 +202,20 @@ class GetPose(State):
 
         cv2.waitKey(0)
 
+    def transform_from_camera_frame_to_world_frame(camera_point):
+        self.cam_model.fromCameraInfo(self.info_msg_left,self.info_msg_right)
+        point_msg.pose.position.x= camera_point[0]
+        point_msg.pose.position.y=camera_point[1]
+        point_msg.pose.position.z= camera_point[2]
+        point_msg.pose.orientation.x=0
+        point_msg.pose.orientation.y=0
+        point_msg.pose.orientation.z=0
+        point_msg.pose.orientation.w=1
+        point_msg.header.stamp = rospy.Time.now()
+        point_msg.header.frame_id = self.cam_model.tfFrame()
+        self.listener.waitForTransform(self.cam_model.tfFrame(), "world", rospy.Time.now(), rospy.Duration(1.0))
+        tf_point = self.listener.transformPose("world", point_msg)
+
     
     
     def get_body_points(self, human, pos, xyz_array):
