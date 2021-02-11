@@ -6,7 +6,7 @@ from smach import State, StateMachine
 from utilities import Tiago, Classify
 # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
 #from utilities import GetPoseBeforeGazebo
-from states import ApproachPointingGirl, ObjectDetection, GetPose
+from states import ApproachPersonPointing, ObjectDetection, GetPose, ApproachPointedObject
 
 
 # main
@@ -28,9 +28,10 @@ def main():
 
     with sm:
         # Add states to the container
-        StateMachine.add('approach_pointing_girl', ApproachPointingGirl(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
+        StateMachine.add('approach_pointing_girl', ApproachPersonPointing(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
         StateMachine.add('detect_objects', ObjectDetection(classify), transitions={'outcome1':'get_pose', 'outcome2': 'get_pose'})
-        StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'end', 'outcome2': 'end'})
+        StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
+        StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
 
     #rospy.spin()

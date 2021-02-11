@@ -26,6 +26,8 @@ from sympy import Point2D, Point3D
 from sympy.abc import L
 from sympy.geometry import Line2D, Line3D, Segment3D
 
+from pointing_recognition.msg import IntersectionData
+
 
 # cap = cv2.VideoCapture(0)
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
@@ -33,7 +35,11 @@ from sympy.geometry import Line2D, Line3D, Segment3D
 class GetPose(State):
     def __init__(self):
         rospy.loginfo('GetPose state initialized')
-        State.__init__(self, outcomes=['outcome1', 'outcome2'])
+        State.__init__(self, outcomes=['outcome1','outcome2'])
+        
+        self.intersection_point_pub = rospy.Publisher('/intersection_point', IntersectionData)
+        self.msg_to_send = IntersectionData()
+        
         self.bridge = CvBridge()
     
     def angle_between_points( self, a, b, c ):
@@ -187,34 +193,25 @@ class GetPose(State):
         
         #cv2.waitKey(0)
 
-        hypothesis_point_3d, hypothesis_point_2d = self.intersect_line_with_depth_mesh(xyz_array, skipFactor, maxDistance, start_point, end_point)
+        intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(xyz_array, skipFactor, maxDistance, start_point, end_point)
         
         rospy.loginfo('displaying extended pointing line towards mesh')
         # Stores extended line upto mesh
-        cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (hypothesis_point_2d[0],hypothesis_point_2d[1]), (255,255,0), 1)
+        cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (intersection_point_2d[0],intersection_point_2d[1]), (255,255,0), 1)
         # Stores box around overlapping point
-        box_start_point = (hypothesis_point_2d[0]-25),(hypothesis_point_2d[1]-25)
-        box_end_point = hypothesis_point_2d[0]+25,hypothesis_point_2d[1]+25
+        box_start_point = (intersection_point_2d[0]-25),(intersection_point_2d[1]-25)
+        box_end_point = intersection_point_2d[0]+25,intersection_point_2d[1]+25
         cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
         cv2.waitKey(5000)
+        
+        self.msg_to_send.intersection_point_2d = intersection_point_2d
+        self.msg_to_send.intersection_point_3d = intersection_point_3d
 
-        cv2.waitKey(0)
+        self.intersection_point_pub.publish(msg_to_send)
 
-    def transform_from_camera_frame_to_world_frame(camera_point):
-        self.cam_model.fromCameraInfo(self.info_msg_left,self.info_msg_right)
-        point_msg.pose.position.x= camera_point[0]
-        point_msg.pose.position.y=camera_point[1]
-        point_msg.pose.position.z= camera_point[2]
-        point_msg.pose.orientation.x=0
-        point_msg.pose.orientation.y=0
-        point_msg.pose.orientation.z=0
-        point_msg.pose.orientation.w=1
-        point_msg.header.stamp = rospy.Time.now()
-        point_msg.header.frame_id = self.cam_model.tfFrame()
-        self.listener.waitForTransform(self.cam_model.tfFrame(), "world", rospy.Time.now(), rospy.Duration(1.0))
-        tf_point = self.listener.transformPose("world", point_msg)
+        #cv2.waitKey(0)
 
     
     
@@ -399,13 +396,13 @@ class GetPose(State):
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
                     self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], open_pose_output_image, 1, 0.05)
+                    return 'outcome1'
+                    
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
                     self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], open_pose_output_image, 1, 0.05)
-                if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
-                    print('left hand pointing')
-                elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
-                    print('right hand pointing')
+                    return 'outcome1'
+
                 else:
                     print('hand not pointing')
 

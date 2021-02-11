@@ -8,9 +8,11 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 
 
-class ApproachPointingGirl(State):
+class ApproachPersonPointing(State):
     def __init__(self):
-        State.__init__(self, outcomes=['outcome1', 'outcome2'])
+        rospy.loginfo('ApproachPersonPointing state initialized')
+        
+        State.__init__(self, outcomes=['outcome1','outcome2'])
 
     def execute(self, userdata, wait=True):
 

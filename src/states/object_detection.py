@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import rospy
 from smach import State
 from geometry_msgs.msg import Point, Pose
 from collections import namedtuple
@@ -7,7 +7,10 @@ from collections import namedtuple
 # Refered catering_erl for yolo_object_recognition
 class ObjectDetection(State):
     def __init__(self, classify):
-        State.__init__(self, outcomes=['outcome1', 'outcome2'])
+        rospy.loginfo('ObjectDetection state initialized')
+        
+        State.__init__(self, outcomes=['outcome1','outcome2'])
+
         self.classify = classify
 
 
