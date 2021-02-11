@@ -6,6 +6,8 @@ from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
 from sensor_msgs.srv import SetCameraInfo
 import sensor_msgs.point_cloud2 as pc2
 
+from pointing_recognition.msg import IntersectionData
+
 from geometry_msgs.msg import PoseStamped
 
 from smach import State
@@ -25,8 +27,6 @@ import sympy
 from sympy import Point2D, Point3D
 from sympy.abc import L
 from sympy.geometry import Line2D, Line3D, Segment3D
-
-from pointing_recognition.msg import IntersectionData
 
 
 # cap = cv2.VideoCapture(0)
@@ -206,10 +206,13 @@ class GetPose(State):
         cv2.imshow("Pointing Line Results", open_pose_output_image)
         cv2.waitKey(5000)
         
-        self.msg_to_send.intersection_point_2d = intersection_point_2d
-        self.msg_to_send.intersection_point_3d = intersection_point_3d
+        # self.msg_to_send.intersection_point_2d = intersection_point_2d
+        # self.msg_to_send.intersection_point_3d = intersection_point_3d
 
-        self.intersection_point_pub.publish(msg_to_send)
+        # self.intersection_point_pub.publish(self.msg_to_send)
+
+        rospy.set_param('/intersection_point_2d', [intersection_point_2d[0].item(), intersection_point_2d[1].item()])
+        rospy.set_param('/intersection_point_3d', [intersection_point_3d[0].item(), intersection_point_3d[1].item(), intersection_point_3d[2].item()])
 
         #cv2.waitKey(0)
 

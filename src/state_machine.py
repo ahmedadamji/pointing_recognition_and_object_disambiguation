@@ -9,9 +9,10 @@ from utilities import Tiago, Classify
 from states import ApproachPersonPointing, ObjectDetection, GetPose, ApproachPointedObject
 
 
+
 # main
 def main():
-    rospy.init_node('pointing_recognition')
+    rospy.init_node('state_machine')
 
     # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
     #actions = GetPoseBeforeGazebo()

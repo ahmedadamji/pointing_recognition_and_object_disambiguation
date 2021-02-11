@@ -33,16 +33,21 @@ class ApproachPointedObject(State):
     #     self.listener.waitForTransform(self.cam_model.tfFrame(), "world", rospy.Time.now(), rospy.Duration(1.0))
     #     tf_point = self.listener.transformPose("world", point_msg)
 
-    def intersection_data_callback(msg):
-        print "Intersection point (2d): ", str(msg.intersection_point_2d)
-        print "Intersection point (3d): ", str(msg.intersection_point_3d)
-
     def execute(self, userdata, wait=True):
 
-        intersection_point = rospy.Subscriber('/intersection_point', IntersectionData, intersection_data_callback)
-
+        # intersection_point = rospy.wait_for_message('/intersection_point', IntersectionData)
+        # print intersection_point.intersection_point_2d
+        # print intersection_point.intersection_point_3d
+        intersection_point_2d = rospy.get_param("/intersection_point_2d")
+        intersection_point_3d = rospy.get_param("/intersection_point_3d")
         print intersection_point_2d
         print intersection_point_3d
+
+
+
+
+
+
 
 
         cv2.waitKey(0)
