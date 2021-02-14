@@ -12,27 +12,74 @@ girl_pointing:
 
 
 # This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
+# tables:
+#   - name: 'Table 0'
+#     bottom_left: { x: -1.63, y: -8.54, z: 0.0 }
+#     bottom_right: { x: -2.59, y: -8.54, z: 0.0 }
+#     top_left: { x: -1.63, y: -9.30, z: 0.0 }
+#     top_right: { x: -2.59, y: -9.30, z: 0.0 }
+
+#   - name: 'Table 1'
+#     bottom_left: { x: 0.81, y: -10.77, z: 0.0 }
+#     bottom_right: { x: -0.55, y: -10.77, z: 0.0 }
+#     top_left: { x: 0.81, y: -11.53, z: 0.0 }
+#     top_right: { x: -0.55, y: -11.53, z: 0.0 }
+
+#   - name: 'Table 2'
+#     bottom_left: { x: 3.00, y: -8.23, z: 0.0 }
+#     bottom_right: { x: 2.04, y: -8.23, z: 0.0 }
+#     top_left: { x: 3.00, y: -8.99, z: 0.0 }
+#     top_right: { x: 2.04, y: -8.99, z: 0.0 }
+
+#   - name: 'Table 3'
+#     bottom_left: { x: 3.65, y: -5.10, z: 0.0 }
+#     bottom_right: { x: 2.69, y: -5.10, z: 0.0 }
+#     top_left: { x: 3.65, y: -5.86, z: 0.0 }
+#     top_right: { x: 2.69, y: -5.86, z: 0.0 }
+
+
+# This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
 tables:
-  - name: 'Table 1'
-    bottom_left: { x: -1.63, y: -8.54, z: 0.0 }
-    bottom_right: { x: -2.59, y: -8.54, z: 0.0 }
-    top_left: { x: -1.63, y: -9.30, z: 0.0 }
-    top_right: { x: -2.59, y: -9.30, z: 0.0 }
+  table0:
+    id: 0
+    location:
+      position: { x: -2.1598, y: -7.8729, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
+    cuboid:
+      frame: 'map'
+      max_xyz: [ -1.63, -8.54, 1.0 ]
+      min_xyz: [ -2.59, -9.30, 0.00 ]
+    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
-  - name: 'Table 2'
-    bottom_left: { x: 0.81, y: -10.77, z: 0.0 }
-    bottom_right: { x: -0.54808, y: -10.77, z: 0.0 }
-    top_left: { x: 0.81, y: -11.53, z: 0.0 }
-    top_right: { x: -0.54808, y: -11.53, z: 0.0 }
+  table1:
+    id: 1
+    location:
+      position: { x: 0.11683, y: -9.8525, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
+    cuboid:
+      frame: 'map'
+      max_xyz: [ 0.81, -10.77, 1.0 ]
+      min_xyz: [ -0.55, -11.53, 0.00 ]
+    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
-  - name: 'Table 3'
-    bottom_left: { x: 3.00, y: -8.23, z: 0.0 }
-    bottom_right: { x: 2.04, y: -8.23, z: 0.0 }
-    top_left: { x: 3.00, y: -8.99, z: 0.0 }
-    top_right: { x: 2.04, y: -8.99, z: 0.0 }
+  table2:
+    id: 2
+    location:
+      position: { x: 2.4824, y: -7.5183, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
+    cuboid:
+      frame: 'map'
+      max_xyz: [ 3.00, -8.23, 0.815 ]
+      min_xyz: [ 2.04, -8.99, 0.00 ]
+    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
-  - name: 'Table 4'
-    bottom_left: { x: 3.65, y: -5.10, z: 0.0 }
-    bottom_right: { x: 2.69, y: -5.10, z: 0.0 }
-    top_left: { x: 3.65, y: -5.86, z: 0.0 }
-    top_right: { x: 2.69, y: -5.86, z: 0.0 }
+  table3:
+    id: 3
+    location:
+      position: { x: 3.0824, y: -4.4662, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
+    cuboid:
+      frame: 'map'
+      max_xyz: [ 3.65, -5.10, 0.815 ]
+      min_xyz: [ 2.69, -5.86, 0.00 ]
+    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
