@@ -72,16 +72,16 @@ class GetPose(State):
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
-    # def GetMeshDepthAtPoint(self, ICameraIntrinsics depthIntrinsics, points, Point3D point, bool undistort):
+    # def GetMeshDepthAtPoint(self, ICameraIntrinsics depthIntrinsics, depth_points, Point3D point, bool undistort):
     #     Point2D depthSpacePoint = self.ToPixelSpace(point, undistort)
 
     #     x = int (math.round(depthSpacePoint.x))
     #     y = int (math.round(depthSpacePoint.y))
-    #     if ((x < 0) or (x >= points.width) or (y < 0) or (y >= points.height)):
+    #     if ((x < 0) or (x >= depth_points.width) or (y < 0) or (y >= depth_points.height)):
     #         return float('NaN')
 
-    #     byteOffset = int ((y * points.stride) + (x * 2))
-    #     depth = int(points.ReadBytes(2, byteOffset))
+    #     byteOffset = int ((y * depth_points.stride) + (x * 2))
+    #     depth = int(depth_points.ReadBytes(2, byteOffset))
     #     if (depth == 0):
     #         return float('NaN')
 
@@ -120,7 +120,7 @@ class GetPose(State):
 
             # get the mesh distance at the extended point
             ## Fix this code as it doesnt make sense -->
-            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, points, hypothesis_point_3d, undistort);
+            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, depth_points, hypothesis_point_3d, undistort);
             meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
             # if the mesh distance is less than the distance to the point we've hit the mesh
             # can do so that in the selected pixel space, I can compare the depth, if the
@@ -285,8 +285,8 @@ class GetPose(State):
         # To check the range of the rgbd camera
         #print(xyz_array[479][639])
         #print(xyz_array[0][0])
-        #print(points.header.frame_id)
-        #print(points.height, points.width)
+        #print(depth_points.header.frame_id)
+        #print(depth_points.height, depth_points.width)
 
         # xyz_array returns in meters
         return xyz_array[x][y]
@@ -334,8 +334,8 @@ class GetPose(State):
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
         
         # To save the depth coordinates once so that I don't have to call it again and doesnt slow everything
-        points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
-        xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(points, remove_nans=False)
+        depth_points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
+        xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(depth_points, remove_nans=False)
         xyz_array = np.transpose(xyz_array, (1, 0, 2))
 
 
