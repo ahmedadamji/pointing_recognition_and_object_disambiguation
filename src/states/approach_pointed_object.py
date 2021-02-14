@@ -5,6 +5,7 @@ import tf
 import numpy as np
 
 from smach import State
+from utilities import Tiago
 
 from geometry_msgs.msg import Pose
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -21,6 +22,7 @@ class ApproachPointedObject(State):
         rospy.loginfo('ApproachPointedObject state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
         self.transformer = tf.TransformListener()
+        self.tiago = Tiago()
 
     
     def transform_from_camera_frame_to_world_frame(self, camera_point):
@@ -50,14 +52,45 @@ class ApproachPointedObject(State):
         print intersection_point_world
         if ((cuboid_min[0] <= intersection_point_world[0] <= cuboid_max[0]) and (cuboid_min[1] <= intersection_point_world[1] <= cuboid_max[1])  and (cuboid_min[2] <= intersection_point_world[2] <= cuboid_max[2])):
             print 'table0' + ' is the man'
-
+            return 'table0'
 
 
         # Pose(position = Point(**tables['position']), orientation = Quaternion(**tables['orientation']))
 
 
-    #def approach_table(self):
+    def approach_table(self, table, wait=True):
+        rospy.loginfo('Approaching table selected')
+        
+        # create the action client:
+        movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
 
+        # wait until the action server has started up and started listening for goals
+        movebase_client.wait_for_server()
+
+        location = rospy.get_param('/tables/' + table + '/location')
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.header.frame_id = 'map'
+        goal.target_pose.pose = Pose(position = Point(**location['position']),
+                                    orientation = Quaternion(**location['orientation']))
+
+
+        movebase_client.send_goal(goal)
+
+        rospy.loginfo('GOAL SENT! o:')
+
+        # waits for the server to finish performing the action
+        if wait:
+            if movebase_client.wait_for_result():
+                rospy.loginfo('Goal location achieved!')
+                # operator = getLocation()           
+                # if operator:
+                #     return get_closer_to_person(operator)
+            else:
+                rospy.logwarn("Couldn't reach the goal!")
+        
+        self.tiago.check_table(True)
 
 
     def execute(self, userdata, wait=True):
@@ -73,7 +106,8 @@ class ApproachPointedObject(State):
         # print intersection_point_3d
         intersection_point_world = self.transform_from_camera_frame_to_world_frame(intersection_point_3d)
 
-        self.find_table_id(intersection_point_world)
+        table = self.find_table_id(intersection_point_world)
+        self.approach_table(table, wait)
 
         cv2.waitKey(0)
         

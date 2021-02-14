@@ -37,6 +37,21 @@ class Tiago:
 
         rospy.loginfo("play motion: back_to_default")
 
+    def check_table(self, wait=False):
+        # lift torso high and head to default
+        self.play_motion_goal_sent = True
+        torso_goal = FollowJointTrajectoryGoal()
+        pm_goal = PlayMotionGoal('check_table', True, 0)
+        test_goal = PlayMotionGoal()
+        print test_goal.priority
+        #self.play_motion.send_goal(torso_goal)
+        self.play_motion.send_goal(pm_goal)
+
+        if wait:
+            self.play_motion.wait_for_result()
+
+        rospy.loginfo("play motion: check_table")
+
 
     def shutdown(self):
 
