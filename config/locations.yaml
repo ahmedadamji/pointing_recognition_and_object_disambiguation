@@ -39,6 +39,8 @@ girl_pointing:
 
 
 # This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
+# I have added some on each side as it is not the dimentions of the flat surface on the top (only done for table0 yet, other dimentions are still rough for the cuboid)
+# For table one it is assuming it is a square top with 1 m sides
 tables:
   table0:
     id: 0
@@ -47,8 +49,8 @@ tables:
       orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
     cuboid:
       frame: 'map'
-      max_xyz: [ -1.63, -8.54, 1.0 ]
-      min_xyz: [ -2.59, -9.30, 0.00 ]
+      max_xyz: [ -1.61, -8.42, 3.0 ]
+      min_xyz: [ -2.61, -9.42, 0.00 ]
     # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
   table1:
@@ -58,7 +60,7 @@ tables:
       orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
     cuboid:
       frame: 'map'
-      max_xyz: [ 0.81, -10.77, 1.0 ]
+      max_xyz: [ 0.81, -10.77, 3.0 ]
       min_xyz: [ -0.55, -11.53, 0.00 ]
     # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
@@ -69,14 +71,14 @@ tables:
       orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
     cuboid:
       frame: 'map'
-      max_xyz: [ 3.00, -8.23, 0.815 ]
+      max_xyz: [ 3.00, -8.23, 3 ]
       min_xyz: [ 2.04, -8.99, 0.00 ]
     # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
   table3:
     id: 3
     location:
-      position: { x: 3.0824, y: -4.4662, z: 0.0 }
+      position: { x: 3.0824, y: -4.4662, z: 3 }
       orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
     cuboid:
       frame: 'map'

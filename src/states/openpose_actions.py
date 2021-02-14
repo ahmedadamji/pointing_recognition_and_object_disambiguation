@@ -325,6 +325,7 @@ class GetPose(State):
         print("Right hand keypoints: \n" + str(np.around(datum.handKeypoints[1]).astype(int)))
 
     def execute(self, userdata):
+        rospy.loginfo('GetPose state executing')
         # # Flags
         # args = self.set_flags()
 

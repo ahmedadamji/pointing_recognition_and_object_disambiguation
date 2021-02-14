@@ -26,6 +26,7 @@ class ObjectDetection(State):
 
 
     def execute(self, userdata):
+        rospy.loginfo('ObjectDetection state executing')
 
         self.detect_objects()
 

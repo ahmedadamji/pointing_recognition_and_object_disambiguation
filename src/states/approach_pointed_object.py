@@ -37,16 +37,32 @@ class ApproachPointedObject(State):
         #print person_point
         tf_point = person_point.point
         intersection_point_world = np.array([tf_point.x, tf_point.y, tf_point.z])
+        return intersection_point_world
+
+    def find_table_id(self, intersection_point_world):
+        #tables = rospy.get_param('/tables')
+        # Later make this loop for each table, refer p1_server in lasr scirock for this
+        cuboid = rospy.get_param('/tables/' + 'table0' + '/cuboid')
+        cuboid_max = np.array(cuboid['max_xyz'])
+        cuboid_min = np.array(cuboid['min_xyz'])
+        print cuboid_max
+        print cuboid_min
         print intersection_point_world
+        if ((cuboid_min[0] <= intersection_point_world[0] <= cuboid_max[0]) and (cuboid_min[1] <= intersection_point_world[1] <= cuboid_max[1])  and (cuboid_min[2] <= intersection_point_world[2] <= cuboid_max[2])):
+            print 'table0' + ' is the man'
 
-    def find_table_id(self):
 
 
-    def approach_table(self):
+        # Pose(position = Point(**tables['position']), orientation = Quaternion(**tables['orientation']))
+
+
+    #def approach_table(self):
 
 
 
     def execute(self, userdata, wait=True):
+
+        rospy.loginfo('ApproachPointedObject state executing')
 
         # intersection_point = rospy.wait_for_message('/intersection_point', IntersectionData)
         # print intersection_point.intersection_point_2d
@@ -56,6 +72,8 @@ class ApproachPointedObject(State):
         # print intersection_point_2d
         # print intersection_point_3d
         intersection_point_world = self.transform_from_camera_frame_to_world_frame(intersection_point_3d)
+
+        self.find_table_id(intersection_point_world)
 
         cv2.waitKey(0)
         

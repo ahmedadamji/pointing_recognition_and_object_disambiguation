@@ -15,6 +15,7 @@ class ApproachPersonPointing(State):
         State.__init__(self, outcomes=['outcome1','outcome2'])
 
     def execute(self, userdata, wait=True):
+        rospy.loginfo('ApproachPersonPointing state executing')
 
         # create the action client:
         movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
