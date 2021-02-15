@@ -108,7 +108,5 @@ class ApproachPointedObject(State):
 
         table = self.find_table_id(intersection_point_world)
         self.approach_table(table, wait)
-
-        cv2.waitKey(0)
         
         return 'outcome1'
