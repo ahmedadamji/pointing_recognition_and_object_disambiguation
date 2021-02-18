@@ -67,8 +67,8 @@ class PointedObjectDetection(State):
         except CvBridgeError as ex:
             rospy.logwarn(ex)
             return
-        box_start_point = (camera_point_2d[0]-100),(camera_point_2d[1]-100)
-        box_end_point = camera_point_2d[0]+100,camera_point_2d[1]+100
+        box_start_point = (camera_point_2d[0]-150),(camera_point_2d[1]-150)
+        box_end_point = camera_point_2d[0]+150,camera_point_2d[1]+150
         cv2.rectangle(frame, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Bounding Box For Pointed Objects", frame)
@@ -82,12 +82,25 @@ class PointedObjectDetection(State):
         self.classify.subscribe_to_vision_messages()
         yolo_detections = self.classify.yolo_object_detection(box_start_point, box_end_point)
         # Not finding segmentations if no objects detected using yolo
+        total_objects_within_pointing_box = 0
+        index_of_objects_inside_pointing_bounding_box = []
         if not len(yolo_detections):
             return None
-        elif len(yolo_detections) == 1:
-            print "This is the only object being pointed at"
         else:
-            print"Further disambiguation needed"
+            for i in range(len(yolo_detections)):
+                xywh = yolo_detections[i].xywh
+                if ((box_start_point[0] <= xywh[0] <= box_end_point[0]) and (box_start_point[1] <= xywh[1] <= box_end_point[1])):
+                    total_objects_within_pointing_box += 1
+                    index_of_objects_inside_pointing_bounding_box.append(i)
+
+        if total_objects_within_pointing_box == 0:
+            print "No objects found within pointing bounding box"
+        elif total_objects_within_pointing_box == 1:
+            print "This is the only object being pointed at:"
+            print yolo_detections[index_of_objects_inside_pointing_bounding_box[0]]
+        else:
+            print"Further diasambiguation needed"
+
         self.classify.yolo_get_object_coordinates()
         
 
