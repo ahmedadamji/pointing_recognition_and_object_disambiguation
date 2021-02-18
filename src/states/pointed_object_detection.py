@@ -89,7 +89,8 @@ class PointedObjectDetection(State):
         else:
             for i in range(len(yolo_detections)):
                 xywh = yolo_detections[i].xywh
-                if ((box_start_point[0] <= xywh[0] <= box_end_point[0]) and (box_start_point[1] <= xywh[1] <= box_end_point[1])):
+                if (((box_start_point[0] <= xywh[0] <= box_end_point[0]) and (box_start_point[1] <= xywh[1] <= box_end_point[1]))
+                    and ((box_start_point[0] <= (xywh[0]+xywh[2]) <= box_end_point[0]) and (box_start_point[1] <= (xywh[1]+xywh[3]) <= box_end_point[1]))):
                     total_objects_within_pointing_box += 1
                     index_of_objects_inside_pointing_bounding_box.append(i)
 
