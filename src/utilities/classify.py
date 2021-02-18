@@ -25,7 +25,7 @@ class Classify:
         self.points = rospy.wait_for_message('/xtion/depth_registered/points', PointCloud2)
     
 
-    def yolo_object_detection(self):
+    def yolo_object_detection(self, box_start_point = (0,0), box_end_point = (0,0)):
         try:
             rospy.loginfo('waiting for yolo_detection service')
             rospy.wait_for_service('/yolo_detection')
@@ -48,6 +48,9 @@ class Classify:
             except CvBridgeError as ex:
                 rospy.logwarn(ex)
                 return
+            
+            cv2.rectangle(frame, box_start_point, box_end_point, (0,0,255), 1)
+            # Plots all figures on top of an opencv image of openpose keypoints
             cv2.imshow('YOLO Object Detection Results', frame)
             cv2.waitKey(5000)
 

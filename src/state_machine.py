@@ -7,7 +7,7 @@ from smach import State, StateMachine
 from utilities import Tiago, Classify
 # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
 #from utilities import GetPoseBeforeGazebo
-from states import ApproachPersonPointing, ObjectDetection, GetPose, ApproachPointedObject
+from states import ApproachPersonPointing, ObjectDetection, GetPose, ApproachPointedObject, PointedObjectDetection
 
 
 
@@ -33,8 +33,8 @@ def main():
         StateMachine.add('approach_pointing_girl', ApproachPersonPointing(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
         StateMachine.add('detect_objects', ObjectDetection(classify), transitions={'outcome1':'get_pose', 'outcome2': 'get_pose'})
         StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
-        StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'detect_objects_again', 'outcome2': 'detect_objects_again'})
-        StateMachine.add('detect_objects_again', ObjectDetection(classify), transitions={'outcome1':'end', 'outcome2': 'end'})
+        StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
+        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
     
     cv2.waitKey(0)
