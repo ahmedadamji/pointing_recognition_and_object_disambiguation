@@ -11,6 +11,7 @@ from geometry_msgs.msg import Pose
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 from sensor_msgs.msg import Image, PointCloud2, RegionOfInterest, PointField, CameraInfo
+from nav_msgs.msg import OccupancyGrid
 from pointing_recognition.msg import IntersectionData
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -48,12 +49,12 @@ class ApproachPointedObject(State):
         # http://wiki.ros.org/tf
         # http://docs.ros.org/en/indigo/api/tf/html/c++/classtf_1_1Transformer.html
 
-        self.depth_points = rospy.wait_for_message('xtion/depth_registered/points', PointCloud2)
+        self.map_points = rospy.wait_for_message('/map', OccupancyGrid)
 
-        self.transformer.waitForTransform('map', 'xtion_rgb_optical_frame', self.depth_points.header.stamp, rospy.Duration(2.0))
+        self.transformer.waitForTransform('map', 'xtion_rgb_optical_frame', self.map_points.header.stamp, rospy.Duration(2.0))
 
         intersection_point_world = PointStamped()
-        intersection_point_world.header = self.depth_points.header
+        intersection_point_world.header = self.map_points.header
         intersection_point_world.point = Point(*world_point)
 
         person_point = self.transformer.transformPoint('xtion_rgb_optical_frame', intersection_point_world)
@@ -106,6 +107,8 @@ class ApproachPointedObject(State):
         print intersection_point_world
         if ((cuboid_min[0] <= intersection_point_world[0] <= cuboid_max[0]) and (cuboid_min[1] <= intersection_point_world[1] <= cuboid_max[1])  and (cuboid_min[2] <= intersection_point_world[2] <= cuboid_max[2])):
             print 'table0' + ' is the man'
+            return 'table0'
+        else:
             return 'table0'
 
 
