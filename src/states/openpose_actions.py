@@ -129,6 +129,9 @@ class GetPose(State):
             if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
                 print(hypothesis_point_2d)
                 return hypothesis_point_3d, hypothesis_point_2d
+                ## TEST HERE IF THERE IS OBSTRUCTION TO POINTING LINE< WILL IT GIVE ERROR< ALSO MAKE IT SUCH THAT THE INTERSECTION IS ONLY CHECKED WITHIN A RADIUS
+                ## OF THE POINTING LINE TO ELIMINATE PROBLEMS WITH FAR AWAY OBJECTS OVERLAPPING WITH MESH, CHECK PERFORMANCE OF THIS AS WELL AND INCLUDE RESULTS OF BOTH
+                ## BEFORE AND AFTER IN REPORT
         
 
         ## FIRST ATTEMPTH AT FINDING COLLISION WITH MESH -->
