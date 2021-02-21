@@ -29,5 +29,6 @@
     <!-- Dont know what to do with these yet -->
     <rosparam command="load" file="$(find pointing_recognition)/config/motions.yaml" />
     <rosparam command="load" file="$(find pointing_recognition)/config/locations.yaml" />
+    <rosparam command="load" file="$(find pointing_recognition)/config/features.yaml" />
 
 </launch>
