@@ -115,5 +115,9 @@ class PointedObjectDetection(State):
 
         self.detect_objects(box_start_point, box_end_point)
 
-        #opWrapper.stop()
+
+
+        # To destroy cv2 window at the end of state
+        cv2.destroyAllWindows()
+        
         return 'outcome1'

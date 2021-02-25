@@ -24,7 +24,7 @@ class Classify:
         self.image_raw = rospy.wait_for_message('/xtion/rgb/image_raw', Image)
         self.points = rospy.wait_for_message('/xtion/depth_registered/points', PointCloud2)
     
-
+    # Box start point and endpoint are set to defaut 0,0 as they are only needed in some states when the data is passed.
     def yolo_object_detection(self, box_start_point = (0,0), box_end_point = (0,0)):
         try:
             rospy.loginfo('waiting for yolo_detection service')
@@ -156,7 +156,13 @@ class Classify:
                 bounding_box.height = bottom - top
                 bounding_boxes.append(bounding_box)
 
-            frame = self.bridge.imgmsg_to_cv2(self.image_raw, 'bgr8').copy()
+
+            try:
+                frame = self.bridge.imgmsg_to_cv2(self.image_raw, 'bgr8').copy()
+                # cv2.imshow('frame', frame)
+            except CvBridgeError as ex:
+                rospy.logwarn(ex)
+                return
             for bb in bounding_boxes:
                 cv2.rectangle(frame, (bb.x_offset, bb.y_offset),
                     (bb.x_offset + bb.width, bb.y_offset + bb.height), (255, 0, 255), 1)
@@ -164,6 +170,8 @@ class Classify:
             cv2.imshow('PCL Object Segmentation Results', frame)
             cv2.waitKey(5000)
 
+            # To destroy cv2 window at the end of state
+            cv2.destroyAllWindows()
 
         except rospy.ServiceException as ex:
             rospy.logwarn(ex)

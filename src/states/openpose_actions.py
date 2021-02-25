@@ -419,5 +419,10 @@ class GetPose(State):
             print(e)
             sys.exit(-1)
 
+        
+        # To destroy cv2 window at the end of state
+        cv2.destroyAllWindows()
+
         #opWrapper.stop()
+        
         return 'outcome1'
