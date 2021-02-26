@@ -92,6 +92,21 @@ class Tiago:
         tts_goal.rawtext.text = speech_in
         self.tts_client.send_goal(tts_goal)
 
+    def load_object_features(self):
+
+        object_attributes_parm = rospy.get_param('/object_attributes')
+        self.object_attributes = [
+            {
+                'name':    objects['name'],
+                'colour':  objects['colour']),
+                'type':    objects['type']),
+                'texture': objects['texture']),
+                'size':    objects['size']),
+                'shape':   objects['shape']
+            }
+            for objects in object_attributes_parm
+        ]
+
 
     def shutdown(self):
 

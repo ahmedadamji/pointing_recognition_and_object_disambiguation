@@ -1,23 +1,42 @@
-apple:
-  colour: 
-    ["red"]
-  type:
-    ["fresh"]
-  texture:
-    ["smooth"]
-  size:
-    ["small", "medium"]
-  shape:
-    ["round", "circle", "sphere"]
+object_attributes:
+  object0:
+    name:
+      ["apple"]
+    colour: 
+      ["red"]
+    type:
+      ["fresh"]
+    texture:
+      ["smooth"]
+    size:
+      ["small", "medium"]
+    shape:
+      ["round", "circle", "sphere"]
 
-banana:
-  colour: 
-    ["yellow"]
-  type:
-    ["fresh"]
-  texture:
-    ["smooth"]
-  size:
-    ["medium", "large", "long"]
-  shape:
-    ["curved"]
+  object1:
+    name:
+      ["banana"]
+    colour: 
+      ["yellow"]
+    type:
+      ["fresh"]
+    texture:
+      ["smooth"]
+    size:
+      ["medium", "large", "long"]
+    shape:
+      ["curved"]
+
+  object2:
+    name:
+      ["orange"]
+    colour: 
+      ["orange"]
+    type:
+      ["fresh"]
+    texture:
+      ["wrinkled"]
+    size:
+      ["small", "medium"]
+    shape:
+      ["round", "circle", "sphere"]
