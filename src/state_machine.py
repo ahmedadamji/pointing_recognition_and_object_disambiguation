@@ -35,7 +35,7 @@ def main():
         StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
         StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
         StateMachine.add('detect_pointed_object', PointedObjectDetection(classify), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
-        StateMachine.add('disambiguate_objects', PointedObjectDetection(classify), transitions={'outcome1':'end', 'outcome2': 'end'})
+        StateMachine.add('disambiguate_objects', ObjectDisambiguation(), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
     
     cv2.waitKey(0)
