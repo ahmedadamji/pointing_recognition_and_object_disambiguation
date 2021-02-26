@@ -2,6 +2,8 @@
 import rospy
 import actionlib
 
+
+from utilities import Tiago
 from smach import State
 from geometry_msgs.msg import Pose
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -13,9 +15,14 @@ class ApproachPersonPointing(State):
         rospy.loginfo('ApproachPersonPointing state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
+        
+        self.tiago = Tiago()
 
     def execute(self, userdata, wait=True):
         rospy.loginfo('ApproachPersonPointing state executing')
+        
+        # Lift tiago's torso and set head to default
+        self.tiago.lift_torso_head_default(True)
 
         # create the action client:
         movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)

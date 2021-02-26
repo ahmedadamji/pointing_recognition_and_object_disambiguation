@@ -4,7 +4,7 @@ import cv2
 from smach import State, StateMachine
 
 
-from utilities import Tiago, Classify
+from utilities import Classify
 # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
 #from utilities import GetPoseBeforeGazebo
 from states import ApproachPersonPointing, ObjectDetection, GetPose, ApproachPointedObject, PointedObjectDetection, ObjectDisambiguation
@@ -19,10 +19,9 @@ def main():
     #actions = GetPoseBeforeGazebo()
     #actions.execute()
 
-    tiago = Tiago()
-    classify = Classify(dataset='coco') # default dataset for yolo3 is coco unless change needed for more accurate detection from a distance, which is passed here.
+    # default dataset for yolo3 is coco unless change needed for more accurate detection from a particular dataset, which is passed here.
+    classify = Classify(dataset='coco')
     
-    tiago.lift_torso_head_default(True)
 
     # Create a SMACH state machine
     sm = StateMachine(outcomes=['outcome1', 'end'])
@@ -30,7 +29,7 @@ def main():
 
     with sm:
         # Add states to the container
-        StateMachine.add('approach_pointing_girl', ApproachPersonPointing(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
+        StateMachine.add('approach_person_pointing', ApproachPersonPointing(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
         StateMachine.add('detect_objects', ObjectDetection(classify), transitions={'outcome1':'get_pose', 'outcome2': 'get_pose'})
         StateMachine.add('get_pose', GetPose(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
         StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
