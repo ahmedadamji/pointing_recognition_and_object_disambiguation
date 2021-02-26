@@ -16,37 +16,22 @@ import cv2
 import math
 import numpy as np
 
-from pal_interaction_msgs.msg import TtsAction, TtsGoal
-import pyttsx
-
+# Imported for features of human robot interaction such as text to speech
+from utilities import Tiago
 
 
 class ObjectDisambiguation(State):
     def __init__(self):
         rospy.loginfo('ObjectDisambiguation state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
+        self.tiago = Tiago()
 
-        self.tts_client = actionlib.SimpleActionClient('/tts', TtsAction)
-        self.tts_client.wait_for_server(rospy.Duration(5))
-        rospy.loginfo("The tts action server is up")
+
     
-    def talk(self, speech_in):
-        # Create the TTS goal and send it
-        print('\033[1;36mTIAGO: ' + speech_in + '\033[0m')
-
-        # init and set speech engine
-        speech_engine = pyttsx.init()
-        speech_engine.say(speech_in)
-        speech_engine.runAndWait()
-
-        tts_goal = TtsGoal()
-        tts_goal.rawtext.lang_id = 'en_GB'
-        tts_goal.rawtext.text = speech_in
-        self.tts_client.send_goal(tts_goal)
 
     def execute(self, userdata):
 
-        self.talk("My name is Ahmed and I am the robo maker")
+        self.tiago.talk("My name is Ahmed and I am the robo maker")
 
         # rospy.loginfo('ObjectDisambiguation state executing')
         # list_of_objects_within_bounding_box = []

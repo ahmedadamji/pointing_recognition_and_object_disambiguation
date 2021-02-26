@@ -6,8 +6,8 @@ from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryG
 
 # Importing for speech recognition, interaction and replying to person
 # import speech_recognition as sr
-# from pal_interaction_msgs.msg import TtsAction, TtsGoal
-# import pyttsx
+from pal_interaction_msgs.msg import TtsAction, TtsGoal
+import pyttsx
 
 class Tiago:
     def __init__(self):
@@ -28,6 +28,12 @@ class Tiago:
         # self.play_motion_client = actionlib.SimpleActionClient("/play_motion", PlayMotionAction)
         # self.play_motion_client.wait_for_server(rospy.Duration(5))
         # rospy.loginfo("The /play_motion action server is up")
+
+        self.tts_client = actionlib.SimpleActionClient('/tts', TtsAction)
+        self.tts_client.wait_for_server(rospy.Duration(5))
+        rospy.loginfo("The tts action server is up")
+
+        
 
 
     def lift_torso_head_default(self, wait=False):
@@ -71,6 +77,20 @@ class Tiago:
             self.play_motion.wait_for_result()
 
         rospy.loginfo("play motion: check_table completed")
+
+    def speak(self, speech_in):
+        # Create the TTS goal and send it
+        print('\033[1;36mTIAGO: ' + speech_in + '\033[0m')
+
+        # init and set speech engine
+        speech_engine = pyttsx.init()
+        speech_engine.say(speech_in)
+        speech_engine.runAndWait()
+
+        tts_goal = TtsGoal()
+        tts_goal.rawtext.lang_id = 'en_GB'
+        tts_goal.rawtext.text = speech_in
+        self.tts_client.send_goal(tts_goal)
 
 
     def shutdown(self):
