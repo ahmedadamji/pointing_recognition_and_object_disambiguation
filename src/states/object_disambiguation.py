@@ -27,7 +27,40 @@ class ObjectDisambiguation(State):
         self.tiago = Tiago()
 
 
+    def compare_current_attributes(self, current_attribute_from_user, current_attribute_from_feature, match):
+        if current_attribute_from_user == current_attribute_from_feature:
+            match += 1
+            print "Attribute matches"
+        else:
+            print "Attribute does not match"
+        
+        return match
     
+    def compare_all_attributes(self, dummy_attributes_from_user, current_object):
+
+        match = 0
+        ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
+        current_attribute_from_user = dummy_attributes_from_user.get('colour')
+        current_attribute_from_feature = current_object.get('colour')
+        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+
+        current_attribute_from_user = dummy_attributes_from_user.get('type')
+        current_attribute_from_feature = current_object.get('type')
+        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+
+        current_attribute_from_user = dummy_attributes_from_user.get('texture')
+        current_attribute_from_feature = current_object.get('texture')
+        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+
+        current_attribute_from_user = dummy_attributes_from_user.get('size')
+        current_attribute_from_feature = current_object.get('size')
+        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+
+        current_attribute_from_user = dummy_attributes_from_user.get('shape')
+        current_attribute_from_feature = current_object.get('shape')
+        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+
+        return match
 
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')
@@ -59,27 +92,31 @@ class ObjectDisambiguation(State):
                 if objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
                     print "Current object being compared: " + current_object.get('name')
 
-                    match = 0
-                    ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
-                    for attribute in range(len(dummy_attributes_from_user)):
-                        current_attribute_from_user = dummy_attributes_from_user.values()[attribute]
-                        current_attribute_from_feature = current_object.values()[attribute+1] ## +1 as name not compared
+                    match = self.compare_all_attributes(dummy_attributes_from_user, current_object)
 
-                        if current_attribute_from_user == current_attribute_from_feature:
-                            match += 1
-                            print "Attribute matches"
-                        else:
-                            print "Attribute does not match"
-                    total_matches = np.array(np.append(total_matches, [match], axis = 0))
+                    # for attribute in range(len(dummy_attributes_from_user)):
+                    #     current_attribute_from_user = dummy_attributes_from_user.values()[attribute]
+                    #     current_attribute_from_feature = current_object.values()[attribute+1] ## +1 as name not compared
+
+                    #     if current_attribute_from_user == current_attribute_from_feature:
+                    #         match += 1
+                    #         print "Attribute matches"
+                    #     else:
+                    #         print "Attribute does not match"
+                    # total_matches = np.array(np.append(total_matches, [match], axis = 0))
 
                 else:
-                    continue
+                    match = 0
+                
+                total_matches = np.array(np.append(total_matches, [match], axis = 0))
 
         max_attribute_matches = np.argwhere(total_matches == np.amax(total_matches))
         print max_attribute_matches
         if len(max_attribute_matches) == 1:
-            identified_object = objects_inside_bounding_box[max_attribute_matches[0]]
+            # Two indices needed as there is a bracket around every number:
+            identified_object = self.tiago.object_attributes[max_attribute_matches[0][0]].get('name')
             print identified_object
+            self.tiago.speak("The identified object is a " + identified_object)
 
 
 
