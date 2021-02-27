@@ -80,6 +80,7 @@ class ObjectDisambiguation(State):
             }
         total_matches = np.array([])
         detection_confidence = []
+        compared_objects = []
 
                 # object_attributes = rospy.get_param('/object_attributes')
                 # orange = object_attributes['orange']
@@ -91,6 +92,7 @@ class ObjectDisambiguation(State):
             for object_id in range(len(objects_inside_bounding_box)):
                 if objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
                     print "Current object being compared: " + current_object.get('name')
+                    compared_objects.append(current_object)
 
                     match = self.compare_all_attributes(dummy_attributes_from_user, current_object)
 
@@ -104,17 +106,19 @@ class ObjectDisambiguation(State):
                     #     else:
                     #         print "Attribute does not match"
                     # total_matches = np.array(np.append(total_matches, [match], axis = 0))
-
+                    total_matches = np.array(np.append(total_matches, [match], axis = 0))
                 else:
-                    match = 0
-                
-                total_matches = np.array(np.append(total_matches, [match], axis = 0))
+                    continue
 
-        max_attribute_matches = np.argwhere(total_matches == np.amax(total_matches))
+        
+        try:
+            max_attribute_matches = np.argwhere(total_matches == np.amax(total_matches))
+        except ValueError:  #raised if `total_matches` is empty.
+            pass
         print max_attribute_matches
         if len(max_attribute_matches) == 1:
             # Two indices needed as there is a bracket around every number:
-            identified_object = self.tiago.object_attributes[max_attribute_matches[0][0]].get('name')
+            identified_object = compared_objects[max_attribute_matches[0][0]].get('name')
             print identified_object
             self.tiago.speak("The identified object is a " + identified_object)
 
