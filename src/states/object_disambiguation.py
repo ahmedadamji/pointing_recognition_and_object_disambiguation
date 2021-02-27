@@ -65,13 +65,26 @@ class ObjectDisambiguation(State):
         # match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
 
         return match
+    
+    def find_total_matches_for_objects_by_attribute(self, attribute, current_object, dummy_attributes_from_user, compared_objects, total_matches):
+        for object_id in range(len(self.objects_inside_bounding_box)):
+            if self.objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
+                print "Current object being compared: " + current_object.get('name')
+                compared_objects.append(current_object)
+
+                match = self.compare_all_attributes(dummy_attributes_from_user, current_object, attribute)
+
+                total_matches = np.array(np.append(total_matches, [match], axis = 0))
+            else:
+                continue
+        return compared_objects, total_matches
 
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')
 
         self.tiago.speak("My name is Ahmed and I am the robo maker")
 
-        objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
+        self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
         # print objects_inside_bounding_box
         # print objects_inside_bounding_box[0].get('name')
         attributes_from_user = []
@@ -90,17 +103,7 @@ class ObjectDisambiguation(State):
         ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
         for index in range(0, len(self.tiago.object_attributes)):
             current_object = self.tiago.object_attributes[index]
-            for object_id in range(len(objects_inside_bounding_box)):
-                if objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
-                    print "Current object being compared: " + current_object.get('name')
-                    compared_objects.append(current_object)
-
-                    match = self.compare_all_attributes(dummy_attributes_from_user, current_object, 'colour')
-
-                    total_matches = np.array(np.append(total_matches, [match], axis = 0))
-                else:
-                    continue
-
+            compared_objects, total_matches = self.find_total_matches_for_objects_by_attribute('colour', current_object, dummy_attributes_from_user, compared_objects, total_matches)
         
         try:
             max_attribute_matches = np.argwhere(total_matches == np.amax(total_matches))
@@ -116,16 +119,7 @@ class ObjectDisambiguation(State):
             ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
             for index in range(len(max_attribute_matches)):
                 current_object = compared_objects[max_attribute_matches[index][0]]
-                for object_id in range(len(objects_inside_bounding_box)):
-                    if objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
-                        print "Current object being compared: " + current_object.get('name')
-                        compared_objects.append(current_object)
-
-                        match = self.compare_all_attributes(dummy_attributes_from_user, current_object, 'type')
-
-                        total_matches = np.array(np.append(total_matches, [match], axis = 0))
-                    else:
-                        continue
+                compared_objects, total_matches = self.find_total_matches_for_objects_by_attribute('type', current_object, dummy_attributes_from_user, compared_objects, total_matches)
             try:
                 max_attribute_matches = np.argwhere(total_matches == np.amax(total_matches))
             except ValueError:  #raised if `total_matches` is empty.
