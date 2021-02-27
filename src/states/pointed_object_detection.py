@@ -84,6 +84,7 @@ class PointedObjectDetection(State):
         # Not finding segmentations if no objects detected using yolo
         total_objects_within_pointing_box = 0
         index_of_objects_inside_pointing_bounding_box = []
+        objects_inside_bounding_box =[]
         if not len(yolo_detections):
             return None
         else:
@@ -93,6 +94,18 @@ class PointedObjectDetection(State):
                     and ((box_start_point[0] <= (xywh[0]+xywh[2]) <= box_end_point[0]) and (box_start_point[1] <= (xywh[1]+xywh[3]) <= box_end_point[1]))):
                     total_objects_within_pointing_box += 1
                     index_of_objects_inside_pointing_bounding_box.append(i)
+        ## PARSING INTO NAME, CONFIDENCE AND COORDINATES OF DETECTION
+        for o in range(len(index_of_objects_inside_pointing_bounding_box)):
+            current_object = {
+            "name": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name,
+            "confidence": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].confidence,
+            "xywh": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].xywh
+            }
+            objects_inside_bounding_box.append(current_object)
+            # objects_inside_bounding_box.append([[yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name],
+            #                                    [yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].confidence],
+            #                                    [yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].xywh]])
+
 
         if total_objects_within_pointing_box == 0:
             print "No objects found within pointing bounding box"
@@ -101,6 +114,8 @@ class PointedObjectDetection(State):
             print yolo_detections[index_of_objects_inside_pointing_bounding_box[0]]
         else:
             print"Further diasambiguation needed"
+        
+        rospy.set_param('/objects_inside_bounding_box', objects_inside_bounding_box)
 
         self.classify.yolo_get_object_coordinates()
         

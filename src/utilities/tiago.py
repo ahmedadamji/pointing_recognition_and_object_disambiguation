@@ -33,6 +33,8 @@ class Tiago:
         self.tts_client.wait_for_server(rospy.Duration(5))
         rospy.loginfo("The tts action server is up")
 
+        self.load_object_features()
+
         
 
 
@@ -51,7 +53,7 @@ class Tiago:
 
         # Sending play motion goal
         self.play_motion.send_goal(pm_goal)
-
+        
         if wait:
             self.play_motion.wait_for_result()
 
@@ -98,10 +100,10 @@ class Tiago:
         self.object_attributes = [
             {
                 'name':    objects['name'],
-                'colour':  objects['colour']),
-                'type':    objects['type']),
-                'texture': objects['texture']),
-                'size':    objects['size']),
+                'colour':  objects['colour'],
+                'type':    objects['type'],
+                'texture': objects['texture'],
+                'size':    objects['size'],
                 'shape':   objects['shape']
             }
             for objects in object_attributes_parm
