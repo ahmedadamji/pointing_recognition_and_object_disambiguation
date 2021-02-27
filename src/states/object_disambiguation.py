@@ -36,29 +36,33 @@ class ObjectDisambiguation(State):
         
         return match
     
-    def compare_all_attributes(self, dummy_attributes_from_user, current_object):
+    def compare_all_attributes(self, dummy_attributes_from_user, current_object, attribute):
 
         match = 0
         ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
-        current_attribute_from_user = dummy_attributes_from_user.get('colour')
-        current_attribute_from_feature = current_object.get('colour')
+        current_attribute_from_user = dummy_attributes_from_user.get(attribute)
+        current_attribute_from_feature = current_object.get(attribute)
         match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
 
-        current_attribute_from_user = dummy_attributes_from_user.get('type')
-        current_attribute_from_feature = current_object.get('type')
-        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+        # current_attribute_from_user = dummy_attributes_from_user.get('colour')
+        # current_attribute_from_feature = current_object.get('colour')
+        # match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
 
-        current_attribute_from_user = dummy_attributes_from_user.get('texture')
-        current_attribute_from_feature = current_object.get('texture')
-        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+        # current_attribute_from_user = dummy_attributes_from_user.get('type')
+        # current_attribute_from_feature = current_object.get('type')
+        # match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
 
-        current_attribute_from_user = dummy_attributes_from_user.get('size')
-        current_attribute_from_feature = current_object.get('size')
-        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+        # current_attribute_from_user = dummy_attributes_from_user.get('texture')
+        # current_attribute_from_feature = current_object.get('texture')
+        # match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
 
-        current_attribute_from_user = dummy_attributes_from_user.get('shape')
-        current_attribute_from_feature = current_object.get('shape')
-        match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+        # current_attribute_from_user = dummy_attributes_from_user.get('size')
+        # current_attribute_from_feature = current_object.get('size')
+        # match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
+
+        # current_attribute_from_user = dummy_attributes_from_user.get('shape')
+        # current_attribute_from_feature = current_object.get('shape')
+        # match = self.compare_current_attributes(current_attribute_from_user, current_attribute_from_feature, match)
 
         return match
 
@@ -91,7 +95,7 @@ class ObjectDisambiguation(State):
                     print "Current object being compared: " + current_object.get('name')
                     compared_objects.append(current_object)
 
-                    match = self.compare_all_attributes(dummy_attributes_from_user, current_object)
+                    match = self.compare_all_attributes(dummy_attributes_from_user, current_object, 'colour')
 
                     total_matches = np.array(np.append(total_matches, [match], axis = 0))
                 else:
@@ -108,6 +112,30 @@ class ObjectDisambiguation(State):
             identified_object = compared_objects[max_attribute_matches[0][0]].get('name')
             print identified_object
             self.tiago.speak("The identified object is a " + identified_object)
+        else:
+            ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
+            for index in range(len(max_attribute_matches)):
+                current_object = compared_objects[max_attribute_matches[index][0]]
+                for object_id in range(len(objects_inside_bounding_box)):
+                    if objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
+                        print "Current object being compared: " + current_object.get('name')
+                        compared_objects.append(current_object)
+
+                        match = self.compare_all_attributes(dummy_attributes_from_user, current_object, 'type')
+
+                        total_matches = np.array(np.append(total_matches, [match], axis = 0))
+                    else:
+                        continue
+            try:
+                max_attribute_matches = np.argwhere(total_matches == np.amax(total_matches))
+            except ValueError:  #raised if `total_matches` is empty.
+                pass
+            print max_attribute_matches
+            if len(max_attribute_matches) == 1:
+                # Two indices needed as there is a bracket around every number:
+                identified_object = compared_objects[max_attribute_matches[0][0]].get('name')
+                print identified_object
+                self.tiago.speak("The identified object is a " + identified_object)
 
 
 
