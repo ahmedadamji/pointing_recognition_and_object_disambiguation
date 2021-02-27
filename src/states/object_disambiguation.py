@@ -82,11 +82,8 @@ class ObjectDisambiguation(State):
         detection_confidence = []
         compared_objects = []
 
-                # object_attributes = rospy.get_param('/object_attributes')
-                # orange = object_attributes['orange']
 
-                ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
-                ## REFER TIAGO.PY IN BUTLER TO CHECK HOW THE ATTRIBUTES ARE SAVE SO THAT I CAN LOOP THROUGH THEM
+        ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
         for index in range(0, len(self.tiago.object_attributes)):
             current_object = self.tiago.object_attributes[index]
             for object_id in range(len(objects_inside_bounding_box)):
@@ -96,16 +93,6 @@ class ObjectDisambiguation(State):
 
                     match = self.compare_all_attributes(dummy_attributes_from_user, current_object)
 
-                    # for attribute in range(len(dummy_attributes_from_user)):
-                    #     current_attribute_from_user = dummy_attributes_from_user.values()[attribute]
-                    #     current_attribute_from_feature = current_object.values()[attribute+1] ## +1 as name not compared
-
-                    #     if current_attribute_from_user == current_attribute_from_feature:
-                    #         match += 1
-                    #         print "Attribute matches"
-                    #     else:
-                    #         print "Attribute does not match"
-                    # total_matches = np.array(np.append(total_matches, [match], axis = 0))
                     total_matches = np.array(np.append(total_matches, [match], axis = 0))
                 else:
                     continue
