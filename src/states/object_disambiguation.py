@@ -35,9 +35,16 @@ class ObjectDisambiguation(State):
         self.tiago.speak("My name is Ahmed and I am the robo maker")
 
         objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
-        print objects_inside_bounding_box
-        print objects_inside_bounding_box[0].get('name')
+        # print objects_inside_bounding_box
+        # print objects_inside_bounding_box[0].get('name')
         attributes_from_user = []
+        dummy_attributes_from_user = {
+                'colour':  'yellow',
+                'type':    'fresh',
+                'texture': 'smooth',
+                'size':    'long',
+                'shape':   'curved'
+            }
         total_matches_for_all_objects = []
         detection_confidence = []
 
