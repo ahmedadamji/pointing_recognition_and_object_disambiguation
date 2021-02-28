@@ -66,7 +66,9 @@ class ObjectDisambiguation(State):
 
         return match
     
-    def get_matches_for_all_objects_in_bounding_box(self, attribute, current_object, compared_objects, total_matches):
+    def get_matches_for_all_objects_in_bounding_box(self, attribute, current_object, compared_objects):
+        self.eliminated_objects_indices = []
+        total_matches = np.array([])
         for object_id in range(len(self.objects_inside_bounding_box)):
             if self.objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
                 print "Current object being compared: " + current_object.get('name')
@@ -82,12 +84,14 @@ class ObjectDisambiguation(State):
 
         return compared_objects, total_matches
 
-    def disambiguation_by_feature(self, object_attributes, attribute, compared_objects, total_matches):
+    def disambiguation_by_feature(self, object_attributes, attribute):
         ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
-        self.eliminated_objects_indices = []
+        compared_objects = []
+        detection_confidence = []
+
         for index in range(0, len(object_attributes)):
             current_object = object_attributes[index]
-            compared_objects, total_matches = self.get_matches_for_all_objects_in_bounding_box(attribute, current_object, compared_objects, total_matches)
+            compared_objects, total_matches = self.get_matches_for_all_objects_in_bounding_box(attribute, current_object, compared_objects)
 
         # Reversing indices to pop as the indices will not change while going through the for loop
         self.eliminated_objects_indices.reverse()
@@ -96,6 +100,7 @@ class ObjectDisambiguation(State):
         
         try:
             indices_for_attribute_match = np.argwhere(total_matches == np.amax(total_matches))
+            # This is done to rmove extra brackets around each element of the list
             indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
         except ValueError:  #raised if `total_matches` is empty.
             pass
@@ -122,13 +127,10 @@ class ObjectDisambiguation(State):
                 'size':    'long',
                 'shape':   'curved'
             }
-        total_matches = np.array([])
-        compared_objects = []
-        detection_confidence = []
 
         object_attributes = self.tiago.object_attributes
 
-        indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'type', compared_objects, total_matches)
+        indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'type')
 
         if len(indices_for_attribute_match) == 1:
             # Two indices needed as there is a bracket around every number:
@@ -137,10 +139,9 @@ class ObjectDisambiguation(State):
             self.tiago.speak("The identified object is a " + identified_object)
         else:
             # LIST COMPREHENSION
-            # THE 0 BECAUSE THERE IS AN EXTRA BRACKET AROUND EACH ITEM
             object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
-            indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'colour', compared_objects, total_matches)
+            indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'colour')
 
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
@@ -150,10 +151,9 @@ class ObjectDisambiguation(State):
 
             else:
                 # LIST COMPREHENSION
-                # THE 0 BECAUSE THERE IS AN EXTRA BRACKET AROUND EACH ITEM
                 object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
-                indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'texture', compared_objects, total_matches)
+                indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'texture')
 
                 if len(indices_for_attribute_match) == 1:
                     # Two indices needed as there is a bracket around every number:
@@ -163,10 +163,9 @@ class ObjectDisambiguation(State):
 
                 else:
                     # LIST COMPREHENSION
-                    # THE 0 BECAUSE THERE IS AN EXTRA BRACKET AROUND EACH ITEM
                     object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
-                    indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'size', compared_objects, total_matches)
+                    indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'size')
 
 
 
