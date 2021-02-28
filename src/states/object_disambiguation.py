@@ -24,10 +24,23 @@ class ObjectDisambiguation(State):
     def __init__(self):
         rospy.loginfo('ObjectDisambiguation state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
+
+        #creates an instance of tiago class to use featues such as extract attributes of objects from yaml file and interact with the user
         self.tiago = Tiago()
 
+        # Stores details of objects that have been eliminated during disambiguation
+        self.eliminated_objects = []
+        # Stores the types of attributes in order of use for disambiguation
+        self.attributes = ['type', 'texture', 'colour', 'size', 'shape']
 
-    def compare_chosen_attribute(self, current_attribute_from_user, current_attribute_from_feature, match):
+
+    def compare_chosen_attribute(self, current_object, attribute):
+        
+        match = 0
+        ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
+        current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
+        current_attribute_from_feature = current_object.get(attribute)
+        
         if current_attribute_from_user == current_attribute_from_feature:
             match += 1
             print "Attribute matches"
@@ -36,35 +49,6 @@ class ObjectDisambiguation(State):
         
         return match
     
-    def get_attribute_matches_with_current_object(self, current_object, attribute):
-
-        match = 0
-        ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
-        current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
-        current_attribute_from_feature = current_object.get(attribute)
-        match = self.compare_chosen_attribute(current_attribute_from_user, current_attribute_from_feature, match)
-
-        # current_attribute_from_user = self.dummy_attributes_from_user.get('colour')
-        # current_attribute_from_feature = current_object.get('colour')
-        # match = self.compare_chosen_attribute(current_attribute_from_user, current_attribute_from_feature, match)
-
-        # current_attribute_from_user = self.dummy_attributes_from_user.get('type')
-        # current_attribute_from_feature = current_object.get('type')
-        # match = self.compare_chosen_attribute(current_attribute_from_user, current_attribute_from_feature, match)
-
-        # current_attribute_from_user = self.dummy_attributes_from_user.get('texture')
-        # current_attribute_from_feature = current_object.get('texture')
-        # match = self.compare_chosen_attribute(current_attribute_from_user, current_attribute_from_feature, match)
-
-        # current_attribute_from_user = self.dummy_attributes_from_user.get('size')
-        # current_attribute_from_feature = current_object.get('size')
-        # match = self.compare_chosen_attribute(current_attribute_from_user, current_attribute_from_feature, match)
-
-        # current_attribute_from_user = self.dummy_attributes_from_user.get('shape')
-        # current_attribute_from_feature = current_object.get('shape')
-        # match = self.compare_chosen_attribute(current_attribute_from_user, current_attribute_from_feature, match)
-
-        return match
     
     def get_matches_for_all_objects_in_bounding_box(self, attribute, current_object, compared_objects):
         self.eliminated_objects_indices = []
@@ -73,7 +57,7 @@ class ObjectDisambiguation(State):
                 print "Current object being compared: " + current_object.get('name')
                 compared_objects.append(current_object)
 
-                match = self.get_attribute_matches_with_current_object(current_object, attribute)
+                match = self.compare_chosen_attribute(current_object, attribute)
                 if match == 0:
                     self.eliminated_objects_indices.append(object_id)
 
@@ -85,8 +69,9 @@ class ObjectDisambiguation(State):
 
     def disambiguation_by_feature(self, object_attributes, attribute):
         ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
+
+        # Will be used to store all the objects compared for the current feature
         compared_objects = []
-        detection_confidence = []
         self.total_matches = np.array([])
 
         for index in range(0, len(object_attributes)):
@@ -109,32 +94,13 @@ class ObjectDisambiguation(State):
 
         return indices_for_attribute_match, compared_objects
 
-
-    def execute(self, userdata):
-        rospy.loginfo('ObjectDisambiguation state executing')
-
-        self.tiago.speak("My name is Ahmed and I am the robo maker")
-
-        self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
-        self.eliminated_objects = []
-        # print objects_inside_bounding_box
-        # print objects_inside_bounding_box[0].get('name')
-        attributes_from_user = []
-        self.dummy_attributes_from_user = {
-                'colour':  'yellow',
-                'type':    'fresh',
-                'texture': 'smooth',
-                'size':    'long',
-                'shape':   'curved'
-            }
-        
-        attributes = ['type', 'texture', 'colour', 'size', 'shape']
+    def disambiguate_until_unique_feature_found(self):
 
         object_attributes = self.tiago.object_attributes
 
-        for attribute_index in range(len(attributes)):
+        for attribute_index in range(len(self.attributes)):
 
-            indices_for_attribute_match, compared_objects= self.disambiguation_by_feature(object_attributes, attributes[attribute_index])
+            indices_for_attribute_match, compared_objects= self.disambiguation_by_feature(object_attributes, self.attributes[attribute_index])
 
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
@@ -148,6 +114,28 @@ class ObjectDisambiguation(State):
             else:
                 # LIST COMPREHENSION
                 object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+
+    def execute(self, userdata):
+        rospy.loginfo('ObjectDisambiguation state executing')
+
+        self.tiago.speak("My name is Ahmed and I am the robo maker")
+
+        self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
+
+        # print objects_inside_bounding_box
+        # print objects_inside_bounding_box[0].get('name')
+
+        self.attributes_from_user = []
+        self.dummy_attributes_from_user = {
+                'colour':  'yellow',
+                'type':    'fresh',
+                'texture': 'smooth',
+                'size':    'long',
+                'shape':   'curved'
+            }
+        
+
+        self.disambiguate_until_unique_feature_found()
                 
 
 
