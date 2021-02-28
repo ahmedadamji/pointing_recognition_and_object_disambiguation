@@ -26,32 +26,32 @@ class ObjectDisambiguation(State):
 
     def compare_current_object_with_chosen_attribute(self, current_object, attribute):
         
-        match = 0
         ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
         current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
         current_attribute_from_feature = current_object.get(attribute)
         
         if current_attribute_from_user == current_attribute_from_feature:
-            match += 1
+            match = 1
             print "Attribute matches"
         else:
+            match = 0
+            self.eliminated_objects.append(current_object.get('name'))
             print "Attribute does not match"
         
         return match
     
     
     def compare_current_object_if_found_within_bounding_box(self, attribute, current_object, compared_objects):
-        self.eliminated_objects_indices = []
+
         for object_id in range(len(self.objects_inside_bounding_box)):
             if self.objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
                 print "Current object being compared: " + current_object.get('name')
                 compared_objects.append(current_object)
 
                 match = self.compare_current_object_with_chosen_attribute(current_object, attribute)
-                if match == 0:
-                    self.eliminated_objects_indices.append(object_id)
 
                 self.total_matches = np.array(np.append(self.total_matches, [match], axis = 0))
+                    
             else:
                 continue
 
@@ -76,10 +76,6 @@ class ObjectDisambiguation(State):
             pass
         print indices_for_attribute_match
         
-        # Reversing indices to pop as the indices will not change while going through the for loop
-        self.eliminated_objects_indices.reverse()
-        for elemination_index in range(len(self.eliminated_objects_indices)):
-            self.eliminated_objects.append(self.objects_inside_bounding_box.pop(self.eliminated_objects_indices[elemination_index]))
 
 
         return indices_for_attribute_match, compared_objects
@@ -88,9 +84,9 @@ class ObjectDisambiguation(State):
 
         objects_with_attributes = self.tiago.object_attributes
 
-        for attribute_index in range(len(self.attributes)):
+        for attribute in self.attributes:
 
-            indices_for_attribute_match, compared_objects= self.compare_all_objects_with_chosen_attribute(objects_with_attributes, self.attributes[attribute_index])
+            indices_for_attribute_match, compared_objects= self.compare_all_objects_with_chosen_attribute(objects_with_attributes, attribute)
 
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
@@ -99,6 +95,10 @@ class ObjectDisambiguation(State):
                 self.tiago.speak("The identified object is a " + identified_object)
                 print 'The eliminated objects are: '
                 print self.eliminated_objects
+                self.tiago.speak("The eliminated objects are: ")
+                for objects in self.eliminated_objects:
+                    self.tiago.speak(objects)
+
                 break
                 
             else:
