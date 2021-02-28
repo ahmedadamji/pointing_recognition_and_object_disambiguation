@@ -1,19 +1,9 @@
 #!/usr/bin/env python
+
 import rospy
-import actionlib
 from smach import State
-from cv_bridge import CvBridge, CvBridgeError
-
-from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
-from sensor_msgs.srv import SetCameraInfo
-import sensor_msgs.point_cloud2 as pc2
-
-from pointing_recognition.msg import IntersectionData
-
-from geometry_msgs.msg import PoseStamped
 
 import cv2
-import math
 import numpy as np
 
 # Imported for features of human robot interaction such as text to speech
@@ -34,7 +24,7 @@ class ObjectDisambiguation(State):
         self.attributes = ['type', 'texture', 'colour', 'size', 'shape']
 
 
-    def compare_chosen_attribute(self, current_object, attribute):
+    def compare_current_object_with_chosen_attribute(self, current_object, attribute):
         
         match = 0
         ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
@@ -50,14 +40,14 @@ class ObjectDisambiguation(State):
         return match
     
     
-    def get_matches_for_all_objects_in_bounding_box(self, attribute, current_object, compared_objects):
+    def compare_current_object_if_found_within_bounding_box(self, attribute, current_object, compared_objects):
         self.eliminated_objects_indices = []
         for object_id in range(len(self.objects_inside_bounding_box)):
             if self.objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
                 print "Current object being compared: " + current_object.get('name')
                 compared_objects.append(current_object)
 
-                match = self.compare_chosen_attribute(current_object, attribute)
+                match = self.compare_current_object_with_chosen_attribute(current_object, attribute)
                 if match == 0:
                     self.eliminated_objects_indices.append(object_id)
 
@@ -67,16 +57,16 @@ class ObjectDisambiguation(State):
 
         return compared_objects
 
-    def disambiguation_by_feature(self, object_attributes, attribute):
+    def compare_all_objects_with_chosen_attribute(self, objects_with_attributes, attribute):
         ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
 
         # Will be used to store all the objects compared for the current feature
         compared_objects = []
         self.total_matches = np.array([])
 
-        for index in range(0, len(object_attributes)):
-            current_object = object_attributes[index]
-            compared_objects = self.get_matches_for_all_objects_in_bounding_box(attribute, current_object, compared_objects)
+        for index in range(0, len(objects_with_attributes)):
+            current_object = objects_with_attributes[index]
+            compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects)
         
         try:
             indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
@@ -96,11 +86,11 @@ class ObjectDisambiguation(State):
 
     def disambiguate_until_unique_feature_found(self):
 
-        object_attributes = self.tiago.object_attributes
+        objects_with_attributes = self.tiago.object_attributes
 
         for attribute_index in range(len(self.attributes)):
 
-            indices_for_attribute_match, compared_objects= self.disambiguation_by_feature(object_attributes, self.attributes[attribute_index])
+            indices_for_attribute_match, compared_objects= self.compare_all_objects_with_chosen_attribute(objects_with_attributes, self.attributes[attribute_index])
 
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
@@ -113,7 +103,7 @@ class ObjectDisambiguation(State):
                 
             else:
                 # LIST COMPREHENSION
-                object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+                objects_with_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')
