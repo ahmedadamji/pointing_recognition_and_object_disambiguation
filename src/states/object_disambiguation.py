@@ -68,7 +68,6 @@ class ObjectDisambiguation(State):
     
     def get_matches_for_all_objects_in_bounding_box(self, attribute, current_object, compared_objects):
         self.eliminated_objects_indices = []
-        total_matches = np.array([])
         for object_id in range(len(self.objects_inside_bounding_box)):
             if self.objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
                 print "Current object being compared: " + current_object.get('name')
@@ -78,20 +77,21 @@ class ObjectDisambiguation(State):
                 if match == 0:
                     self.eliminated_objects_indices.append(object_id)
 
-                total_matches = np.array(np.append(total_matches, [match], axis = 0))
+                self.total_matches = np.array(np.append(self.total_matches, [match], axis = 0))
             else:
                 continue
 
-        return compared_objects, total_matches
+        return compared_objects
 
     def disambiguation_by_feature(self, object_attributes, attribute):
         ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
         compared_objects = []
         detection_confidence = []
+        self.total_matches = np.array([])
 
         for index in range(0, len(object_attributes)):
             current_object = object_attributes[index]
-            compared_objects, total_matches = self.get_matches_for_all_objects_in_bounding_box(attribute, current_object, compared_objects)
+            compared_objects = self.get_matches_for_all_objects_in_bounding_box(attribute, current_object, compared_objects)
 
         # Reversing indices to pop as the indices will not change while going through the for loop
         self.eliminated_objects_indices.reverse()
@@ -99,14 +99,14 @@ class ObjectDisambiguation(State):
             self.eliminated_objects.append(self.objects_inside_bounding_box.pop(self.eliminated_objects_indices[elemination_index]))
         
         try:
-            indices_for_attribute_match = np.argwhere(total_matches == np.amax(total_matches))
+            indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
             # This is done to rmove extra brackets around each element of the list
             indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
-        except ValueError:  #raised if `total_matches` is empty.
+        except ValueError:  #raised if `self.self.total_matches` is empty.
             pass
         print indices_for_attribute_match
 
-        return indices_for_attribute_match, compared_objects, total_matches
+        return indices_for_attribute_match, compared_objects
 
 
     def execute(self, userdata):
@@ -130,7 +130,7 @@ class ObjectDisambiguation(State):
 
         object_attributes = self.tiago.object_attributes
 
-        indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'type')
+        indices_for_attribute_match, compared_objects= self.disambiguation_by_feature(object_attributes, 'type')
 
         if len(indices_for_attribute_match) == 1:
             # Two indices needed as there is a bracket around every number:
@@ -141,7 +141,7 @@ class ObjectDisambiguation(State):
             # LIST COMPREHENSION
             object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
-            indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'colour')
+            indices_for_attribute_match, compared_objects = self.disambiguation_by_feature(object_attributes, 'texture')
 
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
@@ -153,7 +153,7 @@ class ObjectDisambiguation(State):
                 # LIST COMPREHENSION
                 object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
-                indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'texture')
+                indices_for_attribute_match, compared_objects = self.disambiguation_by_feature(object_attributes, 'colour')
 
                 if len(indices_for_attribute_match) == 1:
                     # Two indices needed as there is a bracket around every number:
@@ -165,7 +165,7 @@ class ObjectDisambiguation(State):
                     # LIST COMPREHENSION
                     object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
-                    indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'size')
+                    indices_for_attribute_match, compared_objects = self.disambiguation_by_feature(object_attributes, 'size')
 
 
 
@@ -175,14 +175,14 @@ class ObjectDisambiguation(State):
 
         # else:
         #     ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
-        #     total_matches = np.array([])
+        #     self.self.total_matches = np.array([])
         #     compared_objects = []
         #     for index in range(len(indices_for_attribute_match)):
         #         current_object = compared_objects[indices_for_attribute_match[index][0]]
-        #         compared_objects, total_matches = self.get_matches_for_all_objects_in_bounding_box('type', current_object, compared_objects, total_matches)
+        #         compared_objects, self.self.total_matches = self.get_matches_for_all_objects_in_bounding_box('type', current_object, compared_objects, self.self.total_matches)
         #     try:
-        #         indices_for_attribute_match = np.argwhere(total_matches == np.amax(total_matches))
-        #     except ValueError:  #raised if `total_matches` is empty.
+        #         indices_for_attribute_match = np.argwhere(self.self.total_matches == np.amax(self.self.total_matches))
+        #     except ValueError:  #raised if `self.self.total_matches` is empty.
         #         pass
         #     print indices_for_attribute_match
         #     if len(indices_for_attribute_match) == 1:
@@ -204,8 +204,8 @@ class ObjectDisambiguation(State):
         #             match += 1
         #         else:
         #             print "Attribute does not match"
-        #     total_matches.append(match)
-        # indices_for_attribute_match = np.argwhere(total_matches == np.amax(total_matches))
+        #     self.self.total_matches.append(match)
+        # indices_for_attribute_match = np.argwhere(self.self.total_matches == np.amax(self.self.total_matches))
         # if len(indices_for_attribute_match) == 1:
         #     identified_object = list_of_objects_within_bounding_box[indices_for_attribute_match[0]]
         #     return identified_object
@@ -228,3 +228,4 @@ class ObjectDisambiguation(State):
         cv2.destroyAllWindows()
 
         return 'outcome1'
+
