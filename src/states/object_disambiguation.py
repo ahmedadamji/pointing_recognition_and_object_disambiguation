@@ -82,6 +82,28 @@ class ObjectDisambiguation(State):
 
         return compared_objects, total_matches
 
+    def disambiguation_by_feature(self, object_attributes, attribute, compared_objects, total_matches):
+        ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
+        self.eliminated_objects_indices = []
+        for index in range(0, len(object_attributes)):
+            current_object = object_attributes[index]
+            compared_objects, total_matches = self.get_matches_for_all_objects_in_bounding_box(attribute, current_object, compared_objects, total_matches)
+
+        # Reversing indices to pop as the indices will not change while going through the for loop
+        self.eliminated_objects_indices.reverse()
+        for elemination_index in range(len(self.eliminated_objects_indices)):
+            self.eliminated_objects.append(self.objects_inside_bounding_box.pop(self.eliminated_objects_indices[elemination_index]))
+        
+        try:
+            indices_for_attribute_match = np.argwhere(total_matches == np.amax(total_matches))
+            indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
+        except ValueError:  #raised if `total_matches` is empty.
+            pass
+        print indices_for_attribute_match
+
+        return indices_for_attribute_match, compared_objects, total_matches
+
+
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')
 
@@ -105,44 +127,46 @@ class ObjectDisambiguation(State):
         detection_confidence = []
 
         object_attributes = self.tiago.object_attributes
-        ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
-        for index in range(0, len(object_attributes)):
-            current_object = object_attributes[index]
-            compared_objects, total_matches = self.get_matches_for_all_objects_in_bounding_box('colour', current_object, compared_objects, total_matches)
-        # Reversing indices to pop as the indices will not change while going through the for loop
-        self.eliminated_objects_indices.reverse()
-        for elemination_index in range(len(self.eliminated_objects_indices)):
-            self.eliminated_objects.append(self.objects_inside_bounding_box.pop(self.eliminated_objects_indices[elemination_index]))
-        
-        try:
-            indices_for_attribute_match = np.argwhere(total_matches == np.amax(total_matches))
-        except ValueError:  #raised if `total_matches` is empty.
-            pass
-        print indices_for_attribute_match
+
+        indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'type', compared_objects, total_matches)
+
         if len(indices_for_attribute_match) == 1:
             # Two indices needed as there is a bracket around every number:
-            identified_object = compared_objects[indices_for_attribute_match[0][0]].get('name')
+            identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
             print identified_object
             self.tiago.speak("The identified object is a " + identified_object)
         else:
             # LIST COMPREHENSION
             # THE 0 BECAUSE THERE IS AN EXTRA BRACKET AROUND EACH ITEM
-            object_attributes = [compared_objects[index][0] for index in indices_for_attribute_match]
-            ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
-            for index in range(0, len(object_attributes)):
-                current_object = object_attributes[index]
-                compared_objects, total_matches = self.get_matches_for_all_objects_in_bounding_box('colour', current_object, compared_objects, total_matches)
-            
-            try:
-                indices_for_attribute_match = np.argwhere(total_matches == np.amax(total_matches))
-            except ValueError:  #raised if `total_matches` is empty.
-                pass
-            print indices_for_attribute_match
+            object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+
+            indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'colour', compared_objects, total_matches)
+
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
-                identified_object = compared_objects[indices_for_attribute_match[0][0]].get('name')
+                identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
                 print identified_object
                 self.tiago.speak("The identified object is a " + identified_object)
+
+            else:
+                # LIST COMPREHENSION
+                # THE 0 BECAUSE THERE IS AN EXTRA BRACKET AROUND EACH ITEM
+                object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+
+                indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'texture', compared_objects, total_matches)
+
+                if len(indices_for_attribute_match) == 1:
+                    # Two indices needed as there is a bracket around every number:
+                    identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
+                    print identified_object
+                    self.tiago.speak("The identified object is a " + identified_object)
+
+                else:
+                    # LIST COMPREHENSION
+                    # THE 0 BECAUSE THERE IS AN EXTRA BRACKET AROUND EACH ITEM
+                    object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+
+                    indices_for_attribute_match, compared_objects, total_matches = self.disambiguation_by_feature(object_attributes, 'size', compared_objects, total_matches)
 
 
 
