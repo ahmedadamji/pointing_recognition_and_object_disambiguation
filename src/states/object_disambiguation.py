@@ -105,7 +105,7 @@ class ObjectDisambiguation(State):
         self.eliminated_objects_indices.reverse()
         for elemination_index in range(len(self.eliminated_objects_indices)):
             self.eliminated_objects.append(self.objects_inside_bounding_box.pop(self.eliminated_objects_indices[elemination_index]))
-            
+
 
         return indices_for_attribute_match, compared_objects
 
@@ -127,24 +127,14 @@ class ObjectDisambiguation(State):
                 'size':    'long',
                 'shape':   'curved'
             }
+        
+        attributes = ['type', 'texture', 'colour', 'size', 'shape']
 
         object_attributes = self.tiago.object_attributes
 
-        indices_for_attribute_match, compared_objects= self.disambiguation_by_feature(object_attributes, 'type')
+        for attribute_index in range(len(attributes)):
 
-        if len(indices_for_attribute_match) == 1:
-            # Two indices needed as there is a bracket around every number:
-            identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
-            print identified_object
-            self.tiago.speak("The identified object is a " + identified_object)
-            print 'The eliminated objects are: '
-            print self.eliminated_objects
-
-        else:
-            # LIST COMPREHENSION
-            object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
-
-            indices_for_attribute_match, compared_objects = self.disambiguation_by_feature(object_attributes, 'texture')
+            indices_for_attribute_match, compared_objects= self.disambiguation_by_feature(object_attributes, attributes[attribute_index])
 
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
@@ -153,29 +143,12 @@ class ObjectDisambiguation(State):
                 self.tiago.speak("The identified object is a " + identified_object)
                 print 'The eliminated objects are: '
                 print self.eliminated_objects
-
+                break
+                
             else:
                 # LIST COMPREHENSION
                 object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
-
-                indices_for_attribute_match, compared_objects = self.disambiguation_by_feature(object_attributes, 'colour')
-
-                if len(indices_for_attribute_match) == 1:
-                    # Two indices needed as there is a bracket around every number:
-                    identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
-                    print identified_object
-                    self.tiago.speak("The identified object is a " + identified_object)
-                    print 'The eliminated objects are: '
-                    print self.eliminated_objects
-
-                else:
-                    # LIST COMPREHENSION
-                    object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
-
-                    indices_for_attribute_match, compared_objects = self.disambiguation_by_feature(object_attributes, 'size')
-
-
-
+                
 
 
 
