@@ -92,19 +92,20 @@ class ObjectDisambiguation(State):
         for index in range(0, len(object_attributes)):
             current_object = object_attributes[index]
             compared_objects = self.get_matches_for_all_objects_in_bounding_box(attribute, current_object, compared_objects)
-
-        # Reversing indices to pop as the indices will not change while going through the for loop
-        self.eliminated_objects_indices.reverse()
-        for elemination_index in range(len(self.eliminated_objects_indices)):
-            self.eliminated_objects.append(self.objects_inside_bounding_box.pop(self.eliminated_objects_indices[elemination_index]))
         
         try:
             indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
             # This is done to rmove extra brackets around each element of the list
             indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
-        except ValueError:  #raised if `self.self.total_matches` is empty.
+        except ValueError:  #raised if `self.total_matches` is empty.
             pass
         print indices_for_attribute_match
+        
+        # Reversing indices to pop as the indices will not change while going through the for loop
+        self.eliminated_objects_indices.reverse()
+        for elemination_index in range(len(self.eliminated_objects_indices)):
+            self.eliminated_objects.append(self.objects_inside_bounding_box.pop(self.eliminated_objects_indices[elemination_index]))
+            
 
         return indices_for_attribute_match, compared_objects
 
@@ -116,7 +117,6 @@ class ObjectDisambiguation(State):
 
         self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
         self.eliminated_objects = []
-        self.eliminated_objects_indices = []
         # print objects_inside_bounding_box
         # print objects_inside_bounding_box[0].get('name')
         attributes_from_user = []
@@ -137,6 +137,9 @@ class ObjectDisambiguation(State):
             identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
             print identified_object
             self.tiago.speak("The identified object is a " + identified_object)
+            print 'The eliminated objects are: '
+            print self.eliminated_objects
+
         else:
             # LIST COMPREHENSION
             object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
@@ -148,6 +151,8 @@ class ObjectDisambiguation(State):
                 identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
                 print identified_object
                 self.tiago.speak("The identified object is a " + identified_object)
+                print 'The eliminated objects are: '
+                print self.eliminated_objects
 
             else:
                 # LIST COMPREHENSION
@@ -160,36 +165,14 @@ class ObjectDisambiguation(State):
                     identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
                     print identified_object
                     self.tiago.speak("The identified object is a " + identified_object)
+                    print 'The eliminated objects are: '
+                    print self.eliminated_objects
 
                 else:
                     # LIST COMPREHENSION
                     object_attributes = [compared_objects[index] for index in indices_for_attribute_match]
 
                     indices_for_attribute_match, compared_objects = self.disambiguation_by_feature(object_attributes, 'size')
-
-
-
-
-
-
-
-        # else:
-        #     ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
-        #     self.self.total_matches = np.array([])
-        #     compared_objects = []
-        #     for index in range(len(indices_for_attribute_match)):
-        #         current_object = compared_objects[indices_for_attribute_match[index][0]]
-        #         compared_objects, self.self.total_matches = self.get_matches_for_all_objects_in_bounding_box('type', current_object, compared_objects, self.self.total_matches)
-        #     try:
-        #         indices_for_attribute_match = np.argwhere(self.self.total_matches == np.amax(self.self.total_matches))
-        #     except ValueError:  #raised if `self.self.total_matches` is empty.
-        #         pass
-        #     print indices_for_attribute_match
-        #     if len(indices_for_attribute_match) == 1:
-        #         # Two indices needed as there is a bracket around every number:
-        #         identified_object = compared_objects[indices_for_attribute_match[0][0]].get('name')
-        #         print identified_object
-        #         self.tiago.speak("The identified object is a " + identified_object)
 
 
 
@@ -204,8 +187,8 @@ class ObjectDisambiguation(State):
         #             match += 1
         #         else:
         #             print "Attribute does not match"
-        #     self.self.total_matches.append(match)
-        # indices_for_attribute_match = np.argwhere(self.self.total_matches == np.amax(self.self.total_matches))
+        #     self.total_matches.append(match)
+        # indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
         # if len(indices_for_attribute_match) == 1:
         #     identified_object = list_of_objects_within_bounding_box[indices_for_attribute_match[0]]
         #     return identified_object
@@ -216,11 +199,6 @@ class ObjectDisambiguation(State):
         #     highest_confidence_index = indices_for_attribute_match[np.argmax(detection_confidence)]
         #     identified_object = list_of_objects_within_bounding_box[highest_confidence_index]
         #     return identified_object
-
-
-
-
-
 
 
 
