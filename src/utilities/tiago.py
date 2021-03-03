@@ -80,19 +80,29 @@ class Tiago:
 
         rospy.loginfo("play motion: check_table completed")
 
-    def speak(self, speech_in):
+    def talk(self, speech_in):
         # Create the TTS goal and send it
         print('\033[1;36mTIAGO: ' + speech_in + '\033[0m')
 
         # init and set speech engine
-        speech_engine = pyttsx.init()
-        speech_engine.say(speech_in)
-        speech_engine.runAndWait()
+        voiceEngine = pyttsx.init()
+        voiceEngine.setProperty('rate', 140) # To reduce the speed of speech
+        voiceEngine.say(speech_in)
+        voiceEngine.runAndWait()
+        
+        # rate = voiceEngine.getProperty('rate')
+        # volume = voiceEngine.getProperty('volume')
+        # voice = voiceEngine.getProperty('voice')
+        
+        # print rate
+        # print volume
+        # print voice
 
-        tts_goal = TtsGoal()
-        tts_goal.rawtext.lang_id = 'en_GB'
-        tts_goal.rawtext.text = speech_in
-        self.tts_client.send_goal(tts_goal)
+        # Creating a TTS Goal (Text to speech) and sending it to tiago
+        # tts_goal = TtsGoal()
+        # tts_goal.rawtext.lang_id = 'en_GB'
+        # tts_goal.rawtext.text = speech_in
+        # self.tts_client.send_goal(tts_goal)
 
     def load_object_features(self):
 

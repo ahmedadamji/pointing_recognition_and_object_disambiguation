@@ -92,12 +92,12 @@ class ObjectDisambiguation(State):
                 # Two indices needed as there is a bracket around every number:
                 identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
                 print identified_object
-                self.tiago.speak("The identified object is a " + identified_object)
+                self.tiago.talk("The identified object is a " + identified_object)
                 print 'The eliminated objects are: '
                 print self.eliminated_objects
-                self.tiago.speak("The eliminated objects are: ")
+                self.tiago.talk("The eliminated objects, in order of elimination, are: ")
                 for objects in self.eliminated_objects:
-                    self.tiago.speak(objects)
+                    self.tiago.talk(objects)
 
                 break
                 
@@ -108,7 +108,7 @@ class ObjectDisambiguation(State):
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')
 
-        self.tiago.speak("My name is Ahmed and I am the robo maker")
+        self.tiago.talk("My name is Ahmed and I am the robo maker")
 
         self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
 
