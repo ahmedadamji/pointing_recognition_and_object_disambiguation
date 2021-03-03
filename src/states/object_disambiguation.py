@@ -24,10 +24,10 @@ class ObjectDisambiguation(State):
         self.attributes = ['type', 'texture', 'colour', 'size', 'shape']
 
 
-    def compare_current_object_with_chosen_attribute(self, current_object, attribute):
+    def compare_current_object_with_chosen_attribute(self, current_object, attribute, current_attribute_from_user):
         
         ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
-        current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
+        #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
         current_attribute_from_feature = current_object.get(attribute)
         
         if current_attribute_from_user == current_attribute_from_feature:
@@ -41,14 +41,14 @@ class ObjectDisambiguation(State):
         return match
     
     
-    def compare_current_object_if_found_within_bounding_box(self, attribute, current_object, compared_objects):
+    def compare_current_object_if_found_within_bounding_box(self, attribute, current_object, compared_objects, current_attribute_from_user):
 
         for object_id in range(len(self.objects_inside_bounding_box)):
             if self.objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
                 print "Current object being compared: " + current_object.get('name')
                 compared_objects.append(current_object)
 
-                match = self.compare_current_object_with_chosen_attribute(current_object, attribute)
+                match = self.compare_current_object_with_chosen_attribute(current_object, attribute, current_attribute_from_user)
 
                 self.total_matches = np.array(np.append(self.total_matches, [match], axis = 0))
                     
@@ -64,9 +64,11 @@ class ObjectDisambiguation(State):
         compared_objects = []
         self.total_matches = np.array([])
 
+        current_attribute_from_user = self.gather_user_response(attribute)
+
         for index in range(0, len(objects_with_attributes)):
             current_object = objects_with_attributes[index]
-            compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects)
+            compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects, current_attribute_from_user)
         
         try:
             indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
@@ -104,6 +106,60 @@ class ObjectDisambiguation(State):
             else:
                 # LIST COMPREHENSION
                 objects_with_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+    
+    def gather_user_response(self, feature):
+
+        # speech_client = actionlib.SimpleActionClient('receptionist', informationAction)
+        # speech_client.wait_for_server()
+
+        self.tiago.talk("could you please tell me the " + feature + " of the object you are pointing at?" )
+
+        # talk('may i please get your name?', wait=True)
+        # goal = informationGoal('name', 'receptionist_name')
+        # tries = 0
+
+        # while tries < 3:
+        #     speech_client.send_goal(goal)
+        #     speech_client.wait_for_result()
+        #     result_dict['name'] = speech_client.get_result().data
+
+        #     if not result_dict['name'] == '':
+        #         break
+            
+        #     talk('sorry, I didn\'t catch that, may i please get your name?', wait=True)
+        #     tries += 1
+        
+        #user_response = "yellow"
+        user_response = {
+            "success": True,
+            "error": None,
+            "transcription": None
+        }
+
+        text = raw_input('Please type your response : ')
+        user_response['transcription'] = text
+
+        self.tiago.talk("ah, the object is " + user_response['transcription'])
+
+        # goal = informationGoal('drink', 'receptionist_drink')
+        # tries = 0
+
+        return user_response['transcription']
+
+        # while tries < 3:
+        #     speech_client.send_goal(goal)
+        #     speech_client.wait_for_result()
+        #     result_dict['drink'] = speech_client.get_result().data
+
+        #     if not result_dict['drink'] == '':
+        #         break
+            
+        #     talk('sorry, I didn\'t catch that, may i please get your favourite drink?', wait=True)
+        #     tries += 1
+
+        # talk("and your favourite drink is " + result_dict['drink'], wait=True)
+
+
 
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')

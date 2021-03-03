@@ -37,7 +37,7 @@ def main():
         StateMachine.add('disambiguate_objects', ObjectDisambiguation(), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
     
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
 
     #rospy.spin()
 
