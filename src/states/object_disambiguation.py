@@ -20,6 +20,9 @@ class ObjectDisambiguation(State):
 
         # Stores details of objects that have been eliminated during disambiguation
         self.eliminated_objects = []
+        # Stores all matches from current attribute check, used to decide eliminated objects as well as which objects go to the next stage
+        self.total_matches = np.array([])
+
         # Stores the types of attributes in order of use for disambiguation
         self.attributes = ['type', 'texture', 'colour', 'size', 'shape']
 
@@ -35,7 +38,7 @@ class ObjectDisambiguation(State):
             print "Attribute matches"
         else:
             match = 0
-            self.eliminated_objects.append(current_object.get('name'))
+            # self.eliminated_objects.append(current_object.get('name'))
             print "Attribute does not match"
         
         return match
@@ -70,6 +73,14 @@ class ObjectDisambiguation(State):
             current_object = objects_with_attributes[index]
             compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects, current_attribute_from_user)
         
+        
+        if not all([ v == 0 for v in self.total_matches]):
+            index = 0
+            for match in self.total_matches:
+                if match == 0:
+                    self.eliminated_objects.append(compared_objects[index].get('name'))
+                index +=1
+        
         try:
             indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
             # This is done to rmove extra brackets around each element of the list
@@ -90,6 +101,7 @@ class ObjectDisambiguation(State):
 
             indices_for_attribute_match, compared_objects= self.compare_all_objects_with_chosen_attribute(objects_with_attributes, attribute)
 
+            # The == condition ensures that even if it doesnt match for all objects it still goes to the next questionst
             if len(indices_for_attribute_match) == 1:
                 # Two indices needed as there is a bracket around every number:
                 identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
