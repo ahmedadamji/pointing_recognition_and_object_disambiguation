@@ -35,11 +35,11 @@ class ObjectDisambiguation(State):
         
         if current_attribute_from_user == current_attribute_from_feature:
             match = 1
-            print "Attribute matches"
+            print attribute + " attribute matches"
         else:
             match = 0
             # self.eliminated_objects.append(current_object.get('name'))
-            print "Attribute does not match"
+            print attribute + " attribute does not match"
         
         return match
     
@@ -87,9 +87,7 @@ class ObjectDisambiguation(State):
             indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
         except ValueError:  #raised if `self.total_matches` is empty.
             pass
-        print indices_for_attribute_match
-        
-
+        # print indices_for_attribute_match
 
         return indices_for_attribute_match, compared_objects
 

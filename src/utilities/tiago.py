@@ -86,7 +86,7 @@ class Tiago:
 
         # init and set speech engine
         voiceEngine = pyttsx.init()
-        voiceEngine.setProperty('rate', 140) # To reduce the speed of speech
+        voiceEngine.setProperty('rate', 150) # To reduce the speed of speech
         voiceEngine.say(speech_in)
         voiceEngine.runAndWait()
         
