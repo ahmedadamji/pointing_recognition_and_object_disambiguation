@@ -24,15 +24,24 @@ class ObjectDisambiguation(State):
         self.total_matches = np.array([])
 
         # Stores the types of attributes in order of use for disambiguation
-        self.attributes = ['type', 'texture', 'colour', 'size', 'shape']
+        self.attributes = ['type', 'texture', 'colour', 'size', 'shape', 'position']
 
 
-    def compare_current_object_with_chosen_attribute(self, current_object_attributes, attribute, current_attribute_from_user):
+    def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, current_attribute_from_user):
         
         ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
         #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
         attribute_of_current_object = current_object_attributes.get(attribute)
         
+        # Gets the centre point of the current object on the opencv image
+        if attribute == "position":
+            xywh = current_object.get("xywh")
+            x = xywh[0]
+            y = xywh[1]
+            w = xywh[2]
+            h = xywh[3]
+            centre = ((x + (w/2)),(y + (h/2)))
+
         if current_attribute_from_user == attribute_of_current_object:
             match = 1
             print attribute + " attribute matches"
@@ -44,14 +53,14 @@ class ObjectDisambiguation(State):
         return match
     
     
-    def compare_current_object_if_found_within_bounding_box(self, attribute, current_object, compared_objects, current_attribute_from_user):
+    def compare_current_object_using_attributes_from_database(self, attribute, current_object, compared_objects, current_attribute_from_user):
 
         for object_id in range(len(self.objects_with_attributes)):
             if self.objects_with_attributes[object_id].get('name') == current_object.get('name'):
                 print "Current object being compared: " + self.objects_with_attributes[object_id].get('name')
                 compared_objects.append(current_object)
 
-                match = self.compare_current_object_with_chosen_attribute(self.objects_with_attributes[object_id], attribute, current_attribute_from_user)
+                match = self.compare_current_object_with_chosen_attribute(current_object, self.objects_with_attributes[object_id], attribute, current_attribute_from_user)
 
                 self.total_matches = np.array(np.append(self.total_matches, [match], axis = 0))
                     
@@ -71,11 +80,11 @@ class ObjectDisambiguation(State):
 
         for index in range(0, len(self.objects_inside_bounding_box)):
             current_object = self.objects_inside_bounding_box[index]
-            compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects, current_attribute_from_user)
+            compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
 
         # for index in range(0, len(self.objects_with_attributes)):
         #     current_object = self.objects_with_attributes[index]
-        #     compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects, current_attribute_from_user)
+        #     compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
         
         # This is done so that eliminated objects are only updated if they there is at least one match for the current atrribute
         if not all([ v == 0 for v in self.total_matches]):
