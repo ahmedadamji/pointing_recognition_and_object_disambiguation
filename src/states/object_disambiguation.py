@@ -27,18 +27,18 @@ class ObjectDisambiguation(State):
         self.attributes = ['type', 'texture', 'colour', 'size', 'shape']
 
 
-    def compare_current_object_with_chosen_attribute(self, current_object, attribute, current_attribute_from_user):
+    def compare_current_object_with_chosen_attribute(self, current_object_attributes, attribute, current_attribute_from_user):
         
         ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
         #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
-        current_attribute_from_feature = current_object.get(attribute)
+        attribute_of_current_object = current_object_attributes.get(attribute)
         
-        if current_attribute_from_user == current_attribute_from_feature:
+        if current_attribute_from_user == attribute_of_current_object:
             match = 1
             print attribute + " attribute matches"
         else:
             match = 0
-            # self.eliminated_objects.append(current_object.get('name'))
+            # self.eliminated_objects.append(current_object_attributes.get('name'))
             print attribute + " attribute does not match"
         
         return match
@@ -46,12 +46,12 @@ class ObjectDisambiguation(State):
     
     def compare_current_object_if_found_within_bounding_box(self, attribute, current_object, compared_objects, current_attribute_from_user):
 
-        for object_id in range(len(self.objects_inside_bounding_box)):
-            if self.objects_inside_bounding_box[object_id].get('name') == current_object.get('name'):
-                print "Current object being compared: " + current_object.get('name')
+        for object_id in range(len(self.objects_with_attributes)):
+            if self.objects_with_attributes[object_id].get('name') == current_object.get('name'):
+                print "Current object being compared: " + self.objects_with_attributes[object_id].get('name')
                 compared_objects.append(current_object)
 
-                match = self.compare_current_object_with_chosen_attribute(current_object, attribute, current_attribute_from_user)
+                match = self.compare_current_object_with_chosen_attribute(self.objects_with_attributes[object_id], attribute, current_attribute_from_user)
 
                 self.total_matches = np.array(np.append(self.total_matches, [match], axis = 0))
                     
@@ -60,7 +60,7 @@ class ObjectDisambiguation(State):
 
         return compared_objects
 
-    def compare_all_objects_with_chosen_attribute(self, objects_with_attributes, attribute):
+    def compare_all_objects_with_chosen_attribute(self, attribute):
         ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
 
         # Will be used to store all the objects compared for the current feature
@@ -69,15 +69,20 @@ class ObjectDisambiguation(State):
 
         current_attribute_from_user = self.gather_user_response(attribute)
 
-        for index in range(0, len(objects_with_attributes)):
-            current_object = objects_with_attributes[index]
+        for index in range(0, len(self.objects_inside_bounding_box)):
+            current_object = self.objects_inside_bounding_box[index]
             compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects, current_attribute_from_user)
+
+        # for index in range(0, len(self.objects_with_attributes)):
+        #     current_object = self.objects_with_attributes[index]
+        #     compared_objects = self.compare_current_object_if_found_within_bounding_box(attribute, current_object, compared_objects, current_attribute_from_user)
         
-        
+        # This is done so that eliminated objects are only updated if they there is at least one match for the current atrribute
         if not all([ v == 0 for v in self.total_matches]):
             index = 0
             for match in self.total_matches:
                 if match == 0:
+                    # Updating eliminated objects
                     self.eliminated_objects.append(compared_objects[index].get('name'))
                 index +=1
         
@@ -93,11 +98,11 @@ class ObjectDisambiguation(State):
 
     def disambiguate_until_unique_feature_found(self):
 
-        objects_with_attributes = self.tiago.object_attributes
+        self.objects_with_attributes = self.tiago.object_attributes
 
         for attribute in self.attributes:
 
-            indices_for_attribute_match, compared_objects= self.compare_all_objects_with_chosen_attribute(objects_with_attributes, attribute)
+            indices_for_attribute_match, compared_objects= self.compare_all_objects_with_chosen_attribute(attribute)
 
             # The == condition ensures that even if it doesnt match for all objects it still goes to the next questionst
             if len(indices_for_attribute_match) == 1:
@@ -111,11 +116,13 @@ class ObjectDisambiguation(State):
                 for objects in self.eliminated_objects:
                     self.tiago.talk(objects)
 
-                break
+                return
+        # Code run if diambiguation couldn't find a unique object to suit the descriptions
+        self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
                 
-            else:
-                # LIST COMPREHENSION
-                objects_with_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+            # else:
+            #     # LIST COMPREHENSION
+            #     self.objects_with_attributes = [compared_objects[index] for index in indices_for_attribute_match]
     
     def gather_user_response(self, feature):
 
@@ -148,8 +155,8 @@ class ObjectDisambiguation(State):
 
         text = raw_input('Please type your response : ')
         user_response['transcription'] = text
-
-        self.tiago.talk("ah, the object is " + user_response['transcription'])
+        # Reinforces to the user, the attribute collected
+        self.tiago.talk("ah, the " + feature + " of the object is " + user_response['transcription'])
 
         # goal = informationGoal('drink', 'receptionist_drink')
         # tries = 0
@@ -182,13 +189,13 @@ class ObjectDisambiguation(State):
         # print objects_inside_bounding_box[0].get('name')
 
         self.attributes_from_user = []
-        self.dummy_attributes_from_user = {
-                'colour':  'yellow',
-                'type':    'fresh',
-                'texture': 'smooth',
-                'size':    'long',
-                'shape':   'curved'
-            }
+        # self.dummy_attributes_from_user = {
+        #         'colour':  'yellow',
+        #         'type':    'fresh',
+        #         'texture': 'smooth',
+        #         'size':    'long',
+        #         'shape':   'curved'
+        #     }
         
 
         self.disambiguate_until_unique_feature_found()
