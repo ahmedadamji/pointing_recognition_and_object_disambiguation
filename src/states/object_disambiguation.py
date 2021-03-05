@@ -26,55 +26,71 @@ class ObjectDisambiguation(State):
         self.total_matches = np.array([])
 
         # Stores the types of attributes in order of use for disambiguation
-        self.attributes = ['type', 'texture', 'colour', 'size', 'shape', 'position']
+        self.attributes = 'position', 'type', 'texture', 'colour', 'size', 'shape'
         # Stores the directions in terms of compass coordinates to use as part of disambiguating objects
         self.compass_directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"]
+
+    def convert_from_image_to_cartesian_coordinate_system(self, point):
+        x = point[0]
+        y = point[1]
+        w = 640
+        h = 480
+        x = x+(w/2)
+        y = (h/2)-y
+        return [x,y]
 
     def calculate_compass_direction_between_two_points(self, current_object_centre_point, centre_point_of_bounding_box):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
 
+        current_object_centre_point = self.convert_from_image_to_cartesian_coordinate_system(current_object_centre_point)
+        centre_point_of_bounding_box = self.convert_from_image_to_cartesian_coordinate_system(centre_point_of_bounding_box)
         deltaX = current_object_centre_point[0] - centre_point_of_bounding_box[0]
         deltaY = current_object_centre_point[1] - centre_point_of_bounding_box[1]
         angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
-        
+
         if angle_between_points < 0:
             angle_between_points = 360 + angle_between_points
 
         else:
             angle_between_points = angle_between_points
         
-        direction_index = round(angle_between_points / 45)
+        direction_index = int(round(angle_between_points / 45))
         compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
     
     def get_compass_direction(self, current_object):
         # Gets the centre point of the current object on the opencv image
-        if attribute == "position":
-            xywh = current_object.get("xywh")
-            x = xywh[0]
-            y = xywh[1]
-            w = xywh[2]
-            h = xywh[3]
-            current_object_centre_point = ((x + (w/2)),(y + (h/2)))
+        xywh = current_object.get("xywh")
+        x = xywh[0]
+        y = xywh[1]
+        w = xywh[2]
+        h = xywh[3]
+        current_object_centre_point = ((x + (w/2)),(y + (h/2)))
         
         # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
         centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
 
         compass_direction = self.calculate_compass_direction_between_two_points(current_object_centre_point, centre_point_of_bounding_box)
+        return compass_direction
 
-    def get_attribute_of_current_object(self, attribute, current_object):
+    def get_attribute_of_current_object(self, attribute, current_object, current_object_attributes):
         #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
+        # Can add here more conditions for example if attribute needs to be extracted by means of opencv / other means in the future.
         if not(attribute == 'position'):
             attribute_of_current_object = current_object_attributes.get(attribute)
         
-        else:
+        elif (attribute == 'position'):
             attribute_of_current_object = self.get_compass_direction(current_object)
+            print (current_object.get('name') + " was found at: " + attribute_of_current_object)
+        
+        return attribute_of_current_object
+        
 
 
     def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, current_attribute_from_user):
 
-        if current_attribute_from_user == self.get_attribute_of_current_object(attribute, current_object):
+        if current_attribute_from_user == self.get_attribute_of_current_object(attribute, current_object, current_object_attributes):
             match = 1
             print attribute + " attribute matches"
         else:
@@ -103,11 +119,12 @@ class ObjectDisambiguation(State):
 
     def update_eliminated_objects(self):
         # This is done so that eliminated objects are only updated if they there is at least one match for the current atrribute
+        
+        # Stores indices of objects from within the bounding box to be eliminated
+        eliminated_objects_indices = []
         if not all([ v == 0 for v in self.total_matches]):
             # Index of each object remaining in the bounding box
             index = 0
-            # Stores indices of objects from within the bounding box to be eliminated
-            eliminated_objects_indices = []
             for match in self.total_matches:
                 if match == 0:
                     # Updating eliminated objects
@@ -174,12 +191,12 @@ class ObjectDisambiguation(State):
             #     # LIST COMPREHENSION
             #     self.objects_with_attributes = [compared_objects[index] for index in indices_for_attribute_match]
     
-    def gather_user_response(self, feature):
+    def gather_user_response(self, attribute):
 
         # speech_client = actionlib.SimpleActionClient('receptionist', informationAction)
         # speech_client.wait_for_server()
 
-        self.tiago.talk("could you please tell me the " + feature + " of the object you are pointing at?" )
+        self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
 
         # talk('may i please get your name?', wait=True)
         # goal = informationGoal('name', 'receptionist_name')
@@ -206,7 +223,7 @@ class ObjectDisambiguation(State):
         text = raw_input('Please type your response : ')
         user_response['transcription'] = text
         # Reinforces to the user, the attribute collected
-        self.tiago.talk("ah, the " + feature + " of the object is " + user_response['transcription'])
+        self.tiago.talk("ah, the " + attribute + " of the object is " + user_response['transcription'])
 
         # goal = informationGoal('drink', 'receptionist_drink')
         # tries = 0

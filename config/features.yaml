@@ -20,6 +20,13 @@ object_attributes:
     size: 'medium'
     shape: 'round'
 
+  - name: 'bowl'
+    colour: 'white'
+    type: 'vessel'
+    texture: 'smooth'
+    size: 'large'
+    shape: 'round'
+
 # object_attributes:
 #   object0:
 #     name:

@@ -57,7 +57,7 @@ class PointedObjectDetection(State):
         print intersection_point_world
         camera_point_3d = self.transform_from_world_frame_to_camera_frame(intersection_point_world)
         print camera_point_3d
-        self.camera_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(camera_point_3d))
+        self.camera_point_2d = self.project_depth_array_to_2d_image_pixels(camera_point_3d)
         print self.camera_point_2d
 
         image_raw = rospy.wait_for_message('/xtion/rgb/image_raw', Image)
@@ -116,7 +116,7 @@ class PointedObjectDetection(State):
             print"Further diasambiguation needed"
         
         rospy.set_param('/objects_inside_bounding_box', objects_inside_bounding_box)
-        rospy.set_param('/camera_point_after_object_detection_2d', self.camera_point_2d)
+        rospy.set_param('/camera_point_after_object_detection_2d', [self.camera_point_2d[0], self.camera_point_2d[1]])
 
         self.classify.yolo_get_object_coordinates()
         
