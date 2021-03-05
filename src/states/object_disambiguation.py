@@ -89,12 +89,22 @@ class ObjectDisambiguation(State):
         # This is done so that eliminated objects are only updated if they there is at least one match for the current atrribute
         if not all([ v == 0 for v in self.total_matches]):
             index = 0
+            # Stores indices of objects from within the bounding box to be eliminated
+            eliminated_objects_indices = []
             for match in self.total_matches:
                 if match == 0:
                     # Updating eliminated objects
-                    self.eliminated_objects.append(compared_objects[index].get('name'))
+                    eliminated_objects_indices.append(index)
+                    
                 index +=1
-        
+
+        eliminated_objects_indices.reverse()
+        for elemination_index in eliminated_objects_indices:
+            eliminated_object = self.objects_inside_bounding_box.pop(elemination_index)
+            self.eliminated_objects.append(eliminated_object.get('name'))
+
+        ## INSERT COMMENT HERE
+
         try:
             indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
             # This is done to rmove extra brackets around each element of the list
