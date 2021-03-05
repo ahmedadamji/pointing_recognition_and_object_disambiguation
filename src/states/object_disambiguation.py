@@ -30,13 +30,13 @@ class ObjectDisambiguation(State):
         # Stores the directions in terms of compass coordinates to use as part of disambiguating objects
         self.compass_brackets = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"]
 
-    def calculate_compass_direction_between_two_points(self, current_object_centre, origin):
+    def calculate_compass_direction_between_two_points(self, current_object_centre_point, centre_point_of_bounding_box):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
 
 
-        deltaX = current_object_centre[0] - origin[0]
+        deltaX = current_object_centre_point[0] - centre_point_of_bounding_box[0]
 
-        deltaY = current_object_centre[1] - origin[1]
+        deltaY = current_object_centre_point[1] - centre_point_of_bounding_box[1]
         
         degrees_temp = math.atan2(deltaX, deltaY)/math.pi*180
 
@@ -68,12 +68,12 @@ class ObjectDisambiguation(State):
             y = xywh[1]
             w = xywh[2]
             h = xywh[3]
-            current_object_centre = ((x + (w/2)),(y + (h/2)))
+            current_object_centre_point = ((x + (w/2)),(y + (h/2)))
         
-        #FIND THIS
-        origin = centre_point_of_bounding_box
+        # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
+        centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
 
-        compass_direction = self.calculate_compass_direction_between_two_points(current_object_centre, origin):
+        compass_direction = self.calculate_compass_direction_between_two_points(current_object_centre_point, centre_point_of_bounding_box):
 
         if current_attribute_from_user == attribute_of_current_object:
             match = 1

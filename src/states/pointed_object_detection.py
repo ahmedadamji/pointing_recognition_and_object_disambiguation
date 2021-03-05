@@ -57,8 +57,8 @@ class PointedObjectDetection(State):
         print intersection_point_world
         camera_point_3d = self.transform_from_world_frame_to_camera_frame(intersection_point_world)
         print camera_point_3d
-        camera_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(camera_point_3d))
-        print camera_point_2d
+        self.camera_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(camera_point_3d))
+        print self.camera_point_2d
 
         image_raw = rospy.wait_for_message('/xtion/rgb/image_raw', Image)
         try:
@@ -67,8 +67,8 @@ class PointedObjectDetection(State):
         except CvBridgeError as ex:
             rospy.logwarn(ex)
             return
-        box_start_point = (camera_point_2d[0]-150),(camera_point_2d[1]-150)
-        box_end_point = camera_point_2d[0]+150,camera_point_2d[1]+150
+        box_start_point = (self.camera_point_2d[0]-150),(self.camera_point_2d[1]-150)
+        box_end_point = self.camera_point_2d[0]+150,self.camera_point_2d[1]+150
         cv2.rectangle(frame, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Bounding Box For Pointed Objects", frame)
@@ -116,6 +116,7 @@ class PointedObjectDetection(State):
             print"Further diasambiguation needed"
         
         rospy.set_param('/objects_inside_bounding_box', objects_inside_bounding_box)
+        rospy.set_param('/camera_point_after_object_detection_2d', self.camera_point_2d)
 
         self.classify.yolo_get_object_coordinates()
         
