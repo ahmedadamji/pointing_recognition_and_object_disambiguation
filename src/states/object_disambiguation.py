@@ -28,39 +28,27 @@ class ObjectDisambiguation(State):
         # Stores the types of attributes in order of use for disambiguation
         self.attributes = ['type', 'texture', 'colour', 'size', 'shape', 'position']
         # Stores the directions in terms of compass coordinates to use as part of disambiguating objects
-        self.compass_brackets = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"]
+        self.compass_directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"]
 
     def calculate_compass_direction_between_two_points(self, current_object_centre_point, centre_point_of_bounding_box):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
 
-
         deltaX = current_object_centre_point[0] - centre_point_of_bounding_box[0]
-
         deltaY = current_object_centre_point[1] - centre_point_of_bounding_box[1]
+        angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
         
-        degrees_temp = math.atan2(deltaX, deltaY)/math.pi*180
-
-        if degrees_temp < 0:
-
-            degrees_final = 360 + degrees_temp
+        if angle_between_points < 0:
+            angle_between_points = 360 + angle_between_points
 
         else:
-
-            degrees_final = degrees_temp
+            angle_between_points = angle_between_points
         
-        compass_lookup = round(degrees_final / 45)
-
-        compass_direction = self.compass_brackets[compass_lookup]
+        direction_index = round(angle_between_points / 45)
+        compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
-
-
-    def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, current_attribute_from_user):
-        
-        ## MAKE TIAGO ASK THE ATTRIBUTE HERE LATER
-        #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
-        attribute_of_current_object = current_object_attributes.get(attribute)
-        
+    
+    def get_compass_direction(self, current_object):
         # Gets the centre point of the current object on the opencv image
         if attribute == "position":
             xywh = current_object.get("xywh")
@@ -73,9 +61,20 @@ class ObjectDisambiguation(State):
         # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
         centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
 
-        compass_direction = self.calculate_compass_direction_between_two_points(current_object_centre_point, centre_point_of_bounding_box):
+        compass_direction = self.calculate_compass_direction_between_two_points(current_object_centre_point, centre_point_of_bounding_box)
 
-        if current_attribute_from_user == attribute_of_current_object:
+    def get_attribute_of_current_object(self, attribute, current_object):
+        #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
+        if not(attribute == 'position'):
+            attribute_of_current_object = current_object_attributes.get(attribute)
+        
+        else:
+            attribute_of_current_object = self.get_compass_direction(current_object)
+
+
+    def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, current_attribute_from_user):
+
+        if current_attribute_from_user == self.get_attribute_of_current_object(attribute, current_object):
             match = 1
             print attribute + " attribute matches"
         else:
