@@ -69,7 +69,10 @@ class PointedObjectDetection(State):
             return
         box_start_point = (self.camera_point_2d[0]-150),(self.camera_point_2d[1]-150)
         box_end_point = self.camera_point_2d[0]+150,self.camera_point_2d[1]+150
+        # Plotting the bounding box
         cv2.rectangle(frame, box_start_point, box_end_point, (0,0,255), 1)
+        # Plotting the centre point of the bounding box
+        cv2.circle(frame,(self.camera_point_2d[0],self.camera_point_2d[1]), 4, (0,150,150), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Bounding Box For Pointed Objects", frame)
         cv2.waitKey(5000)
@@ -80,7 +83,7 @@ class PointedObjectDetection(State):
     def detect_objects(self, box_start_point, box_end_point):
 
         self.classify.subscribe_to_vision_messages()
-        yolo_detections = self.classify.yolo_object_detection(box_start_point, box_end_point)
+        yolo_detections = self.classify.yolo_object_detection(box_start_point, box_end_point, self.camera_point_2d)
         # Not finding segmentations if no objects detected using yolo
         total_objects_within_pointing_box = 0
         index_of_objects_inside_pointing_bounding_box = []
@@ -134,6 +137,6 @@ class PointedObjectDetection(State):
 
 
         # To destroy cv2 window at the end of state
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
         
         return 'outcome1'
