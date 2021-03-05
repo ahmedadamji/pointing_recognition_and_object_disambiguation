@@ -69,25 +69,10 @@ class ObjectDisambiguation(State):
 
         return compared_objects
 
-    def compare_all_objects_with_chosen_attribute(self, attribute):
-        ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
-
-        # Will be used to store all the objects compared for the current feature
-        compared_objects = []
-        self.total_matches = np.array([])
-
-        current_attribute_from_user = self.gather_user_response(attribute)
-
-        for index in range(0, len(self.objects_inside_bounding_box)):
-            current_object = self.objects_inside_bounding_box[index]
-            compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
-
-        # for index in range(0, len(self.objects_with_attributes)):
-        #     current_object = self.objects_with_attributes[index]
-        #     compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
-        
+    def update_eliminated_objects(self):
         # This is done so that eliminated objects are only updated if they there is at least one match for the current atrribute
         if not all([ v == 0 for v in self.total_matches]):
+            # Index of each object remaining in the bounding box
             index = 0
             # Stores indices of objects from within the bounding box to be eliminated
             eliminated_objects_indices = []
@@ -103,16 +88,30 @@ class ObjectDisambiguation(State):
             eliminated_object = self.objects_inside_bounding_box.pop(elemination_index)
             self.eliminated_objects.append(eliminated_object.get('name'))
 
-        ## INSERT COMMENT HERE
+    def compare_all_objects_with_chosen_attribute(self, attribute):
+        ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
 
-        try:
-            indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
-            # This is done to rmove extra brackets around each element of the list
-            indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
-        except ValueError:  #raised if `self.total_matches` is empty.
-            pass
+        # Will be used to store all the objects compared for the current feature
+        compared_objects = []
+        indices_for_attribute_match = []
+        self.total_matches = np.array([])
+
+        current_attribute_from_user = self.gather_user_response(attribute)
+
+        for index in range(0, len(self.objects_inside_bounding_box)):
+            current_object = self.objects_inside_bounding_box[index]
+            compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
+
+        # Updating eliminated objects if attributes do not match:
+        self.update_eliminated_objects()
+        
+
+        ## Updating the indices of objects in bounding box where a match is found:
+        indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
+        # This is done to rmove extra brackets around each element of the list
+        indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
         # print indices_for_attribute_match
-
+        
         return indices_for_attribute_match, compared_objects
 
     def disambiguate_until_unique_feature_found(self):
