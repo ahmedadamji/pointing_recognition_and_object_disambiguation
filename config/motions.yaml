@@ -29,6 +29,12 @@ play_motion:
       points:
       - positions: [0.34, 0.0, -0.51]
         time_from_start: 1.0
+    
+    look_at_person:
+      joints: ['torso_lift_joint', 'head_1_joint', 'head_2_joint']
+      points:
+      - positions: [0.34, 0.0, 0.11]
+        time_from_start: 1.0
 
     back_to_default:
       joints: ['torso_lift_joint', 'head_1_joint', 'head_2_joint']

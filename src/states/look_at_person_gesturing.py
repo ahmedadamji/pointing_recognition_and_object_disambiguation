@@ -10,19 +10,19 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 
 
-class ApproachPersonPointing(State):
+class LookAtPersonGesturing(State):
     def __init__(self):
-        rospy.loginfo('ApproachPersonPointing state initialized')
+        rospy.loginfo('LookAtPersonGesturing state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
         self.tiago = Tiago()
 
     def execute(self, userdata, wait=True):
-        rospy.loginfo('ApproachPersonPointing state executing')
+        rospy.loginfo('LookAtPersonGesturing state executing')
         
         # Lift tiago's torso and set head to default
-        self.tiago.lift_torso_head_default(True)
+        self.tiago.look_at_person(True)
 
         # create the action client:
         movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
@@ -30,7 +30,7 @@ class ApproachPersonPointing(State):
         # wait until the action server has started up and started listening for goals
         movebase_client.wait_for_server()
 
-        location = rospy.get_param('/pointing_person_approach')
+        location = rospy.get_param('/hand_gesture_approach')
 
         goal = MoveBaseGoal()
         goal.target_pose.header.stamp = rospy.Time.now()

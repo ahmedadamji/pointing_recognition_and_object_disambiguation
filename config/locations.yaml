@@ -1,5 +1,5 @@
 # This is actually the approach point for tiago, I need to change the name for this so that is either actually is relative to the girl_pointing or change the name to approach_point
-girl_pointing:
+pointing_person_approach:
   position: 
     x: -2.456
     y: -6.697
@@ -9,6 +9,17 @@ girl_pointing:
     y: 0.0
     z: -0.586
     w: 0.810
+
+hand_gesture_approach:
+  position: 
+    x: -2.456
+    y: -6.697
+    z: 0.0985
+  orientation: 
+    x: 0.0
+    y: 0.0
+    z: -0.35404
+    w: 0.93523
 
 
 # This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it

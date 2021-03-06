@@ -35,8 +35,6 @@ class Tiago:
 
         self.load_object_features()
 
-        
-
 
     def lift_torso_head_default(self, wait=False):
         # lift torso height and head to default
@@ -59,6 +57,7 @@ class Tiago:
 
         rospy.loginfo("play motion: back_to_default completed")
 
+
     def check_table(self, wait=False):
         # lift torso height and head look down
         self.play_motion_goal_sent = True
@@ -79,6 +78,27 @@ class Tiago:
             self.play_motion.wait_for_result()
 
         rospy.loginfo("play motion: check_table completed")
+
+    def look_at_person(self, wait=False):
+        # lift torso height and head to default
+        self.play_motion_goal_sent = True
+
+        # Uncomment this if sending torso goal errors out again:
+        # torso_goal = FollowJointTrajectoryGoal()
+
+        # retrieveing play motion goal from motions.yaml
+        pm_goal = PlayMotionGoal('look_at_person', True, 0)
+
+        test_goal = PlayMotionGoal()
+        print test_goal.priority
+
+        # Sending play motion goal
+        self.play_motion.send_goal(pm_goal)
+        
+        if wait:
+            self.play_motion.wait_for_result()
+
+        rospy.loginfo("play motion: back_to_default completed")
 
     def talk(self, speech_in):
         # Create the TTS goal and send it
