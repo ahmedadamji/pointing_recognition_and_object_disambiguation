@@ -139,7 +139,7 @@ class Tiago:
             for objects in object_attributes_parm
         ]
         
-        list_of_attributes_parm = rospy.get_param('/list_of_attributes')
+        list_of_attributes_parm = rospy.get_param('/list_of_attributes')[0]
         self.list_of_attributes = {
             'colour':  list_of_attributes_parm['colour'],
             'type':    list_of_attributes_parm['type'],
