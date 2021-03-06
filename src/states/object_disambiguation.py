@@ -171,6 +171,7 @@ class ObjectDisambiguation(State):
     def disambiguate_until_unique_feature_found(self):
 
         self.objects_with_attributes = self.tiago.object_attributes
+        self.list_of_attributes = self.tiago.list_of_attributes
 
         for attribute in self.attributes:
 
@@ -224,16 +225,39 @@ class ObjectDisambiguation(State):
             "error": None,
             "transcription": None
         }
+        response_valid = False
+        while not response_valid:
+            text = raw_input('Please type your response : ')
+            user_response['transcription'] = text
+            # Checks if response is valid
+            valid_responses = self.list_of_attributes.get(attribute)
+            if user_response['transcription'] in valid_responses :
+                response_valid = True
 
-        text = raw_input('Please type your response : ')
-        user_response['transcription'] = text
-        # Reinforces to the user, the attribute collected
-        self.tiago.talk("ah, the " + attribute + " of the object is " + user_response['transcription'])
+                print("Yes, 'at' found in List : " , listOfStrings)
 
-        # goal = informationGoal('drink', 'receptionist_drink')
-        # tries = 0
+                # Reinforces to the user, the attribute collected
+                self.tiago.talk("ah, the " + attribute + " of the object is " + user_response['transcription'])
 
-        return user_response['transcription']
+                # goal = informationGoal('drink', 'receptionist_drink')
+                # tries = 0
+
+                return user_response['transcription']
+
+            else:
+                # if user response does not match the possible responces for a particular attribute, error prompt to enter responses from possible options again
+                print("Invalid entry")
+                print("I am sorry, but " + user_response['transcription'] + " is not a type of " + attribute)
+                print("The valid responses for " + attribute + " are: ")
+                print(valid_responses)
+                print("\033[1;31;40m Please try again!  \n")
+
+                # Reinforces to the user, the attribute collected
+                self.tiago.talk("I am sorry, but " + user_response['transcription'] + " is not a type of " + attribute)
+                self.tiago.talk("The valid responses for " + attribute + " are: ")
+                for item in valid_responses:
+                    self.tiago.talk(item)
+                self.tiago.talk("Please try again!")
 
         # while tries < 3:
         #     speech_client.send_goal(goal)

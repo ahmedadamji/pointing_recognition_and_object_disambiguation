@@ -138,6 +138,16 @@ class Tiago:
             }
             for objects in object_attributes_parm
         ]
+        
+        list_of_attributes_parm = rospy.get_param('/list_of_attributes')
+        self.list_of_attributes = {
+            'colour':  list_of_attributes_parm['colour'],
+            'type':    list_of_attributes_parm['type'],
+            'texture': list_of_attributes_parm['texture'],
+            'size':    list_of_attributes_parm['size'],
+            'shape':   list_of_attributes_parm['shape']
+        }
+
 
 
     def shutdown(self):
