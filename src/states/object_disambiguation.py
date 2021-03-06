@@ -28,7 +28,7 @@ class ObjectDisambiguation(State):
         # Stores the types of attributes in order of use for disambiguation
         self.attributes = 'position', 'type', 'texture', 'colour', 'size', 'shape'
         # Stores the directions in terms of compass coordinates to use as part of disambiguating objects
-        self.compass_directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"]
+        self.compass_directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "N", "C"]
 
     def convert_from_image_to_cartesian_coordinate_system(self, point):
         x = point[0]
@@ -47,8 +47,14 @@ class ObjectDisambiguation(State):
         deltaX = current_object_centre_point[0] - centre_point_of_bounding_box[0]
         deltaY = current_object_centre_point[1] - centre_point_of_bounding_box[1]
         angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
+        distance_between_points = math.hypot(deltaX, deltaY)
 
-        if angle_between_points < 0:
+        if distance_between_points < 50:
+            compass_direction = self.compass_directions[9]
+            return compass_direction
+
+        
+        elif angle_between_points < 0:
             angle_between_points = 360 + angle_between_points
 
         else:
