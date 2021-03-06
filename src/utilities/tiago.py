@@ -145,7 +145,8 @@ class Tiago:
             'type':    list_of_attributes_parm['type'],
             'texture': list_of_attributes_parm['texture'],
             'size':    list_of_attributes_parm['size'],
-            'shape':   list_of_attributes_parm['shape']
+            'shape':   list_of_attributes_parm['shape'],
+            'position': list_of_attributes_parm['position']
         }
 
 

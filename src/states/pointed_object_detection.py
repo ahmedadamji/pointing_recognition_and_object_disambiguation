@@ -137,6 +137,6 @@ class PointedObjectDetection(State):
 
 
         # To destroy cv2 window at the end of state
-        #cv2.destroyAllWindows()
+        #cv2.()
         
         return 'outcome1'

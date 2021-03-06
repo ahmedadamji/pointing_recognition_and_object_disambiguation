@@ -231,10 +231,8 @@ class ObjectDisambiguation(State):
             user_response['transcription'] = text
             # Checks if response is valid
             valid_responses = self.list_of_attributes.get(attribute)
-            if user_response['transcription'] in valid_responses :
+            if user_response['transcription'].lower() in valid_responses :
                 response_valid = True
-
-                print("Yes, 'at' found in List : " , listOfStrings)
 
                 # Reinforces to the user, the attribute collected
                 self.tiago.talk("ah, the " + attribute + " of the object is " + user_response['transcription'])

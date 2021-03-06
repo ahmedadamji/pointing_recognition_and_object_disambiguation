@@ -33,3 +33,4 @@ list_of_attributes:
     texture: ['smooth','wrinkled']
     size: ['medium','long', 'large']
     shape: ['round', 'curved']
+    position: ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west", "north", "centre"]
