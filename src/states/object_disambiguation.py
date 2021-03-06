@@ -28,7 +28,7 @@ class ObjectDisambiguation(State):
         # Stores the types of attributes in order of use for disambiguation
         self.attributes = 'position', 'type', 'texture', 'colour', 'size', 'shape'
         # Stores the directions in terms of compass coordinates to use as part of disambiguating objects
-        self.compass_directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW", "N", "C"]
+        self.compass_directions = ["North", "North-East", "East", "South-East", "South", "South-West", "West", "North-West", "North", "Centre"]
 
     def convert_from_image_to_cartesian_coordinate_system(self, point):
         x = point[0]
@@ -85,10 +85,9 @@ class ObjectDisambiguation(State):
         # Can add here more conditions for example if attribute needs to be extracted by means of opencv / other means in the future.
         if not(attribute == 'position'):
             attribute_of_current_object = current_object_attributes.get(attribute)
-        
         elif (attribute == 'position'):
             attribute_of_current_object = self.get_compass_direction(current_object)
-            print (current_object.get('name') + " was found at: " + attribute_of_current_object)
+            print (current_object.get('name') + " was found in the: " + attribute_of_current_object)
         
         return attribute_of_current_object
         
@@ -96,7 +95,7 @@ class ObjectDisambiguation(State):
 
     def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, current_attribute_from_user):
 
-        if current_attribute_from_user == self.get_attribute_of_current_object(attribute, current_object, current_object_attributes):
+        if current_attribute_from_user.lower() == self.get_attribute_of_current_object(attribute, current_object, current_object_attributes).lower():
             match = 1
             print attribute + " attribute matches"
         else:
