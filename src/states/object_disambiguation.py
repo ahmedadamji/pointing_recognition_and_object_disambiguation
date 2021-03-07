@@ -34,10 +34,11 @@ class ObjectDisambiguation(State):
 
     def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
         #Converting north, south, east, west TO up, down , right , left
-        if direction_of_current_object in self.standard_directions:
+        if direction_of_current_object.lower() in self.standard_directions:
             index = self.standard_directions.index(direction_of_current_object)
             return self.compass_directions[index]
-        else return direction_of_current_object
+        else:
+            return direction_of_current_object
 
     def convert_from_image_to_cartesian_coordinate_system(self, point):
         x = point[0]
@@ -59,7 +60,7 @@ class ObjectDisambiguation(State):
         distance_between_points = math.hypot(deltaX, deltaY)
 
         if distance_between_points < 50:
-            compass_direction = self.compass_directions[9]
+            compass_direction = self.compass_directions[5]
             return compass_direction
 
         
@@ -95,9 +96,19 @@ class ObjectDisambiguation(State):
         if not(attribute == 'position'):
             attribute_of_current_object = current_object_attributes.get(attribute)
         elif (attribute == 'position'):
-            attribute_of_current_object = self.convert_standard_directions_to_compass_directions(self.get_compass_direction(current_object))
-            print (current_object.get('name') + " was found in the: " + self.get_compass_direction(current_object))
+            compass_direction = self.get_compass_direction(current_object)
+            attribute_of_current_object = compass_direction
+
+            # This block of code if just for printing the direction found of the objects in the bounding box and are not essential to the functionality
+            index = self.compass_directions.index(compass_direction)
+            standard_direction = self.standard_directions[index]
+            if compass_direction not 'centre':
+                print (current_object.get('name') + " was found in the: " + compass_direction + " / " + standard_direction)
+            else:
+                print (current_object.get('name') + " was found in the: " + compass_direction)
+            
         
+
         return attribute_of_current_object
         
 
@@ -242,9 +253,9 @@ class ObjectDisambiguation(State):
             valid_responses = self.list_of_attributes.get(attribute)
             if user_response['transcription'].lower() in valid_responses :
                 response_valid = True
-
                 # Reinforces to the user, the attribute collected
                 self.tiago.talk("ah, the " + attribute + " of the object is " + user_response['transcription'])
+                user_response['transcription'] = self.convert_standard_directions_to_compass_directions(user_response['transcription'])
 
                 # goal = informationGoal('drink', 'receptionist_drink')
                 # tries = 0
