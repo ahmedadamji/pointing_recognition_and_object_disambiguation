@@ -5,11 +5,12 @@ from smach import State
 
 import cv2
 import numpy as np
+import math
 
 # Imported for features of human robot interaction such as text to speech
 from utilities import Tiago
+# from lasr_speech.msg import informationAction, informationGoal
 
-import math
 
 
 class ObjectDisambiguation(State):
@@ -229,28 +230,29 @@ class ObjectDisambiguation(State):
                 self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
                 for objects in self.objects_inside_bounding_box_not_compared:
                     self.tiago.talk(objects.get('name'))
+
+    # def gather_user_response_with_speech(self):
+    #     speech_client = actionlib.SimpleActionClient('receptionist', informationAction)
+    #     speech_client.wait_for_server()
+    #     goal = informationGoal('attribute')
+
+    #     tries = 0
+    #     text = ''
+    #     while tries < 3:
+    #         speech_client.send_goal(goal)
+    #         speech_client.wait_for_result()
+    #         text = speech_client.get_result().data
+
+    #         if not text == '':
+    #             break
+            
+    #         self.tiago.talk("Sorry, I didnt, catch that, can you please try again")
+    #         tries += 1
+    #     print text
     
     def gather_user_response(self, attribute):
 
-        # speech_client = actionlib.SimpleActionClient('receptionist', informationAction)
-        # speech_client.wait_for_server()
-
         self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
-
-        # talk('may i please get your name?', wait=True)
-        # goal = informationGoal('name', 'receptionist_name')
-        # tries = 0
-
-        # while tries < 3:
-        #     speech_client.send_goal(goal)
-        #     speech_client.wait_for_result()
-        #     result_dict['name'] = speech_client.get_result().data
-
-        #     if not result_dict['name'] == '':
-        #         break
-            
-        #     talk('sorry, I didn\'t catch that, may i please get your name?', wait=True)
-        #     tries += 1
         
         #user_response = "yellow"
         user_response = {
@@ -270,9 +272,6 @@ class ObjectDisambiguation(State):
                 self.tiago.talk("ah, the " + attribute + " of the object is " + user_response['transcription'])
                 user_response['transcription'] = self.convert_standard_directions_to_compass_directions(user_response['transcription'])
 
-                # goal = informationGoal('drink', 'receptionist_drink')
-                # tries = 0
-
                 return user_response['transcription']
 
             else:
@@ -289,20 +288,6 @@ class ObjectDisambiguation(State):
                 for item in valid_responses:
                     self.tiago.talk(item)
                 self.tiago.talk("Please try again!")
-
-        # while tries < 3:
-        #     speech_client.send_goal(goal)
-        #     speech_client.wait_for_result()
-        #     result_dict['drink'] = speech_client.get_result().data
-
-        #     if not result_dict['drink'] == '':
-        #         break
-            
-        #     talk('sorry, I didn\'t catch that, may i please get your favourite drink?', wait=True)
-        #     tries += 1
-
-        # talk("and your favourite drink is " + result_dict['drink'], wait=True)
-
 
 
     def execute(self, userdata):
