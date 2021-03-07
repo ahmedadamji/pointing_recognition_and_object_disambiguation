@@ -30,13 +30,18 @@ class LookAtPersonGesturing(State):
         # wait until the action server has started up and started listening for goals
         movebase_client.wait_for_server()
 
-        location = rospy.get_param('/hand_gesture_approach')
+        #location = rospy.get_param('/hand_gesture_approach')
+        # getting approach point for person to use the same orientation to turn towards person.
+        person_approach_location = rospy.get_param('/pointing_person_approach')
+        # getting approach point for current table to use the same position and not move the robot base as it is already next to the table.
+        table = rospy.get_param('/current_table')
+        table_approach_location = rospy.get_param('/tables/' + table + '/location')
 
         goal = MoveBaseGoal()
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.header.frame_id = 'map'
-        goal.target_pose.pose = Pose(position = Point(**location['position']),
-                                    orientation = Quaternion(**location['orientation']))
+        goal.target_pose.pose = Pose(position = Point(**table_approach_location['position']),
+                                    orientation = -Quaternion(**person_approach_location['orientation']))
 
 
         movebase_client.send_goal(goal)

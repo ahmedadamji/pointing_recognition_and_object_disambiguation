@@ -10,48 +10,10 @@ pointing_person_approach:
     z: -0.586
     w: 0.810
 
-hand_gesture_approach:
-  position: 
-    x: -2.456
-    y: -6.697
-    z: 0.0985
-  orientation: 
-    x: 0.0
-    y: 0.0
-    z: -0.35404
-    w: 0.93523
-
-
-# This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
-# tables:
-#   - name: 'Table 0'
-#     bottom_left: { x: -1.63, y: -8.54, z: 0.0 }
-#     bottom_right: { x: -2.59, y: -8.54, z: 0.0 }
-#     top_left: { x: -1.63, y: -9.30, z: 0.0 }
-#     top_right: { x: -2.59, y: -9.30, z: 0.0 }
-
-#   - name: 'Table 1'
-#     bottom_left: { x: 0.81, y: -10.77, z: 0.0 }
-#     bottom_right: { x: -0.55, y: -10.77, z: 0.0 }
-#     top_left: { x: 0.81, y: -11.53, z: 0.0 }
-#     top_right: { x: -0.55, y: -11.53, z: 0.0 }
-
-#   - name: 'Table 2'
-#     bottom_left: { x: 3.00, y: -8.23, z: 0.0 }
-#     bottom_right: { x: 2.04, y: -8.23, z: 0.0 }
-#     top_left: { x: 3.00, y: -8.99, z: 0.0 }
-#     top_right: { x: 2.04, y: -8.99, z: 0.0 }
-
-#   - name: 'Table 3'
-#     bottom_left: { x: 3.65, y: -5.10, z: 0.0 }
-#     bottom_right: { x: 2.69, y: -5.10, z: 0.0 }
-#     top_left: { x: 3.65, y: -5.86, z: 0.0 }
-#     top_right: { x: 2.69, y: -5.86, z: 0.0 }
-
-
 # This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
 # I have added some on each side as it is not the dimentions of the flat surface on the top (only done for table0 yet, other dimentions are still rough for the cuboid)
 # For table one it is assuming it is a square top with 1 m sides
+
 tables:
   table0:
     id: 0
@@ -96,3 +58,43 @@ tables:
       max_xyz: [ 3.65, -5.10, 0.815 ]
       min_xyz: [ 2.69, -5.86, 0.00 ]
     # lookLR: [[6.17, 1.66], [7.29, 1.66]]
+
+
+# hand_gesture_approach:
+#   position: 
+#     x: -2.1598
+#     y: -7.8729
+#     z: 0.0985
+#   orientation: 
+#     x: 0.0
+#     y: 0.0
+#     z: -0.35404
+#     w: 0.93523
+
+
+# This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
+# tables:
+#   - name: 'Table 0'
+#     bottom_left: { x: -1.63, y: -8.54, z: 0.0 }
+#     bottom_right: { x: -2.59, y: -8.54, z: 0.0 }
+#     top_left: { x: -1.63, y: -9.30, z: 0.0 }
+#     top_right: { x: -2.59, y: -9.30, z: 0.0 }
+
+#   - name: 'Table 1'
+#     bottom_left: { x: 0.81, y: -10.77, z: 0.0 }
+#     bottom_right: { x: -0.55, y: -10.77, z: 0.0 }
+#     top_left: { x: 0.81, y: -11.53, z: 0.0 }
+#     top_right: { x: -0.55, y: -11.53, z: 0.0 }
+
+#   - name: 'Table 2'
+#     bottom_left: { x: 3.00, y: -8.23, z: 0.0 }
+#     bottom_right: { x: 2.04, y: -8.23, z: 0.0 }
+#     top_left: { x: 3.00, y: -8.99, z: 0.0 }
+#     top_right: { x: 2.04, y: -8.99, z: 0.0 }
+
+#   - name: 'Table 3'
+#     bottom_left: { x: 3.65, y: -5.10, z: 0.0 }
+#     bottom_right: { x: 2.69, y: -5.10, z: 0.0 }
+#     top_left: { x: 3.65, y: -5.86, z: 0.0 }
+#     top_right: { x: 2.69, y: -5.86, z: 0.0 }
+

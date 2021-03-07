@@ -111,6 +111,8 @@ class ApproachPointedObject(State):
         intersection_point_world = self.transform_from_camera_frame_to_world_frame(intersection_point_3d)
 
         table = self.find_table_id(intersection_point_world)
+        # saving selected table name to use its location while looking at person gesturing 
+        rospy.set_param('/current_table', table)
         self.approach_table(table, wait)
 
         rospy.set_param('/intersection_point_world', [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()])
