@@ -219,19 +219,16 @@ class ObjectDisambiguation(State):
                 for objects in self.eliminated_objects:
                     self.tiago.talk(objects)
 
-                # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
-                if len(self.objects_inside_bounding_box_not_compared) is not 0:
-                    self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
-                    for objects in self.objects_inside_bounding_box_not_compared:
-                        self.tiago.talk(objects.get('name'))
-
-                return
-        # Code run if diambiguation couldn't find a unique object to suit the descriptions
-        self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
-                
-            # else:
-            #     # LIST COMPREHENSION
-            #     self.objects_with_attributes = [compared_objects[index] for index in indices_for_attribute_match]
+            else:
+                # Code run if diambiguation couldn't find a unique object to suit the descriptions
+                self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+                        
+            
+            # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
+            if len(self.objects_inside_bounding_box_not_compared) is not 0:
+                self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
+                for objects in self.objects_inside_bounding_box_not_compared:
+                    self.tiago.talk(objects.get('name'))
     
     def gather_user_response(self, attribute):
 
