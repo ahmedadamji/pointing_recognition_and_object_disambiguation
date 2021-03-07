@@ -102,7 +102,7 @@ class ObjectDisambiguation(State):
             # This block of code if just for printing the direction found of the objects in the bounding box and are not essential to the functionality
             index = self.compass_directions.index(compass_direction)
             standard_direction = self.standard_directions[index]
-            if compass_direction not 'centre':
+            if compass_direction is not 'centre':
                 print (current_object.get('name') + " was found in the: " + compass_direction + " / " + standard_direction)
             else:
                 print (current_object.get('name') + " was found in the: " + compass_direction)
