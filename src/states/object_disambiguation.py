@@ -242,26 +242,27 @@ class ObjectDisambiguation(State):
 
         recognizer = sr.Recognizer()
         microphone = sr.Microphone()
-
-        
-        with microphone as source:
-            # adjusts the recognizer sensitivity to ambient noise
-            recognizer.adjust_for_ambient_noise(source)
-            # records audio from the microphone
-            audio = recognizer.listen(source)
-        
-        try:
-            # Recognizes speech recorded
-            user_response["transcription"] = recognizer.recognize_google(audio).encode('ascii', 'ignore')
-            print user_response["transcription"]
-        except sr.RequestError:
-            # API was unreachable or unresponsive
-            user_response["success"] = False
-            user_response["error"] = "API unavailable"
-        except sr.UnknownValueError:
-            # speech was unintelligible
-            user_response["success"] = False
-            user_response["error"] = "Unable to recognize speech"
+        # while loop to ensure voice is recognized
+        while not user_response["success"] == True:
+            with microphone as source:
+                # adjusts the recognizer sensitivity to ambient noise
+                recognizer.adjust_for_ambient_noise(source)
+                # records audio from the microphone
+                audio = recognizer.record(source, duration=2)
+            
+            try:
+                # Recognizes speech recorded
+                user_response["transcription"] = recognizer.recognize_google(audio).encode('ascii', 'ignore')
+                user_response["success"] = True
+                print user_response["transcription"]
+            except sr.RequestError:
+                # API was unreachable or unresponsive
+                user_response["success"] = False
+                user_response["error"] = "API unavailable"
+            except sr.UnknownValueError:
+                # speech was unintelligible
+                user_response["success"] = False
+                user_response["error"] = "Unable to recognize speech"
 
         return user_response
 
@@ -299,7 +300,7 @@ class ObjectDisambiguation(State):
         while not response_valid:
              # dict to save the user response
             user_response = {
-                "success": True,
+                "success": False,
                 "error": None,
                 "transcription": None
             }
