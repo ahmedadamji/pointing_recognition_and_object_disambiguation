@@ -27,8 +27,17 @@ class ObjectDisambiguation(State):
 
         # Stores the types of attributes in order of use for disambiguation
         self.attributes = 'position', 'type', 'texture', 'colour', 'size', 'shape'
-        # Stores the directions in terms of compass coordinates to use as part of disambiguating objects
-        self.compass_directions = ["North", "North-East", "East", "South-East", "South", "South-West", "West", "North-West", "North", "Centre"]
+        # Stores the possible directions in terms of compass coordinates to use as part of disambiguating objects
+        self.compass_directions = ["north", "east", "south", "west", "north", "centre"]
+        # Stores the possible directions to use as part of disambiguating objects
+        self.standard_directions = ["up", "right", "down", "left", "up", "centre"]
+
+    def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
+        #Converting north, south, east, west TO up, down , right , left
+        if direction_of_current_object in self.standard_directions:
+            index = self.standard_directions.index(direction_of_current_object)
+            return self.compass_directions[index]
+        else return direction_of_current_object
 
     def convert_from_image_to_cartesian_coordinate_system(self, point):
         x = point[0]
@@ -60,7 +69,7 @@ class ObjectDisambiguation(State):
         else:
             angle_between_points = angle_between_points
         
-        direction_index = int(round(angle_between_points / 45))
+        direction_index = int(round(angle_between_points / 90))
         compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
@@ -86,8 +95,8 @@ class ObjectDisambiguation(State):
         if not(attribute == 'position'):
             attribute_of_current_object = current_object_attributes.get(attribute)
         elif (attribute == 'position'):
-            attribute_of_current_object = self.get_compass_direction(current_object)
-            print (current_object.get('name') + " was found in the: " + attribute_of_current_object)
+            attribute_of_current_object = self.convert_standard_directions_to_compass_directions(self.get_compass_direction(current_object))
+            print (current_object.get('name') + " was found in the: " + self.get_compass_direction(current_object))
         
         return attribute_of_current_object
         
