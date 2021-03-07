@@ -41,7 +41,7 @@ class LookAtPersonGesturing(State):
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.header.frame_id = 'map'
         goal.target_pose.pose = Pose(position = Point(**table_approach_location['position']),
-                                    orientation = -Quaternion(**person_approach_location['orientation']))
+                                    orientation = Quaternion(**person_approach_location['orientation']))
 
 
         movebase_client.send_goal(goal)

@@ -22,6 +22,8 @@ class ObjectDisambiguation(State):
 
         # Stores details of objects that have been eliminated during disambiguation
         self.eliminated_objects = []
+        # Stores details of objects that are not part of disambiguation but were found inside the bounding box
+        self.objects_inside_bounding_box_not_compared = []
         # Stores all matches from current attribute check, used to decide eliminated objects as well as which objects go to the next stage
         self.total_matches = np.array([])
 
@@ -31,6 +33,10 @@ class ObjectDisambiguation(State):
         self.compass_directions = ["north", "east", "south", "west", "north", "centre"]
         # Stores the possible directions to use as part of disambiguating objects
         self.standard_directions = ["up", "right", "down", "left", "up", "centre"]
+
+        self.objects_with_attributes = self.tiago.object_attributes
+        self.list_of_attributes = self.tiago.list_of_attributes
+        self.list_of_objects_capable_of_disambiguation = self.tiago.list_of_objects_capable_of_disambiguation
 
     def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
         #Converting north, south, east, west TO up, down , right , left
@@ -172,9 +178,16 @@ class ObjectDisambiguation(State):
 
         current_attribute_from_user = self.gather_user_response(attribute)
 
-        for index in range(0, len(self.objects_inside_bounding_box)):
-            current_object = self.objects_inside_bounding_box[index]
-            compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
+        index = 0
+        while index < len(self.objects_inside_bounding_box):
+            # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
+            if self.objects_inside_bounding_box[index].get('name') in self.list_of_objects_capable_of_disambiguation:
+                current_object = self.objects_inside_bounding_box[index]
+                compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
+                index +=1
+            else:
+                self.objects_inside_bounding_box_not_compared.append(self.objects_inside_bounding_box.pop(index))
+            
 
         # Updating eliminated objects if attributes do not match:
         self.update_eliminated_objects()
@@ -189,9 +202,6 @@ class ObjectDisambiguation(State):
         return indices_for_attribute_match, compared_objects
 
     def disambiguate_until_unique_feature_found(self):
-
-        self.objects_with_attributes = self.tiago.object_attributes
-        self.list_of_attributes = self.tiago.list_of_attributes
 
         for attribute in self.attributes:
 
@@ -208,6 +218,12 @@ class ObjectDisambiguation(State):
                 self.tiago.talk("The eliminated objects, in order of elimination, are: ")
                 for objects in self.eliminated_objects:
                     self.tiago.talk(objects)
+
+                # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
+                if len(self.objects_inside_bounding_box_not_compared) is not 0:
+                    self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
+                    for objects in self.objects_inside_bounding_box_not_compared:
+                        self.tiago.talk(objects.get('name'))
 
                 return
         # Code run if diambiguation couldn't find a unique object to suit the descriptions

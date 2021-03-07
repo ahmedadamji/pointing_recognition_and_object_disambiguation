@@ -149,6 +149,8 @@ class Tiago:
             'position': list_of_attributes_parm['position']
         }
 
+        self.list_of_objects_capable_of_disambiguation = rospy.get_param('/list_of_objects_capable_of_disambiguation')
+
 
 
     def shutdown(self):
