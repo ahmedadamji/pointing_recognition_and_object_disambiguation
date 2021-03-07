@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import actionlib
 from smach import State
 
 import cv2
@@ -9,7 +10,8 @@ import math
 
 # Imported for features of human robot interaction such as text to speech
 from utilities import Tiago
-# from lasr_speech.msg import informationAction, informationGoal
+from lasr_speech.msg import informationAction, informationGoal
+import speech_recognition as sr
 
 
 
@@ -201,6 +203,13 @@ class ObjectDisambiguation(State):
         # print indices_for_attribute_match
         
         return indices_for_attribute_match, compared_objects
+    
+    def notify_of_objectes_detected_but_not_part_of_disambiguation(self):
+        # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
+        if len(self.objects_inside_bounding_box_not_compared) is not 0:
+            self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
+            for objects in self.objects_inside_bounding_box_not_compared:
+                self.tiago.talk(objects.get('name'))
 
     def disambiguate_until_unique_feature_found(self):
 
@@ -219,51 +228,84 @@ class ObjectDisambiguation(State):
                 self.tiago.talk("The eliminated objects, in order of elimination, are: ")
                 for objects in self.eliminated_objects:
                     self.tiago.talk(objects)
+                
+                self.notify_of_objectes_detected_but_not_part_of_disambiguation()
+                return
 
-            else:
-                # Code run if diambiguation couldn't find a unique object to suit the descriptions
-                self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
-                        
+        
+        # Code run if diambiguation couldn't find a unique object to suit the descriptions
+        self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+        self.notify_of_objectes_detected_but_not_part_of_disambiguation()
+
+    def gather_user_response_with_speech(self, user_response):
+        # Gathers user responses using speech
+
+        recognizer = sr.Recognizer()
+        microphone = sr.Microphone()
+
+        
+        with microphone as source:
+            # adjusts the recognizer sensitivity to ambient noise
+            recognizer.adjust_for_ambient_noise(source)
+            # records audio from the microphone
+            audio = recognizer.listen(source)
+        
+        try:
+            # Recognizes speech recorded
+            user_response["transcription"] = recognizer.recognize_google(audio).encode('ascii', 'ignore')
+            print user_response["transcription"]
+        except sr.RequestError:
+            # API was unreachable or unresponsive
+            user_response["success"] = False
+            user_response["error"] = "API unavailable"
+        except sr.UnknownValueError:
+            # speech was unintelligible
+            user_response["success"] = False
+            user_response["error"] = "Unable to recognize speech"
+
+        return user_response
+
+
+        # speech_client = actionlib.SimpleActionClient('receptionist', informationAction)
+        # speech_client.wait_for_server()
+        # goal = informationGoal('attribute')
+
+        # tries = 0
+        # text = ''
+        # while tries < 3:
+        #     speech_client.send_goal(goal)
+        #     speech_client.wait_for_result()
+        #     text = speech_client.get_result().data
+
+        #     if not text == '':
+        #         break
             
-            # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
-            if len(self.objects_inside_bounding_box_not_compared) is not 0:
-                self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
-                for objects in self.objects_inside_bounding_box_not_compared:
-                    self.tiago.talk(objects.get('name'))
+        #     self.tiago.talk("Sorry, I didnt, catch that, can you please try again")
+        #     tries += 1
+        # print text
 
-    # def gather_user_response_with_speech(self):
-    #     speech_client = actionlib.SimpleActionClient('receptionist', informationAction)
-    #     speech_client.wait_for_server()
-    #     goal = informationGoal('attribute')
+    def gather_user_response_with_text(self, user_response):
+        # Gathers user responses using text
+        text = raw_input('Please type your response : ')
+        user_response['transcription'] = text
 
-    #     tries = 0
-    #     text = ''
-    #     while tries < 3:
-    #         speech_client.send_goal(goal)
-    #         speech_client.wait_for_result()
-    #         text = speech_client.get_result().data
-
-    #         if not text == '':
-    #             break
-            
-    #         self.tiago.talk("Sorry, I didnt, catch that, can you please try again")
-    #         tries += 1
-    #     print text
+        return user_response
     
     def gather_user_response(self, attribute):
 
         self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
         
-        #user_response = "yellow"
-        user_response = {
-            "success": True,
-            "error": None,
-            "transcription": None
-        }
         response_valid = False
         while not response_valid:
-            text = raw_input('Please type your response : ')
-            user_response['transcription'] = text
+             # dict to save the user response
+            user_response = {
+                "success": True,
+                "error": None,
+                "transcription": None
+            }
+            user_response = self.gather_user_response_with_speech(user_response)
+            #user_response = self.gather_user_response_with_text(user_response)
+
             # Checks if response is valid
             valid_responses = self.list_of_attributes.get(attribute)
             if user_response['transcription'].lower() in valid_responses :
@@ -294,7 +336,6 @@ class ObjectDisambiguation(State):
         rospy.loginfo('ObjectDisambiguation state executing')
 
         self.tiago.talk("My name is Ahmed and I am the robo maker")
-
         self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
 
         # print objects_inside_bounding_box
