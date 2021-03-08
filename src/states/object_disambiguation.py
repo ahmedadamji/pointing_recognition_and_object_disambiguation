@@ -60,17 +60,13 @@ class ObjectDisambiguation(State):
         y = (h/2)-y
         return [x,y]
 
-    def calculate_compass_direction_between_two_points(self, current_object_centre_point, centre_point_of_bounding_box):
+    def calculate_compass_direction_between_two_points(self, point_of_interest, reference_point = [0,0]):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
-        
-        self.person_head_world_coordinate
-        ## THIS WONT WORK AS TIAGO HAS ALREADY TURNED TOWARDS PERSON
-        self.util.get_3d_depth_point_from_2d_camera_point(camera_point)
 
-        current_object_centre_point = self.convert_from_image_to_cartesian_coordinate_system(current_object_centre_point)
-        centre_point_of_bounding_box = self.convert_from_image_to_cartesian_coordinate_system(centre_point_of_bounding_box)
-        deltaX = current_object_centre_point[0] - centre_point_of_bounding_box[0]
-        deltaY = current_object_centre_point[1] - centre_point_of_bounding_box[1]
+        point_of_interest = self.convert_from_image_to_cartesian_coordinate_system(point_of_interest)
+        reference_point = self.convert_from_image_to_cartesian_coordinate_system(reference_point)
+        deltaX = point_of_interest[0] - reference_point[0]
+        deltaY = point_of_interest[1] - reference_point[1]
         angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
         distance_between_points = math.hypot(deltaX, deltaY)
 
@@ -89,20 +85,52 @@ class ObjectDisambiguation(State):
         compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
+
+    def transfer_coordinate_wrt_person_and_reference_object(self, point_of_interest, reference_point, view_point):
+        #http://motion.cs.illinois.edu/RoboticSystems/CoordinateTransformations.html
+
+        # To find the angle to rotate the coordinate system by:
+        ## USE ONLY XY COORDINATES HERE
+        rotation_vector = [reference_point[0],reference_point[1]] - [view_point[0],view_point[1]]
+
+        # -90 because the y axis of the new coordinate frame is aligned with the rotation vector and therefore the x axis will be rotated by 90 degrees less than this.
+        rotation_angle = (math.atan(rotation_vector[1]/rotation_vector[0])) - 90
+
+        translation_vector = - [reference_point[0],reference_point[1]]
+
+        x_rotated = (point_of_interest[0]*math.cos(rotation_angle))−(point_of_interest[1]*math.sin(rotation_angle))
+        y_rotated = (point_of_interest[0]*math.sin(rotation_angle))+(point_of_interest[1]*math.cos(rotation_angle))
+
+        x_translated_and_rotated = x_rotated + translation_vector[0]
+        y_translated_and_rotated = y_rotated + translation_vector[1]
+
+        point_of_interest_transformed = [x_translated_and_rotated, y_translated_and_rotated]
+
+        return point_of_interest_transformed
     
     def get_compass_direction(self, current_object):
-        # Gets the centre point of the current object on the opencv image
-        xywh = current_object.get("xywh")
-        x = xywh[0]
-        y = xywh[1]
-        w = xywh[2]
-        h = xywh[3]
-        current_object_centre_point = ((x + (w/2)),(y + (h/2)))
-        
-        # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
-        centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
 
-        compass_direction = self.calculate_compass_direction_between_two_points(current_object_centre_point, centre_point_of_bounding_box)
+        # Gets the centre point of the current object on the opencv image
+        # xywh = current_object.get("xywh")
+        # x = xywh[0]
+        # y = xywh[1]
+        # w = xywh[2]
+        # h = xywh[3]
+        # current_object_centre_point = ((x + (w/2)),(y + (h/2)))
+        
+        # Gets the World coordinate of the object:
+        current_object_world_coordinate = current_object.get("world_coordinate")
+
+        # Gets the World Coordinates of person's head:
+        self.person_head_world_coordinate
+
+        #USING REFERENCE OBJECT AS CURRENT OBJECT AS WELL FOR NOW, CHANGE TO SPECIFIC REFERENCE OBJECT LATER
+        current_object_world_coordinate_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, current_object_world_coordinate, self.person_head_world_coordinate)        
+
+        # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
+        # centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
+
+        compass_direction = self.calculate_compass_direction_between_two_points(current_object_world_coordinate_transformed)
         return compass_direction
 
     def get_attribute_of_current_object(self, attribute, current_object, current_object_attributes):

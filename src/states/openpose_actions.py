@@ -415,7 +415,7 @@ class GetPose(State):
 
                     # Saving world coordinate for head for use during disambiguation in reference to user location
                     person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
-                    rospy.set_param('/person_head_world_coordinate', person_head_world_coordinate)
+                    rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0], person_head_world_coordinate[1], person_head_world_coordinate[2]])
 
                     return 'outcome1'
                     
@@ -425,7 +425,7 @@ class GetPose(State):
 
                     # Saving world coordinate for head for use during disambiguation in reference to user location
                     person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
-                    rospy.set_param('/person_head_world_coordinate', person_head_world_coordinate)
+                    rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
 
                     return 'outcome1'
 
