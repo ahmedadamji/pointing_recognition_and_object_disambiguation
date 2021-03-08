@@ -10,7 +10,7 @@ from utilities import Tiago, Util
 from geometry_msgs.msg import Point, Pose
 from collections import namedtuple
 from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image, PointCloud2, RegionOfInterest, PointField, CameraInfo
+from sensor_msgs.msg import Image, PointCloud2, RegionOfInterest, PointField
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 
 
@@ -29,23 +29,13 @@ class PointedObjectDetection(State):
         #creates an instance of util class to transform point frames
         self.util = Util()
     
-    
-    def project_depth_array_to_2d_image_pixels(self, point_3d):
-        rospy.loginfo('projecting depth array to 2d image pixels')
-        camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
-        depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
-        uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
-        x = int(uvw[0] / uvw[2])
-        y = int(uvw[1] / uvw[2])
-
-        return x,y
 
     def draw_bounding_box_around_intersection_point(self, intersection_point_world):
         
         print intersection_point_world
         camera_point_3d = self.util.transform_from_world_frame_to_camera_frame(intersection_point_world)
         print camera_point_3d
-        self.camera_point_2d = self.project_depth_array_to_2d_image_pixels(camera_point_3d)
+        self.camera_point_2d = self.util.get_2d_camera_point_from_3d_depth_point(camera_point_3d)
         print self.camera_point_2d
 
         image_raw = rospy.wait_for_message('/xtion/rgb/image_raw', Image)
@@ -66,6 +56,15 @@ class PointedObjectDetection(State):
         cv2.waitKey(5000)
 
         return box_start_point, box_end_point
+    
+    def get_world_coordinate_for_current_object(self, current_yolo_detection):
+        # This function is needed to get the world coordinate for each object to be used for disambiguation between objects in terms of location
+        xywh = current_yolo_detection.xywh
+        x = int (xywh[0] + (xywh[2]/2))
+        y = int (xywh[1] + (xywh[3]/2))
+        camera_point_3d = self.util.get_3d_depth_point_from_2d_camera_point([x,y])
+        world_coordinate = self.util.transform_from_camera_frame_to_world_frame(camera_point_3d)
+        return world_coordinate
 
 
     def detect_objects(self, box_start_point, box_end_point):
@@ -87,10 +86,14 @@ class PointedObjectDetection(State):
                     index_of_objects_inside_pointing_bounding_box.append(i)
         ## PARSING INTO NAME, CONFIDENCE AND COORDINATES OF DETECTION
         for o in range(len(index_of_objects_inside_pointing_bounding_box)):
+
+            world_coordinate = self.get_world_coordinate_for_current_object(yolo_detections[index_of_objects_inside_pointing_bounding_box[o]])
+
             current_object = {
             "name": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name,
             "confidence": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].confidence,
-            "xywh": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].xywh
+            "xywh": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].xywh,
+            "world_coordinate": world_coordinate
             }
             objects_inside_bounding_box.append(current_object)
             # objects_inside_bounding_box.append([[yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name],

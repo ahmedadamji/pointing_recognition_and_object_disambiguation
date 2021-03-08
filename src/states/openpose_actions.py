@@ -11,6 +11,7 @@ from pointing_recognition.msg import IntersectionData
 from geometry_msgs.msg import PoseStamped
 
 from smach import State
+from utilities import Tiago, Util
 
 import sys
 sys.path.append('/tiago_ws/src/openpose/build/python')
@@ -41,6 +42,11 @@ class GetPose(State):
         self.msg_to_send = IntersectionData()
         
         self.bridge = CvBridge()
+        
+        #creates an instance of tiago class to interact with the user
+        self.tiago = Tiago()
+        #creates an instance of util class to transform point frames
+        self.util = Util()
     
     def angle_between_points( self, a, b, c ):
         rospy.loginfo('Calculating angle between points')
@@ -339,9 +345,11 @@ class GetPose(State):
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
         
         # To save the depth coordinates once so that I don't have to call it again and doesnt slow everything
+        ## MAKE XYZ_ARRAY A GLOBAL VARIABLE
         depth_points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
         xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(depth_points, remove_nans=False)
         xyz_array = np.transpose(xyz_array, (1, 0, 2))
+
 
 
         #img_msg2 = rospy.wait_for_message('/xtion/depth_registered/image_raw',Image)
@@ -404,15 +412,27 @@ class GetPose(State):
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
                     self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], open_pose_output_image, 1, 0.05)
+
+                    # Saving world coordinate for head for use during disambiguation in reference to user location
+                    person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
+                    rospy.set_param('/person_head_world_coordinate', person_head_world_coordinate)
+
                     return 'outcome1'
                     
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
                     self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], open_pose_output_image, 1, 0.05)
+
+                    # Saving world coordinate for head for use during disambiguation in reference to user location
+                    person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
+                    rospy.set_param('/person_head_world_coordinate', person_head_world_coordinate)
+
                     return 'outcome1'
 
                 else:
                     print('hand not pointing')
+
+                
 
         
         except Exception as e:

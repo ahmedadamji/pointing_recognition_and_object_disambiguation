@@ -62,6 +62,10 @@ class ObjectDisambiguation(State):
 
     def calculate_compass_direction_between_two_points(self, current_object_centre_point, centre_point_of_bounding_box):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
+        
+        self.person_head_world_coordinate
+        ## THIS WONT WORK AS TIAGO HAS ALREADY TURNED TOWARDS PERSON
+        self.util.get_3d_depth_point_from_2d_camera_point(camera_point)
 
         current_object_centre_point = self.convert_from_image_to_cartesian_coordinate_system(current_object_centre_point)
         centre_point_of_bounding_box = self.convert_from_image_to_cartesian_coordinate_system(centre_point_of_bounding_box)
@@ -340,6 +344,8 @@ class ObjectDisambiguation(State):
 
         self.tiago.talk("My name is Ahmed and I am the robo maker")
         self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
+        self.person_head_world_coordinate = rospy.get_param('/person_head_world_coordinate')
+        
 
         # print objects_inside_bounding_box
         # print objects_inside_bounding_box[0].get('name')
