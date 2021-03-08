@@ -222,7 +222,7 @@ class GetPose(State):
 
     
     
-    def get_body_points(self, human, pos, xyz_array):
+    def get_body_points_3d(self, human, pos, xyz_array):
         #rospy.loginfo('Requesting body keypoints')
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
         if pos == 'Head':
@@ -255,7 +255,7 @@ class GetPose(State):
         # returns the x,y,z coordinates in meters
         return self.get_depth(pnt, xyz_array)
 
-    def get_hand_points(self, hand, pos, xyz_array):
+    def get_hand_points_3d(self, hand, pos, xyz_array):
         #rospy.loginfo('Requesting hand keypoints')
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
 
@@ -385,15 +385,15 @@ class GetPose(State):
                 handKeypointsR = datum.handKeypoints[1][i]
 
 
-                head = self.get_body_points(poseKeypoints, 'Head', xyz_array)
-                chest = self.get_body_points(poseKeypoints, 'Neck', xyz_array)
-                right_shoulder = self.get_body_points(poseKeypoints, 'RShoulder', xyz_array)
-                left_shoulder = self.get_body_points(poseKeypoints, 'LShoulder', xyz_array)
-                right_shoulder = self.get_body_points(poseKeypoints, 'RShoulder', xyz_array)
-                left_elbow = self.get_body_points(poseKeypoints, 'LElbow', xyz_array)
-                right_elbow = self.get_body_points(poseKeypoints, 'RElbow', xyz_array)
-                left_hand_tip = self.get_hand_points(handKeypointsL, 'first_finger_tip', xyz_array)
-                right_hand_tip = self.get_hand_points(handKeypointsR, 'first_finger_tip', xyz_array)
+                head = self.get_body_points_3d(poseKeypoints, 'Head', xyz_array)
+                chest = self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array)
+                right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
+                left_shoulder = self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array)
+                right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
+                left_elbow = self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array)
+                right_elbow = self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array)
+                left_hand_tip = self.get_hand_points_3d(handKeypointsL, 'first_finger_tip', xyz_array)
+                right_hand_tip = self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array)
                 left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
                 right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
                 left_hand_tip_delta = self.get_hand_tip_delta(left_hand_tip,chest,'left')

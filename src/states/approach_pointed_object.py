@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 
 from smach import State
-from utilities import Tiago
+from utilities import Tiago, Util
 
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
@@ -19,27 +19,11 @@ class ApproachPointedObject(State):
     def __init__(self):
         rospy.loginfo('ApproachPointedObject state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
-        self.transformer = tf.TransformListener()
+
+        #creates an instance of tiago class to interact with the user and perform physical actions
         self.tiago = Tiago()
-
-    
-    def transform_from_camera_frame_to_world_frame(self, camera_point):
-        # http://wiki.ros.org/tf
-        # http://docs.ros.org/en/indigo/api/tf/html/c++/classtf_1_1Transformer.html
-
-        self.depth_points = rospy.wait_for_message('xtion/depth_registered/points', PointCloud2)
-
-        self.transformer.waitForTransform('xtion_rgb_optical_frame', 'map', self.depth_points.header.stamp, rospy.Duration(2.0))
-
-        intersection_point = PointStamped()
-        intersection_point.header = self.depth_points.header
-        intersection_point.point = Point(*camera_point)
-
-        person_point = self.transformer.transformPoint('map', intersection_point)
-        #print person_point
-        tf_point = person_point.point
-        intersection_point_world = np.array([tf_point.x, tf_point.y, tf_point.z])
-        return intersection_point_world
+        #creates an instance of util class to transform point frames
+        self.util = Util()
 
 
     def find_table_id(self, intersection_point_world):
@@ -108,7 +92,7 @@ class ApproachPointedObject(State):
         intersection_point_3d = rospy.get_param("/intersection_point_3d")
         # print intersection_point_2d
         # print intersection_point_3d
-        intersection_point_world = self.transform_from_camera_frame_to_world_frame(intersection_point_3d)
+        intersection_point_world = self.util.transform_from_camera_frame_to_world_frame(intersection_point_3d)
 
         table = self.find_table_id(intersection_point_world)
         # saving selected table name to use its location while looking at person gesturing 

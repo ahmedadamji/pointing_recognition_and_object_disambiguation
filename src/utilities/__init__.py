@@ -1,5 +1,5 @@
 from tiago import Tiago
 from classify import Classify
+from util import Util
 #from actions import GetPoseBeforeGazebo
-#from util import Util
 #from occupancy_grid_map import OccupancyGridMap

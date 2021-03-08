@@ -9,7 +9,7 @@ import numpy as np
 import math
 
 # Imported for features of human robot interaction such as text to speech
-from utilities import Tiago
+from utilities import Tiago, Util
 from lasr_speech.msg import informationAction, informationGoal
 import speech_recognition as sr
 
@@ -20,8 +20,10 @@ class ObjectDisambiguation(State):
         rospy.loginfo('ObjectDisambiguation state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
 
-        #creates an instance of tiago class to use featues such as extract attributes of objects from yaml file and interact with the user
+        #creates an instance of tiago class to interact with the user
         self.tiago = Tiago()
+        #creates an instance of util class to use featues such as extract attributes of objects from yaml file and transform point frames
+        self.util = Util()
 
         # Stores details of objects that have been eliminated during disambiguation
         self.eliminated_objects = []
@@ -37,9 +39,9 @@ class ObjectDisambiguation(State):
         # Stores the possible directions to use as part of disambiguating objects
         self.standard_directions = ["up", "right", "down", "left", "up", "centre"]
 
-        self.objects_with_attributes = self.tiago.object_attributes
-        self.list_of_attributes = self.tiago.list_of_attributes
-        self.list_of_objects_capable_of_disambiguation = self.tiago.list_of_objects_capable_of_disambiguation
+        self.objects_with_attributes = self.util.object_attributes
+        self.list_of_attributes = self.util.list_of_attributes
+        self.list_of_objects_capable_of_disambiguation = self.util.list_of_objects_capable_of_disambiguation
 
     def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
         #Converting north, south, east, west TO up, down , right , left

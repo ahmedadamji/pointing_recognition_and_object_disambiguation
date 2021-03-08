@@ -5,10 +5,11 @@ import numpy as np
 import cv2
 
 from smach import State
+from utilities import Tiago, Util
+
 from geometry_msgs.msg import Point, Pose
 from collections import namedtuple
 from cv_bridge import CvBridge, CvBridgeError
-from nav_msgs.msg import OccupancyGrid
 from sensor_msgs.msg import Image, PointCloud2, RegionOfInterest, PointField, CameraInfo
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 
@@ -22,25 +23,12 @@ class PointedObjectDetection(State):
 
         self.classify = classify
         self.bridge = CvBridge()
-        self.transformer = tf.TransformListener()
+
+        #creates an instance of tiago class to interact with the user
+        self.tiago = Tiago()
+        #creates an instance of util class to transform point frames
+        self.util = Util()
     
-    def transform_from_world_frame_to_camera_frame(self, world_point):
-        # http://wiki.ros.org/tf
-        # http://docs.ros.org/en/indigo/api/tf/html/c++/classtf_1_1Transformer.html
-
-        self.map_points = rospy.wait_for_message('/map', OccupancyGrid)
-
-        self.transformer.waitForTransform('map', 'xtion_rgb_optical_frame', self.map_points.header.stamp, rospy.Duration(2.0))
-
-        intersection_point_world = PointStamped()
-        intersection_point_world.header = self.map_points.header
-        intersection_point_world.point = Point(*world_point)
-
-        person_point = self.transformer.transformPoint('xtion_rgb_optical_frame', intersection_point_world)
-        #print person_point
-        tf_point = person_point.point
-        camera_point_3d = np.array([tf_point.x, tf_point.y, tf_point.z])
-        return camera_point_3d
     
     def project_depth_array_to_2d_image_pixels(self, point_3d):
         rospy.loginfo('projecting depth array to 2d image pixels')
@@ -55,7 +43,7 @@ class PointedObjectDetection(State):
     def draw_bounding_box_around_intersection_point(self, intersection_point_world):
         
         print intersection_point_world
-        camera_point_3d = self.transform_from_world_frame_to_camera_frame(intersection_point_world)
+        camera_point_3d = self.util.transform_from_world_frame_to_camera_frame(intersection_point_world)
         print camera_point_3d
         self.camera_point_2d = self.project_depth_array_to_2d_image_pixels(camera_point_3d)
         print self.camera_point_2d

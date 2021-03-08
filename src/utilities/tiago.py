@@ -33,7 +33,6 @@ class Tiago:
         self.tts_client.wait_for_server(rospy.Duration(5))
         rospy.loginfo("The tts action server is up")
 
-        self.load_object_features()
 
 
     def lift_torso_head_default(self, wait=False):
@@ -123,34 +122,6 @@ class Tiago:
         # tts_goal.rawtext.lang_id = 'en_GB'
         # tts_goal.rawtext.text = speech_in
         # self.tts_client.send_goal(tts_goal)
-
-    def load_object_features(self):
-
-        object_attributes_parm = rospy.get_param('/object_attributes')
-        self.object_attributes = [
-            {
-                'name':    objects['name'],
-                'colour':  objects['colour'],
-                'type':    objects['type'],
-                'texture': objects['texture'],
-                'size':    objects['size'],
-                'shape':   objects['shape']
-            }
-            for objects in object_attributes_parm
-        ]
-        
-        list_of_attributes_parm = rospy.get_param('/list_of_attributes')[0]
-        self.list_of_attributes = {
-            'colour':  list_of_attributes_parm['colour'],
-            'type':    list_of_attributes_parm['type'],
-            'texture': list_of_attributes_parm['texture'],
-            'size':    list_of_attributes_parm['size'],
-            'shape':   list_of_attributes_parm['shape'],
-            'position': list_of_attributes_parm['position']
-        }
-
-        self.list_of_objects_capable_of_disambiguation = rospy.get_param('/list_of_objects_capable_of_disambiguation')
-
 
 
     def shutdown(self):
