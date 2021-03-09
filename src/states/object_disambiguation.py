@@ -63,8 +63,8 @@ class ObjectDisambiguation(State):
     def calculate_compass_direction_between_two_points(self, point_of_interest, reference_point = [0,0]):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
 
-        point_of_interest = self.convert_from_image_to_cartesian_coordinate_system(point_of_interest)
-        reference_point = self.convert_from_image_to_cartesian_coordinate_system(reference_point)
+        # point_of_interest = self.convert_from_image_to_cartesian_coordinate_system(point_of_interest)
+        # reference_point = self.convert_from_image_to_cartesian_coordinate_system(reference_point)
         deltaX = point_of_interest[0] - reference_point[0]
         deltaY = point_of_interest[1] - reference_point[1]
         angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
@@ -91,14 +91,23 @@ class ObjectDisambiguation(State):
         # section 2.10
         # Or check another reference to transform frames in robotics
         # Pass in a genuine reference_point in world frame
-        reference_point = [-2,-10]
-        # To find the angle to rotate the coordinate system by:
+        reference_point = [-10,-8.9]
+
+        #Get distance between two points:
         reference_vector = np.array([reference_point[0],reference_point[1]])
         view_point_vector = np.array([view_point[0],view_point[1]])
-        rotation_vector = np.subtract(reference_vector,view_point_vector)
-        ydx = rotation_vector[1]/rotation_vector[0] # Y/X of the vector between view point and reference point in relation to the world frame
-        theta = math.atan(ydx)
-        rotation_angle = theta-((math.pi)/2.0) #theta_a_b  # - (pi/2) because the y axis of the new coordinate frame is aligned with the rotation vector and therefore the x axis will be rotated by 90 degrees less than this.
+        new_y_axis_vector = np.subtract(reference_vector,view_point_vector)
+        magnitude_new_y_axis_vector = np.linalg.norm(new_y_axis_vector)
+
+        # To find the angle to rotate the coordinate system by:
+        # Here I had to concider the value change of angle when it lies in diffrent quadrants:
+        theta = math.acos((reference_point[0]-view_point[0])/magnitude_new_y_axis_vector)
+
+        if view_point[1] > reference_point[1]:
+            theta = 2*(math.pi) - theta
+        
+        #theta_a_b  # - (pi/2) because the y axis of the new coordinate frame is aligned with the rotation vector and therefore the x axis will be rotated by 90 degrees less than this.
+        rotation_angle = theta-((math.pi)/2.0)
        
         wxr = reference_point[0]
         wyr = reference_point[1]
@@ -117,17 +126,8 @@ class ObjectDisambiguation(State):
 
         rp = np.matmul(rtw, wp)
         point_of_interest_transformed = [rp[0],rp[1]]
+        print point_of_interest_transformed
 
-        # translation_vector = [-reference_point[0],-reference_point[1]]
-        # print point_of_interest,rotation_angle
-
-        # x_rotated = (point_of_interest[0]*(math.cos(rotation_angle)))-(point_of_interest[1]*(math.sin(rotation_angle)))
-        # y_rotated = (point_of_interest[0]*(math.sin(rotation_angle)))+(point_of_interest[1]*(math.cos(rotation_angle)))
-
-        # x_translated_and_rotated = x_rotated + translation_vector[0]
-        # y_translated_and_rotated = y_rotated + translation_vector[1]
-
-        # point_of_interest_transformed = [x_translated_and_rotated, y_translated_and_rotated]
 
         return point_of_interest_transformed
     
@@ -148,7 +148,7 @@ class ObjectDisambiguation(State):
         self.person_head_world_coordinate
 
         #USING REFERENCE OBJECT AS CURRENT OBJECT AS WELL FOR NOW, CHANGE TO SPECIFIC REFERENCE OBJECT LATER
-        current_object_world_coordinate_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, [-2,-8.6], self.person_head_world_coordinate)        
+        current_object_world_coordinate_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, current_object_world_coordinate, self.person_head_world_coordinate)        
 
         # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
         # centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
@@ -308,7 +308,7 @@ class ObjectDisambiguation(State):
                 # adjusts the recognizer sensitivity to ambient noise
                 recognizer.adjust_for_ambient_noise(source)
                 # records audio from the microphone
-                audio = recognizer.record(source, duration=2)
+                audio = recognizer.record(source, duration=4)
             
             try:
                 # Recognizes speech recorded
