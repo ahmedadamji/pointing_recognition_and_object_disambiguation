@@ -33,7 +33,7 @@ class ObjectDisambiguation(State):
         self.total_matches = np.array([])
 
         # Stores the types of attributes in order of use for disambiguation
-        self.attributes = 'position', 'type', 'texture', 'colour', 'size', 'shape'
+        self.attributes = 'position', 'colour', 'texture', 'type', 'size', 'shape'
         # Stores the possible directions in terms of compass coordinates to use as part of disambiguating objects
         self.compass_directions = ["north", "east", "south", "west", "north", "centre"]
         # Stores the possible directions to use as part of disambiguating objects
@@ -46,7 +46,7 @@ class ObjectDisambiguation(State):
     def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
         #Converting north, south, east, west TO up, down , right , left
         if direction_of_current_object.lower() in self.standard_directions:
-            index = self.standard_directions.index(direction_of_current_object)
+            index = self.standard_directions.index(direction_of_current_object.lower())
             return self.compass_directions[index]
         else:
             return direction_of_current_object
@@ -70,7 +70,7 @@ class ObjectDisambiguation(State):
         angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
         distance_between_points = math.hypot(deltaX, deltaY)
 
-        if distance_between_points < 50:
+        if distance_between_points < 0.02:
             compass_direction = self.compass_directions[5]
             return compass_direction
 
@@ -88,23 +88,46 @@ class ObjectDisambiguation(State):
 
     def transfer_coordinate_wrt_person_and_reference_object(self, point_of_interest, reference_point, view_point):
         #http://motion.cs.illinois.edu/RoboticSystems/CoordinateTransformations.html
-
+        # section 2.10
+        # Or check another reference to transform frames in robotics
+        # Pass in a genuine reference_point in world frame
+        reference_point = [-2,-10]
         # To find the angle to rotate the coordinate system by:
-        ## USE ONLY XY COORDINATES HERE
-        rotation_vector = [reference_point[0],reference_point[1]] - [view_point[0],view_point[1]]
+        reference_vector = np.array([reference_point[0],reference_point[1]])
+        view_point_vector = np.array([view_point[0],view_point[1]])
+        rotation_vector = np.subtract(reference_vector,view_point_vector)
+        ydx = rotation_vector[1]/rotation_vector[0] # Y/X of the vector between view point and reference point in relation to the world frame
+        theta = math.atan(ydx)
+        rotation_angle = theta-((math.pi)/2.0) #theta_a_b  # - (pi/2) because the y axis of the new coordinate frame is aligned with the rotation vector and therefore the x axis will be rotated by 90 degrees less than this.
+       
+        wxr = reference_point[0]
+        wyr = reference_point[1]
+        # Finding the transformation matrix of the world frame to the reference frame
+        wtr = [[math.cos(rotation_angle), -math.sin(rotation_angle), wxr], 
+               [math.sin(rotation_angle), math.cos(rotation_angle), wyr],
+               [0, 0, 1]]
+        
+        wtr = np.array(wtr)
 
-        # -90 because the y axis of the new coordinate frame is aligned with the rotation vector and therefore the x axis will be rotated by 90 degrees less than this.
-        rotation_angle = (math.atan(rotation_vector[1]/rotation_vector[0])) - 90
+        # Finding the transformation matrix of the reference frame to the world frame
+        rtw = np.linalg.inv(wtr)
 
-        translation_vector = - [reference_point[0],reference_point[1]]
+        wp = [point_of_interest[0],point_of_interest[1],1]
+        wp = np.array(wp).reshape(3,1)
 
-        x_rotated = (point_of_interest[0]*math.cos(rotation_angle))−(point_of_interest[1]*math.sin(rotation_angle))
-        y_rotated = (point_of_interest[0]*math.sin(rotation_angle))+(point_of_interest[1]*math.cos(rotation_angle))
+        rp = np.matmul(rtw, wp)
+        point_of_interest_transformed = [rp[0],rp[1]]
 
-        x_translated_and_rotated = x_rotated + translation_vector[0]
-        y_translated_and_rotated = y_rotated + translation_vector[1]
+        # translation_vector = [-reference_point[0],-reference_point[1]]
+        # print point_of_interest,rotation_angle
 
-        point_of_interest_transformed = [x_translated_and_rotated, y_translated_and_rotated]
+        # x_rotated = (point_of_interest[0]*(math.cos(rotation_angle)))-(point_of_interest[1]*(math.sin(rotation_angle)))
+        # y_rotated = (point_of_interest[0]*(math.sin(rotation_angle)))+(point_of_interest[1]*(math.cos(rotation_angle)))
+
+        # x_translated_and_rotated = x_rotated + translation_vector[0]
+        # y_translated_and_rotated = y_rotated + translation_vector[1]
+
+        # point_of_interest_transformed = [x_translated_and_rotated, y_translated_and_rotated]
 
         return point_of_interest_transformed
     
@@ -125,7 +148,7 @@ class ObjectDisambiguation(State):
         self.person_head_world_coordinate
 
         #USING REFERENCE OBJECT AS CURRENT OBJECT AS WELL FOR NOW, CHANGE TO SPECIFIC REFERENCE OBJECT LATER
-        current_object_world_coordinate_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, current_object_world_coordinate, self.person_head_world_coordinate)        
+        current_object_world_coordinate_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, [-2,-8.6], self.person_head_world_coordinate)        
 
         # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
         # centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
@@ -270,6 +293,9 @@ class ObjectDisambiguation(State):
         # Code run if diambiguation couldn't find a unique object to suit the descriptions
         self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
         self.notify_of_objectes_detected_but_not_part_of_disambiguation()
+
+
+    # PUT TEXT AND SPEECH BOTH IN TIAGO.PY
 
     def gather_user_response_with_speech(self, user_response):
         # Gathers user responses using speech

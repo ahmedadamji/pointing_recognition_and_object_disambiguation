@@ -11,6 +11,7 @@ import pyttsx
 
 import tf
 import numpy as np
+import ros_numpy
 
 
 from geometry_msgs.msg import Point, PointStamped, Pose

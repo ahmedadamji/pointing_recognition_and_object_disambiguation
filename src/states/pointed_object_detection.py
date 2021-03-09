@@ -93,7 +93,7 @@ class PointedObjectDetection(State):
             "name": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name,
             "confidence": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].confidence,
             "xywh": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].xywh,
-            "world_coordinate": world_coordinate
+            "world_coordinate": [world_coordinate[0].item(), world_coordinate[1].item(), world_coordinate[2].item()]
             }
             objects_inside_bounding_box.append(current_object)
             # objects_inside_bounding_box.append([[yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name],

@@ -322,7 +322,7 @@ class GetPose(State):
         # params['flir_camera'] = True # Used when using Flir camera
         # params['frame_undistort'] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
         params['hand'] = True
-        params["face"] = False
+        params['face'] = False
         # params["3d"] = True
         # params['3d_views'] = 2
         return params
@@ -415,7 +415,7 @@ class GetPose(State):
 
                     # Saving world coordinate for head for use during disambiguation in reference to user location
                     person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
-                    rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0], person_head_world_coordinate[1], person_head_world_coordinate[2]])
+                    rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
 
                     return 'outcome1'
                     
