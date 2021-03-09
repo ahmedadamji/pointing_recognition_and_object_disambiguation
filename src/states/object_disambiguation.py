@@ -10,8 +10,6 @@ import math
 
 # Imported for features of human robot interaction such as text to speech
 from utilities import Tiago, Util
-from lasr_speech.msg import informationAction, informationGoal
-import speech_recognition as sr
 
 
 
@@ -51,20 +49,12 @@ class ObjectDisambiguation(State):
         else:
             return direction_of_current_object
 
-    def convert_from_image_to_cartesian_coordinate_system(self, point):
-        x = point[0]
-        y = point[1]
-        w = 640
-        h = 480
-        x = x+(w/2)
-        y = (h/2)-y
-        return [x,y]
 
     def calculate_compass_direction_between_two_points(self, point_of_interest, reference_point = [0,0]):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
 
-        # point_of_interest = self.convert_from_image_to_cartesian_coordinate_system(point_of_interest)
-        # reference_point = self.convert_from_image_to_cartesian_coordinate_system(reference_point)
+        # point_of_interest = self.util.convert_from_image_to_cartesian_coordinate_system(point_of_interest)
+        # reference_point = self.util.convert_from_image_to_cartesian_coordinate_system(reference_point)
         deltaX = point_of_interest[0] - reference_point[0]
         deltaY = point_of_interest[1] - reference_point[1]
         angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
@@ -228,6 +218,18 @@ class ObjectDisambiguation(State):
             eliminated_object = self.objects_inside_bounding_box.pop(elemination_index)
             self.eliminated_objects.append(eliminated_object.get('name'))
 
+        
+    def gather_user_response(self, attribute):
+
+        self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
+        
+        # Stores a list of valid responses
+        valid_responses = self.list_of_attributes.get(attribute)
+
+        user_response = self.tiago.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
+        return user_response
+
+
     def compare_all_objects_with_chosen_attribute(self, attribute):
         ## LOOP FOR EACH OBJECT FIRST AND THEN FOR EACH FEATURE!
 
@@ -296,101 +298,6 @@ class ObjectDisambiguation(State):
 
 
     # PUT TEXT AND SPEECH BOTH IN TIAGO.PY
-
-    def gather_user_response_with_speech(self, user_response):
-        # Gathers user responses using speech
-
-        recognizer = sr.Recognizer()
-        microphone = sr.Microphone()
-        # while loop to ensure voice is recognized
-        while not user_response["success"] == True:
-            with microphone as source:
-                # adjusts the recognizer sensitivity to ambient noise
-                recognizer.adjust_for_ambient_noise(source)
-                # records audio from the microphone
-                audio = recognizer.record(source, duration=4)
-            
-            try:
-                # Recognizes speech recorded
-                user_response["transcription"] = recognizer.recognize_google(audio).encode('ascii', 'ignore')
-                user_response["success"] = True
-                print user_response["transcription"]
-            except sr.RequestError:
-                # API was unreachable or unresponsive
-                user_response["success"] = False
-                user_response["error"] = "API unavailable"
-            except sr.UnknownValueError:
-                # speech was unintelligible
-                user_response["success"] = False
-                user_response["error"] = "Unable to recognize speech"
-
-        return user_response
-
-
-        # speech_client = actionlib.SimpleActionClient('receptionist', informationAction)
-        # speech_client.wait_for_server()
-        # goal = informationGoal('attribute')
-
-        # tries = 0
-        # text = ''
-        # while tries < 3:
-        #     speech_client.send_goal(goal)
-        #     speech_client.wait_for_result()
-        #     text = speech_client.get_result().data
-
-        #     if not text == '':
-        #         break
-            
-        #     self.tiago.talk("Sorry, I didnt, catch that, can you please try again")
-        #     tries += 1
-        # print text
-
-    def gather_user_response_with_text(self, user_response):
-        # Gathers user responses using text
-        text = raw_input('Please type your response : ')
-        user_response['transcription'] = text
-
-        return user_response
-    
-    def gather_user_response(self, attribute):
-
-        self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
-        
-        response_valid = False
-        while not response_valid:
-             # dict to save the user response
-            user_response = {
-                "success": False,
-                "error": None,
-                "transcription": None
-            }
-            user_response = self.gather_user_response_with_speech(user_response)
-            #user_response = self.gather_user_response_with_text(user_response)
-
-            # Checks if response is valid
-            valid_responses = self.list_of_attributes.get(attribute)
-            if user_response['transcription'].lower() in valid_responses :
-                response_valid = True
-                # Reinforces to the user, the attribute collected
-                self.tiago.talk("ah, the " + attribute + " of the object is " + user_response['transcription'])
-                user_response['transcription'] = self.convert_standard_directions_to_compass_directions(user_response['transcription'])
-
-                return user_response['transcription']
-
-            else:
-                # if user response does not match the possible responces for a particular attribute, error prompt to enter responses from possible options again
-                print("Invalid entry")
-                print("I am sorry, but " + user_response['transcription'] + " is not a type of " + attribute)
-                print("The valid responses for " + attribute + " are: ")
-                print(valid_responses)
-                print("\033[1;31;40m Please try again!  \n")
-
-                # Reinforces to the user, the attribute collected
-                self.tiago.talk("I am sorry, but " + user_response['transcription'] + " is not a type of " + attribute)
-                self.tiago.talk("The valid responses for " + attribute + " are: ")
-                for item in valid_responses:
-                    self.tiago.talk(item)
-                self.tiago.talk("Please try again!")
 
 
     def execute(self, userdata):

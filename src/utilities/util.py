@@ -25,6 +25,16 @@ class Util:
 
         self.load_object_features()
         self.transformer = tf.TransformListener()
+    
+    
+    def convert_from_image_to_cartesian_coordinate_system(self, point):
+        x = point[0]
+        y = point[1]
+        w = 640
+        h = 480
+        x = x+(w/2)
+        y = (h/2)-y
+        return [x,y]
 
     def get_3d_depth_point_from_2d_camera_point(self, camera_point):
 
