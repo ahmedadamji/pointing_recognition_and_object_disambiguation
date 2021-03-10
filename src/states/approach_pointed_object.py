@@ -24,25 +24,25 @@ class ApproachPointedObject(State):
         self.tiago = Tiago()
         #creates an instance of util class to transform point frames
         self.util = Util()
+        # Collects the details of tables in the environment from the util class and saves in self.tables
+        self.tables = self.util.tables
 
 
-    def find_table_id(self, intersection_point_world):
+    def get_table(self, intersection_point_world):
         #tables = rospy.get_param('/tables')
-        # Later make this loop for each table, refer p1_server in lasr scirock for this
-        cuboid = rospy.get_param('/tables/' + 'table0' + '/cuboid')
-        cuboid_max = np.array(cuboid['max_xyz'])
-        cuboid_min = np.array(cuboid['min_xyz'])
-        print cuboid_max
-        print cuboid_min
-        print intersection_point_world
-        if ((cuboid_min[0] <= intersection_point_world[0] <= cuboid_max[0]) and (cuboid_min[1] <= intersection_point_world[1] <= cuboid_max[1])  and (cuboid_min[2] <= intersection_point_world[2] <= cuboid_max[2])):
-            print 'table0' + ' is the man'
-            return 'table0'
-        else:
-            return 'table0'
-
-
-        # Pose(position = Point(**tables['position']), orientation = Quaternion(**tables['orientation']))
+        for table_id in range(0, len(self.tables)):
+            table_name = self.tables[table_id].get('name')
+            cuboid = self.tables[table_id].get('cuboid')
+            cuboid_max = np.array(cuboid['max_xyz'])
+            cuboid_min = np.array(cuboid['min_xyz'])
+            print cuboid_max
+            print cuboid_min
+            print intersection_point_world
+            if ((cuboid_min[0] <= intersection_point_world[0] <= cuboid_max[0]) and (cuboid_min[1] <= intersection_point_world[1] <= cuboid_max[1])  and (cuboid_min[2] <= intersection_point_world[2] <= cuboid_max[2])):
+                print table_name + ' is being pointed at'
+                return self.tables[table_id]
+        ## RETURN OUTCOME 2 AFTER ERROR MESSAGE SAYING NO TABLE WAS FOUND BEING POINTED AT
+        print 'Sorry, no table was found being pointed at'
 
 
     def approach_table(self, table, wait=True):
@@ -54,7 +54,8 @@ class ApproachPointedObject(State):
         # wait until the action server has started up and started listening for goals
         movebase_client.wait_for_server()
 
-        location = rospy.get_param('/tables/' + table + '/location')
+        location = self.tables[table_id].get('location')
+
 
         goal = MoveBaseGoal()
         goal.target_pose.header.stamp = rospy.Time.now()
@@ -94,7 +95,7 @@ class ApproachPointedObject(State):
         # print intersection_point_3d
         intersection_point_world = self.util.transform_from_camera_frame_to_world_frame(intersection_point_3d)
 
-        table = self.find_table_id(intersection_point_world)
+        table = self.get_table(intersection_point_world)
         # saving selected table name to use its location while looking at person gesturing 
         rospy.set_param('/current_table', table)
         self.approach_table(table, wait)

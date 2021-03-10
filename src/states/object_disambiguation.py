@@ -75,6 +75,13 @@ class ObjectDisambiguation(State):
         compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
+    
+    # def select_reference_object(self):
+
+    
+    # def get_unique_feature(self):
+        
+
 
     def transfer_coordinate_wrt_person_and_reference_object(self, point_of_interest, reference_point, view_point):
         #http://motion.cs.illinois.edu/RoboticSystems/CoordinateTransformations.html

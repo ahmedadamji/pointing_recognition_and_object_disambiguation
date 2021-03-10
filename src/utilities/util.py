@@ -24,6 +24,7 @@ class Util:
     def __init__(self):
 
         self.load_object_features()
+        self.load_tables()
         self.transformer = tf.TransformListener()
     
     
@@ -120,6 +121,17 @@ class Util:
 
         self.list_of_objects_capable_of_disambiguation = rospy.get_param('/list_of_objects_capable_of_disambiguation')
 
+    def load_tables(self):
+
+        tables_param = rospy.get_param('/tables')
+        self.tables = [
+            {
+                'name':     table['name'],
+                'location': table['location'],
+                'cuboid':   table['cuboid']
+            }
+            for table in tables_param
+        ]
 
 
     def shutdown(self):

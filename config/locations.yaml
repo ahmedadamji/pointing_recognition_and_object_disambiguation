@@ -15,51 +15,90 @@ pointing_person_approach:
 # For table one it is assuming it is a square top with 1 m sides
 
 tables:
-  table0:
-    id: 0
+  - name: 'table0'
     location:
       position: { x: -2.1598, y: -7.8729, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
     cuboid:
-      frame: 'map'
       max_xyz: [ -1.61, -8.42, 3.0 ]
       min_xyz: [ -2.61, -9.42, 0.00 ]
-    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
-  table1:
-    id: 1
+  - name: 'table1'
     location:
       position: { x: 0.11683, y: -9.8525, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
     cuboid:
-      frame: 'map'
       max_xyz: [ 0.81, -10.77, 3.0 ]
       min_xyz: [ -0.55, -11.53, 0.00 ]
-    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
-
-  table2:
-    id: 2
+      
+  - name: 'table2'
     location:
       position: { x: 2.4824, y: -7.5183, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
     cuboid:
-      frame: 'map'
       max_xyz: [ 3.00, -8.23, 3 ]
       min_xyz: [ 2.04, -8.99, 0.00 ]
-    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
-
-  table3:
-    id: 3
+      
+  - name: 'table3'
     location:
       position: { x: 3.0824, y: -4.4662, z: 3 }
       orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
     cuboid:
-      frame: 'map'
       max_xyz: [ 3.65, -5.10, 0.815 ]
       min_xyz: [ 2.69, -5.86, 0.00 ]
-    # lookLR: [[6.17, 1.66], [7.29, 1.66]]
 
 
+
+
+
+
+  # table0:
+  #   id: 0
+  #   location:
+  #     position: { x: -2.1598, y: -7.8729, z: 0.0 }
+  #     orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
+  #   cuboid:
+  #     frame: 'map'
+  #     max_xyz: [ -1.61, -8.42, 3.0 ]
+  #     min_xyz: [ -2.61, -9.42, 0.00 ]
+  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
+
+  # table1:
+  #   id: 1
+  #   location:
+  #     position: { x: 0.11683, y: -9.8525, z: 0.0 }
+  #     orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
+  #   cuboid:
+  #     frame: 'map'
+  #     max_xyz: [ 0.81, -10.77, 3.0 ]
+  #     min_xyz: [ -0.55, -11.53, 0.00 ]
+  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
+
+  # table2:
+  #   id: 2
+  #   location:
+  #     position: { x: 2.4824, y: -7.5183, z: 0.0 }
+  #     orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
+  #   cuboid:
+  #     frame: 'map'
+  #     max_xyz: [ 3.00, -8.23, 3 ]
+  #     min_xyz: [ 2.04, -8.99, 0.00 ]
+  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
+
+  # table3:
+  #   id: 3
+  #   location:
+  #     position: { x: 3.0824, y: -4.4662, z: 3 }
+  #     orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
+  #   cuboid:
+  #     frame: 'map'
+  #     max_xyz: [ 3.65, -5.10, 0.815 ]
+  #     min_xyz: [ 2.69, -5.86, 0.00 ]
+  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
+
+
+
+  
 # hand_gesture_approach:
 #   position: 
 #     x: -2.1598
