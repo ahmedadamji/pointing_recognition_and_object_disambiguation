@@ -136,8 +136,13 @@ class GetPose(State):
             # depth of the pointcloud is less then it is intersecting
             # or i can just check if the point is inside the box selected
             if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
+                hypothesis_point_3d = [hypothesis_point_3d[0], hypothesis_point_3d[1], hypothesis_point_3d[2]]
 
-                print("The location of pointing is identified at: DEPTH COORDINATES" + hypothesis_point_3d + " RGB IMAGE COORDINATES: " + hypothesis_point_2d)
+                print "The location of pointing is identified at:"
+                print "DEPTH COORDINATES: "
+                print hypothesis_point_3d
+                print "RGB IMAGE COORDINATES: "
+                print hypothesis_point_2d
 
                 return hypothesis_point_3d, hypothesis_point_2d
 

@@ -79,6 +79,7 @@ class PointedObjectDetection(State):
             return None
         else:
             for i in range(len(yolo_detections)):
+                #print yolo_detections[i]
                 # Finding world coordinate for each detection to check weather it is within pointing bounding box and on the table
                 world_coordinate = self.get_world_coordinate_for_object(yolo_detections[i])
                 # need intersection_point_world as centre of bounding box
