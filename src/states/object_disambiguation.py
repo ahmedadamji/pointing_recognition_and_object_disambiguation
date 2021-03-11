@@ -225,7 +225,7 @@ class ObjectDisambiguation(State):
 
         eliminated_objects_indices.reverse()
         for elemination_index in eliminated_objects_indices:
-            eliminated_object = self.objects_inside_bounding_box.pop(elemination_index)
+            eliminated_object = self.objects_within_pointing_bounding_box.pop(elemination_index)
             self.eliminated_objects.append(eliminated_object.get('name'))
 
         
@@ -251,14 +251,14 @@ class ObjectDisambiguation(State):
         current_attribute_from_user = self.gather_user_response(attribute)
 
         index = 0
-        while index < len(self.objects_inside_bounding_box):
+        while index < len(self.objects_within_pointing_bounding_box):
             # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
-            if self.objects_inside_bounding_box[index].get('name') in self.list_of_objects_capable_of_disambiguation:
-                current_object = self.objects_inside_bounding_box[index]
+            if self.objects_within_pointing_bounding_box[index].get('name') in self.list_of_objects_capable_of_disambiguation:
+                current_object = self.objects_within_pointing_bounding_box[index]
                 compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
                 index +=1
             else:
-                self.objects_inside_bounding_box_not_compared.append(self.objects_inside_bounding_box.pop(index))
+                self.objects_inside_bounding_box_not_compared.append(self.objects_within_pointing_bounding_box.pop(index))
             
 
         # Updating eliminated objects if attributes do not match:
@@ -293,7 +293,7 @@ class ObjectDisambiguation(State):
 
         for attribute in self.attributes:
 
-            indices_for_attribute_match, compared_objects= self.compare_all_objects_with_chosen_attribute(attribute)
+            indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
 
             # The == condition ensures that even if it doesnt match for all objects it still goes to the next questionst
             if len(indices_for_attribute_match) == 1:
@@ -319,12 +319,12 @@ class ObjectDisambiguation(State):
         rospy.loginfo('ObjectDisambiguation state executing')
 
         self.tiago.talk("My name is Ahmed and I am the robo maker")
-        self.objects_inside_bounding_box = rospy.get_param('/objects_inside_bounding_box')
+        self.objects_within_pointing_bounding_box = rospy.get_param('/objects_within_pointing_bounding_box')
         self.person_head_world_coordinate = rospy.get_param('/person_head_world_coordinate')
         
 
-        # print objects_inside_bounding_box
-        # print objects_inside_bounding_box[0].get('name')
+        # print objects_within_pointing_bounding_box
+        # print objects_within_pointing_bounding_box[0].get('name')
 
         self.attributes_from_user = []
         # self.dummy_attributes_from_user = {
