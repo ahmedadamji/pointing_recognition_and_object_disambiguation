@@ -54,7 +54,7 @@ class ApproachPointedObject(State):
         # wait until the action server has started up and started listening for goals
         movebase_client.wait_for_server()
 
-        location = self.tables[table_id].get('location')
+        location = table.get('location')
 
 
         goal = MoveBaseGoal()
@@ -68,6 +68,7 @@ class ApproachPointedObject(State):
 
         rospy.loginfo('GOAL SENT! o:')
 
+        # Sets robot pose to check table
         self.tiago.check_table(True)
 
         # waits for the server to finish performing the action
@@ -89,17 +90,15 @@ class ApproachPointedObject(State):
         # intersection_point = rospy.wait_for_message('/intersection_point', IntersectionData)
         # print intersection_point.intersection_point_2d
         # print intersection_point.intersection_point_3d
-        intersection_point_2d = rospy.get_param("/intersection_point_2d")
-        intersection_point_3d = rospy.get_param("/intersection_point_3d")
+        # intersection_point_2d = rospy.get_param("/intersection_point_2d")
+        # intersection_point_3d = rospy.get_param("/intersection_point_3d")
+        intersection_point_world = rospy.get_param("/intersection_point_world")
         # print intersection_point_2d
         # print intersection_point_3d
-        intersection_point_world = self.util.transform_from_camera_frame_to_world_frame(intersection_point_3d)
 
         table = self.get_table(intersection_point_world)
         # saving selected table name to use its location while looking at person gesturing 
         rospy.set_param('/current_table', table)
         self.approach_table(table, wait)
-
-        rospy.set_param('/intersection_point_world', [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()])
         
         return 'outcome1'

@@ -103,8 +103,10 @@ class GetPose(State):
     #     tmp = tmp.TransformBy(this.transform)
     #     return Point2D(tmp.x, tmp.y)
 
+
+    # Move this function to util
     def project_depth_array_to_2d_image_pixels(self, point_3d):
-        rospy.loginfo('projecting depth array to 2d image pixels')
+        #rospy.loginfo('projecting depth array to 2d image pixels')
         camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
         depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
         uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
@@ -119,22 +121,26 @@ class GetPose(State):
         maxSteps = int(maxDistance / (np.linalg.norm(delta)))
         hypothesis_point_3d = start_point
         for i in range(maxSteps):
+            # The delta is the maximum feature size in the x axis of the depth camera frame of the object,
+            # the hypothesis point may not lie on an object appearing smaller than this size from the distance of the robot.
+            # This may also affect objects that are curved on the edges and if the sides do not lie within the pointing line.
             hypothesis_point_3d += delta
             # Get 2D xy coordinate of the hypothesis point
             hypothesis_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(hypothesis_point_3d))
-
-
-            # get the mesh distance at the extended point
-            ## Fix this code as it doesnt make sense -->
-            # float meshDistance = GetMeshDepthAtPoint(depthIntrinsics, depth_points, hypothesis_point_3d, undistort);
+            print("Advancing across line of pointing")
+            # get the mesh distance of the hypothesis point by checking the depth data of the 2D coordinate:
             meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
+
             # if the mesh distance is less than the distance to the point we've hit the mesh
             # can do so that in the selected pixel space, I can compare the depth, if the
             # depth of the pointcloud is less then it is intersecting
             # or i can just check if the point is inside the box selected
             if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
-                print(hypothesis_point_2d)
+
+                print("The location of pointing is identified at: DEPTH COORDINATES" + hypothesis_point_3d + " RGB IMAGE COORDINATES: " + hypothesis_point_2d)
+
                 return hypothesis_point_3d, hypothesis_point_2d
+
                 ## TEST HERE IF THERE IS OBSTRUCTION TO POINTING LINE< WILL IT GIVE ERROR< ALSO MAKE IT SUCH THAT THE INTERSECTION IS ONLY CHECKED WITHIN A RADIUS
                 ## OF THE POINTING LINE TO ELIMINATE PROBLEMS WITH FAR AWAY OBJECTS OVERLAPPING WITH MESH, CHECK PERFORMANCE OF THIS AS WELL AND INCLUDE RESULTS OF BOTH
                 ## BEFORE AND AFTER IN REPORT
@@ -222,6 +228,8 @@ class GetPose(State):
 
         rospy.set_param('/intersection_point_2d', [intersection_point_2d[0].item(), intersection_point_2d[1].item()])
         rospy.set_param('/intersection_point_3d', [intersection_point_3d[0].item(), intersection_point_3d[1].item(), intersection_point_3d[2].item()])
+        intersection_point_world = self.util.transform_from_camera_frame_to_world_frame(intersection_point_3d)
+        rospy.set_param('/intersection_point_world', [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()])
         #rospy.set_param('/start_point_3d', [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
 
         #cv2.waitKey(0)
