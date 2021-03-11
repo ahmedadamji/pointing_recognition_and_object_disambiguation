@@ -176,7 +176,7 @@ class Classify:
             cv2.waitKey(5000)
 
             # To destroy cv2 window at the end of state
-            cv2.destroyAllWindows()
+            # cv2.destroyAllWindows()
 
         except rospy.ServiceException as ex:
             rospy.logwarn(ex)

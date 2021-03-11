@@ -87,8 +87,11 @@ class ObjectDisambiguation(State):
         #http://motion.cs.illinois.edu/RoboticSystems/CoordinateTransformations.html
         # section 2.10
         # Or check another reference to transform frames in robotics
+
         # Pass in a genuine reference_point in world frame
-        reference_point = [-10,-8.9]
+        # For now it is the detected location of pointing as reference
+        intersection_point_world = rospy.get_param("/intersection_point_world")
+        reference_point = intersection_point_world
 
         #Get distance between two points:
         reference_vector = np.array([reference_point[0],reference_point[1]])
@@ -270,7 +273,16 @@ class ObjectDisambiguation(State):
         
         return indices_for_attribute_match, compared_objects
     
-    def notify_of_objectes_detected_but_not_part_of_disambiguation(self):
+    def notify_status_of_other_objects(self):
+
+        # Called if there were any objects eliminated during disambiguation
+        if len(self.eliminated_objects) is not 0:
+            print 'The eliminated objects are: '
+            print self.eliminated_objects
+            self.tiago.talk("The eliminated objects, in order of elimination, are: ")
+            for objects in self.eliminated_objects:
+                self.tiago.talk(objects)
+
         # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
         if len(self.objects_inside_bounding_box_not_compared) is not 0:
             self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
@@ -289,19 +301,15 @@ class ObjectDisambiguation(State):
                 identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
                 print identified_object
                 self.tiago.talk("The identified object is a " + identified_object)
-                print 'The eliminated objects are: '
-                print self.eliminated_objects
-                self.tiago.talk("The eliminated objects, in order of elimination, are: ")
-                for objects in self.eliminated_objects:
-                    self.tiago.talk(objects)
-                
-                self.notify_of_objectes_detected_but_not_part_of_disambiguation()
+
+                self.notify_status_of_other_objects()
+
                 return
 
         
         # Code run if diambiguation couldn't find a unique object to suit the descriptions
         self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
-        self.notify_of_objectes_detected_but_not_part_of_disambiguation()
+        self.notify_status_of_other_objects()
 
 
     # PUT TEXT AND SPEECH BOTH IN TIAGO.PY

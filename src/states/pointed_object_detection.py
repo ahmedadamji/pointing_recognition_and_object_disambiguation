@@ -62,8 +62,8 @@ class PointedObjectDetection(State):
         xywh = yolo_detection.xywh
         x = int (xywh[0] + (xywh[2]/2))
         y = int (xywh[1] + (xywh[3]/2))
-        camera_point_3d = self.util.get_3d_depth_point_from_2d_camera_point([x,y])
-        world_coordinate = self.util.transform_from_camera_frame_to_world_frame(camera_point_3d)
+        camera_point = [x,y]
+        world_coordinate = self.util.get_world_coordinate_from_2d_pixel_coordinate(camera_point)
         return world_coordinate
 
 
@@ -72,62 +72,64 @@ class PointedObjectDetection(State):
         self.classify.subscribe_to_vision_messages()
         yolo_detections = self.classify.yolo_object_detection(box_start_point, box_end_point, self.camera_point_2d)
         # Not finding segmentations if no objects detected using yolo
-        total_objects_within_pointing_box = 0
-        index_of_objects_inside_pointing_bounding_box = []
-        objects_inside_bounding_box =[]
         if not len(yolo_detections):
             return None
-        else:
-            for i in range(len(yolo_detections)):
-                #print yolo_detections[i]
-                # Finding world coordinate for each detection to check weather it is within pointing bounding box and on the table
-                world_coordinate = self.get_world_coordinate_for_object(yolo_detections[i])
-                # need intersection_point_world as centre of bounding box
-                self.intersection_point_world
-                # Using the world location of the current table being pointed at to check which objects lie within this region
-                self.current_table
-                cuboid = self.current_table.get('cuboid')
-                cuboid_max = np.array(cuboid['max_xyz'])
-                cuboid_min = np.array(cuboid['min_xyz'])
+        self.classify.yolo_get_object_coordinates()
+        return yolo_detections
 
-                
+    def get_object_indices(self, yolo_detections, box_start_point, box_end_point):
 
-                xywh = yolo_detections[i].xywh
-                if (((box_start_point[0] <= xywh[0] <= box_end_point[0]) and (box_start_point[1] <= xywh[1] <= box_end_point[1]))
-                    and ((box_start_point[0] <= (xywh[0]+xywh[2]) <= box_end_point[0]) and (box_start_point[1] <= (xywh[1]+xywh[3]) <= box_end_point[1]))):
-                    total_objects_within_pointing_box += 1
-                    index_of_objects_inside_pointing_bounding_box.append(i)
+        objects_within_pointing_bounding_box_indices = []
+
+        for i in range(len(yolo_detections)):
+            #print yolo_detections[i]
+            # Finding world coordinate for each detection to check weather it is within pointing bounding box and on the table
+            world_coordinate = self.get_world_coordinate_for_object(yolo_detections[i])
+            # need intersection_point_world as centre of bounding box
+            self.intersection_point_world
+            # Using the world location of the current table being pointed at to check which objects lie within this region
+            self.current_table
+            cuboid = self.current_table.get('cuboid')
+            cuboid_max = np.array(cuboid['max_xyz'])
+            cuboid_min = np.array(cuboid['min_xyz'])
+
+
+            xywh = yolo_detections[i].xywh
+            if (((box_start_point[0] <= xywh[0] <= box_end_point[0]) and (box_start_point[1] <= xywh[1] <= box_end_point[1]))
+                and ((box_start_point[0] <= (xywh[0]+xywh[2]) <= box_end_point[0]) and (box_start_point[1] <= (xywh[1]+xywh[3]) <= box_end_point[1]))):
+                self.total_objects_within_pointing_bounding_box += 1
+                objects_within_pointing_bounding_box_indices.append(i)
+        
+        return objects_within_pointing_bounding_box_indices
+
+
+
+
+    def get_objects_within_pointing_bounding_box(self, yolo_detections, box_start_point, box_end_point):
+
+        self.total_objects_within_pointing_bounding_box = 0
+        self.objects_within_pointing_bounding_box =[]
+
+        self.objects_within_pointing_bounding_box_indices = self.get_object_indices(yolo_detections, box_start_point, box_end_point)
+
+
+
         ## PARSING INTO NAME, CONFIDENCE AND COORDINATES OF DETECTION
-        for o in range(len(index_of_objects_inside_pointing_bounding_box)):
+        for index in self.objects_within_pointing_bounding_box_indices:
 
-            world_coordinate = self.get_world_coordinate_for_object(yolo_detections[index_of_objects_inside_pointing_bounding_box[o]])
+            world_coordinate = self.get_world_coordinate_for_object(yolo_detections[index])
 
             current_object = {
-            "name": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name,
-            "confidence": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].confidence,
-            "xywh": yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].xywh,
+            "name": yolo_detections[index].name,
+            "confidence": yolo_detections[index].confidence,
+            "xywh": yolo_detections[index].xywh,
             "world_coordinate": [world_coordinate[0].item(), world_coordinate[1].item(), world_coordinate[2].item()]
             }
-            objects_inside_bounding_box.append(current_object)
-            # objects_inside_bounding_box.append([[yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].name],
-            #                                    [yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].confidence],
-            #                                    [yolo_detections[index_of_objects_inside_pointing_bounding_box[o]].xywh]])
+            self.objects_within_pointing_bounding_box.append(current_object)
+            # self.objects_within_pointing_bounding_box.append([[yolo_detections[index].name],
+            #                                    [yolo_detections[index].confidence],
+            #                                    [yolo_detections[index].xywh]])
 
-
-        if total_objects_within_pointing_box == 0:
-            print "No objects found within pointing bounding box"
-        elif total_objects_within_pointing_box == 1:
-            print "This is the only object being pointed at:"
-            print yolo_detections[index_of_objects_inside_pointing_bounding_box[0]]
-        else:
-            print"Further diasambiguation needed"
-        
-        #rospy.set_param('/objects_on_table', objects_on_table)
-        rospy.set_param('/objects_inside_bounding_box', objects_inside_bounding_box)
-        rospy.set_param('/camera_point_after_object_detection_2d', [self.camera_point_2d[0], self.camera_point_2d[1]])
-
-        self.classify.yolo_get_object_coordinates()
-        
 
 
     def execute(self, userdata):
@@ -138,12 +140,33 @@ class PointedObjectDetection(State):
 
         box_start_point, box_end_point = self.draw_bounding_box_around_intersection_point()
 
-        self.detect_objects(box_start_point, box_end_point)
+        yolo_detections = self.detect_objects(box_start_point, box_end_point)
+        self.get_objects_within_pointing_bounding_box(yolo_detections, box_start_point, box_end_point)
+
+        if self.total_objects_within_pointing_bounding_box == 0:
+            #print "No objects were found within pointing bounding box"
+            self.tiago.talk("No objects were found within pointing bounding box")
+        elif self.total_objects_within_pointing_bounding_box == 1:
+            #print "This is the only object being pointed at:"
+            self.tiago.talk("I could only detect one object close to the location of pointing, this was: ")
+            #print yolo_detections[self.objects_within_pointing_bounding_box_indices[0]]
+            self.tiago.talk(yolo_detections[self.objects_within_pointing_bounding_box_indices[0]])
+            return 'outcome2'
+
+        else:
+            #print"Further diasambiguation needed"
+            self.tiago.talk("Multiple objects were found close to the location of pointing, which were: ")
+            for detected_object in self.objects_within_pointing_bounding_box:
+                self.tiago.talk(detected_object.get("name"))
+            self.tiago.talk("Therefore further disambiguation is needed")
+        
+        #rospy.set_param('/objects_on_table', objects_on_table)
+        rospy.set_param('/objects_within_pointing_bounding_box', self.objects_within_pointing_bounding_box)
+        rospy.set_param('/camera_point_after_object_detection_2d', [self.camera_point_2d[0], self.camera_point_2d[1]])
 
 
 
         # To destroy cv2 window at the end of state
-        cv2.waitKey(0)
         #cv2.destroyAllWindows()
         
         return 'outcome1'

@@ -37,6 +37,11 @@ class Util:
         y = (h/2)-y
         return [x,y]
 
+    def get_world_coordinate_from_2d_pixel_coordinate(self, camera_point):
+        camera_point_3d = self.get_3d_depth_point_from_2d_camera_point(camera_point)
+        world_coordinate = self.transform_from_camera_frame_to_world_frame(camera_point_3d)
+        return world_coordinate
+
     def get_3d_depth_point_from_2d_camera_point(self, camera_point):
 
         # To save the depth coordinates:
