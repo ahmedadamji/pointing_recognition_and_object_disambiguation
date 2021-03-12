@@ -11,6 +11,9 @@ from sympy import Point3D
 
 from scipy.spatial import distance
 
+from collections import Counter
+from itertools import chain
+
 # Imported for features of human robot interaction such as text to speech
 from utilities import Tiago, Util
 
@@ -91,13 +94,13 @@ class ObjectDisambiguation(State):
         # intersection_point_world = rospy.get_param("/intersection_point_world")
         # reference_point = intersection_point_world
 
-        # Using the centre of the current table as the reference for directions between objects from viewpoint of person
-        cuboid = self.current_table.get('cuboid')
-        cuboid_max = Point3D(cuboid['max_xyz'])
-        cuboid_min = Point3D(cuboid['min_xyz'])
-        # cuboid_midpoint = Point3D((cuboid_max.x+cuboid_min.x)/2, (cuboid_max.y+cuboid_min.y)/2, (cuboid_max.z+cuboid_min.z)/2)
-        cuboid_midpoint = cuboid_max.midpoint(cuboid_min)
-        reference_point = [cuboid_midpoint.x, cuboid_midpoint.y]
+        # # Using the centre of the current table as the reference for directions between objects from viewpoint of person
+        # cuboid = self.current_table.get('cuboid')
+        # cuboid_max = Point3D(cuboid['max_xyz'])
+        # cuboid_min = Point3D(cuboid['min_xyz'])
+        # # cuboid_midpoint = Point3D((cuboid_max.x+cuboid_min.x)/2, (cuboid_max.y+cuboid_min.y)/2, (cuboid_max.z+cuboid_min.z)/2)
+        # cuboid_midpoint = cuboid_max.midpoint(cuboid_min)
+        # reference_point = [cuboid_midpoint.x, cuboid_midpoint.y]
 
         reference_point = self.reference_object.get('world_coordinate')
 
@@ -171,7 +174,6 @@ class ObjectDisambiguation(State):
             attribute_of_current_object = current_object_attributes.get(attribute)
         elif (attribute == 'position'):
             compass_direction = self.get_compass_direction(current_object)
-            attribute_of_current_object = compass_direction
 
             # This block of code if just for printing the direction found of the objects in the bounding box and are not essential to the functionality
             index = self.compass_directions.index(compass_direction)
@@ -181,6 +183,8 @@ class ObjectDisambiguation(State):
             else:
                 print (current_object.get('name') + " was found in the: " + compass_direction)
             
+            attribute_of_current_object = [compass_direction, standard_direction]
+            
         
 
         return attribute_of_current_object
@@ -189,7 +193,7 @@ class ObjectDisambiguation(State):
 
     def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, current_attribute_from_user):
 
-        if current_attribute_from_user.lower() == self.get_attribute_of_current_object(attribute, current_object, current_object_attributes).lower():
+        if current_attribute_from_user.lower() in self.get_attribute_of_current_object(attribute, current_object, current_object_attributes):
             match = 1
             print attribute + " attribute matches"
         else:
@@ -238,13 +242,13 @@ class ObjectDisambiguation(State):
 
         
     def gather_user_response(self, attribute):
-        if attribute is not 'position':
-            self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
+        if not attribute == "position":
+            self.tiago.talk("Could you please tell me the " + attribute + " of the object you are pointing at?" )
         else:
             if self.reference_object.get('unique_feature') is not "distance":
-                self.tiago.talk("Colud you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get('unique_feature'))+ " object?")
+                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get('unique_feature')) + " object?")
             else:
-                self.tiago.talk("Colud you please tell me the direction of the object you are pointing at, in relation to the object closest to you?")
+                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?")
         
         # Stores a list of valid responses
         valid_responses = self.list_of_attributes.get(attribute)
@@ -304,7 +308,7 @@ class ObjectDisambiguation(State):
 
     def disambiguate_until_unique_feature_found(self):
 
-        self.tiago.talk("Please only refer to the objects that were notified to you earlier as objects found close to the location of pointing, while answering these questions")
+        self.tiago.talk("Please only refer to the objects that were notified to you earlier, as objects found close to the location of pointing, while answering these questions")
 
         for attribute in self.attributes:
 
@@ -341,14 +345,14 @@ class ObjectDisambiguation(State):
         nodes[closest_index]
         # Saving the details in reference_object
         reference_object = {
-            "name": self.objects_within_pointing_bounding_box[closest_index].get('name')
-            "unique_feature": "distance"
+            "name": self.objects_within_pointing_bounding_box[closest_index].get('name'),
+            "unique_feature": "distance",
             "world_coordinate": self.objects_within_pointing_bounding_box[closest_index].get('world_coordinate')
         }
         return reference_object
 
 
-    def get_unique_feature(self, current_object):
+    def get_unique_feature(self):
 
         self.objects_within_pointing_bounding_box_with_attributes = []
         
@@ -364,30 +368,36 @@ class ObjectDisambiguation(State):
                 #else:
                     ## TO DO IF OBJECT ATTRIBUTES ARE NOT AVAILABLE
 
-        unique_features = list(set().union(self.objects_within_pointing_bounding_box_with_attributes))
+        #unique_features = list(set().union(self.objects_within_pointing_bounding_box_with_attributes))
+
+        counts = Counter(chain.from_iterable(self.objects_within_pointing_bounding_box_with_attributes))
+        unique_features = [k for k, c in counts.items() if c == 1]
         return unique_features
 
 
     def select_reference_object(self):
 
-        unique_features = self.get_unique_feature(current_object)
+        unique_features = self.get_unique_feature()
+        object_with_unique_feature = None
+        world_coordinate_of_object_with_unique_feature = None
         if len(unique_features) is not 0:
             # HERE I CAN USE ANY OF THE UNIQUE FEATURES TO REFERNCE THE OBJECTS
             # using last element of this list as the first few items will be the names of the objects that are unique
             unique_feature = unique_features[-1]
+            print unique_feature
             for current_object in self.objects_within_pointing_bounding_box_with_attributes:
                 if unique_feature in current_object:
-                    object_with_unique_feature = current_object.get('name')
+                    object_with_unique_feature = current_object[0]
             for current_object in self.objects_within_pointing_bounding_box:
                 if current_object.get('name') == object_with_unique_feature:
                     world_coordinate_of_object_with_unique_feature = current_object.get('world_coordinate')
             reference_object = {
-                "name": object_with_unique_feature
-                "unique_feature": unique_feature
+                "name": object_with_unique_feature,
+                "unique_feature": unique_feature,
                 "world_coordinate":world_coordinate_of_object_with_unique_feature
             }
 
-        elif len(unique_features) == 0:
+        else:
             reference_object = self.find_closest_object_in_bounding_box_to_user()
         
         return reference_object

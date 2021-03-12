@@ -155,7 +155,7 @@ class PointedObjectDetection(State):
 
         else:
             #print"Further diasambiguation needed"
-            self.tiago.talk("I found " + str(self.total_objects_within_pointing_bounding_box) + " objects around the loction of pointing, which were: ")
+            self.tiago.talk("I found " + str(self.total_objects_within_pointing_bounding_box) + " objects around the location of pointing, which were: ")
             for detected_object in self.objects_within_pointing_bounding_box:
                 self.tiago.talk(detected_object.get("name"))
             self.tiago.talk("Therefore further disambiguation is needed")
