@@ -7,6 +7,7 @@ from smach import State
 import cv2
 import numpy as np
 import math
+from sympy import Point3D
 
 # Imported for features of human robot interaction such as text to speech
 from utilities import Tiago, Util
@@ -75,11 +76,6 @@ class ObjectDisambiguation(State):
         compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
-    
-    # def select_reference_object(self):
-
-    
-    # def get_unique_feature(self):
         
 
 
@@ -90,8 +86,16 @@ class ObjectDisambiguation(State):
 
         # Pass in a genuine reference_point in world frame
         # For now it is the detected location of pointing as reference
-        intersection_point_world = rospy.get_param("/intersection_point_world")
-        reference_point = intersection_point_world
+        # intersection_point_world = rospy.get_param("/intersection_point_world")
+        # reference_point = intersection_point_world
+
+        # Using the centre of the current table as the reference for directions between objects from viewpoint of person
+        cuboid = self.current_table.get('cuboid')
+        cuboid_max = Point3D(cuboid['max_xyz'])
+        cuboid_min = Point3D(cuboid['min_xyz'])
+        # cuboid_midpoint = Point3D((cuboid_max.x+cuboid_min.x)/2, (cuboid_max.y+cuboid_min.y)/2, (cuboid_max.z+cuboid_min.z)/2)
+        cuboid_midpoint = cuboid_max.midpoint(cuboid_min)
+        reference_point = [cuboid_midpoint.x, cuboid_midpoint.y]
 
         #Get distance between two points:
         reference_vector = np.array([reference_point[0],reference_point[1]])
@@ -314,6 +318,36 @@ class ObjectDisambiguation(State):
 
     # PUT TEXT AND SPEECH BOTH IN TIAGO.PY
 
+    def find_closest_object_in_bounding_box_to_user(self):
+        ## TO DO
+
+    def select_reference_object(self):
+
+        unique_features = self.get_unique_feature(current_object)
+        if len(unique_features) is not 0:
+            # HERE I CAN USE ANY OF THE UNIQUE FEATURES TO REFERNCE THE OBJECTS
+        if len(unique_features) == 0:
+            self.find_closest_object_in_bounding_box_to_user()
+
+
+    def get_unique_feature(self, current_object):
+
+        self.objects_within_pointing_bounding_box_with_attributes = []
+        
+        for current_object in self.objects_within_pointing_bounding_box:
+            for object_id in range(len(self.objects_with_attributes)):
+                if self.objects_with_attributes[object_id].get('name') == current_object.get('name'):
+                    # This buffer list created so that the objects_within_pointing_bounding_box_with_attributes is not a dict and is just a list with all the attributes for the object
+                    current_object_with_attributes = []
+                    for attribute in self.attributes:
+                        current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
+
+                    self.objects_within_pointing_bounding_box_with_attributes.append(current_object_with_attributes)
+                else:
+                    ## TO DO IF OBJECT ATTRIBUTES ARE NOT AVAILABLE
+
+        unique_features = list(set().union(self.objects_within_pointing_bounding_box_with_attributes))
+        return unique_features
 
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')
@@ -321,12 +355,14 @@ class ObjectDisambiguation(State):
         self.tiago.talk("My name is Ahmed and I am the robo maker")
         self.objects_within_pointing_bounding_box = rospy.get_param('/objects_within_pointing_bounding_box')
         self.person_head_world_coordinate = rospy.get_param('/person_head_world_coordinate')
+        self.current_table = rospy.get_param("/current_table")
         
 
         # print objects_within_pointing_bounding_box
         # print objects_within_pointing_bounding_box[0].get('name')
 
         self.attributes_from_user = []
+
         # self.dummy_attributes_from_user = {
         #         'colour':  'yellow',
         #         'type':    'fresh',
