@@ -9,6 +9,8 @@ import numpy as np
 import math
 from sympy import Point3D
 
+from scipy.spatial import distance
+
 # Imported for features of human robot interaction such as text to speech
 from utilities import Tiago, Util
 
@@ -96,6 +98,8 @@ class ObjectDisambiguation(State):
         # cuboid_midpoint = Point3D((cuboid_max.x+cuboid_min.x)/2, (cuboid_max.y+cuboid_min.y)/2, (cuboid_max.z+cuboid_min.z)/2)
         cuboid_midpoint = cuboid_max.midpoint(cuboid_min)
         reference_point = [cuboid_midpoint.x, cuboid_midpoint.y]
+
+        reference_point = self.reference_object.get('world_coordinate')
 
         #Get distance between two points:
         reference_vector = np.array([reference_point[0],reference_point[1]])
@@ -234,8 +238,13 @@ class ObjectDisambiguation(State):
 
         
     def gather_user_response(self, attribute):
-
-        self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
+        if attribute is not 'position':
+            self.tiago.talk("could you please tell me the " + attribute + " of the object you are pointing at?" )
+        else:
+            if self.reference_object.get('unique_feature') is not "distance":
+                self.tiago.talk("Colud you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get('unique_feature'))+ " object?")
+            else:
+                self.tiago.talk("Colud you please tell me the direction of the object you are pointing at, in relation to the object closest to you?")
         
         # Stores a list of valid responses
         valid_responses = self.list_of_attributes.get(attribute)
@@ -295,6 +304,8 @@ class ObjectDisambiguation(State):
 
     def disambiguate_until_unique_feature_found(self):
 
+        self.tiago.talk("Please only refer to the objects that were notified to you earlier as objects found close to the location of pointing, while answering these questions")
+
         for attribute in self.attributes:
 
             indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
@@ -320,14 +331,21 @@ class ObjectDisambiguation(State):
 
     def find_closest_object_in_bounding_box_to_user(self):
         ## TO DO
-
-    def select_reference_object(self):
-
-        unique_features = self.get_unique_feature(current_object)
-        if len(unique_features) is not 0:
-            # HERE I CAN USE ANY OF THE UNIQUE FEATURES TO REFERNCE THE OBJECTS
-        if len(unique_features) == 0:
-            self.find_closest_object_in_bounding_box_to_user()
+        self.person_head_world_coordinate
+        array_of_world_coordinates = []
+        for current_object in self.objects_within_pointing_bounding_box:
+            array_of_world_coordinates.append(current_object.get('world_coordinate'))
+        
+        # Finds the arg of the point closest to the person
+        closest_index = distance.cdist(self.person_head_world_coordinate, array_of_world_coordinates).argmin()
+        nodes[closest_index]
+        # Saving the details in reference_object
+        reference_object = {
+            "name": self.objects_within_pointing_bounding_box[closest_index].get('name')
+            "unique_feature": "distance"
+            "world_coordinate": self.objects_within_pointing_bounding_box[closest_index].get('world_coordinate')
+        }
+        return reference_object
 
 
     def get_unique_feature(self, current_object):
@@ -338,16 +356,42 @@ class ObjectDisambiguation(State):
             for object_id in range(len(self.objects_with_attributes)):
                 if self.objects_with_attributes[object_id].get('name') == current_object.get('name'):
                     # This buffer list created so that the objects_within_pointing_bounding_box_with_attributes is not a dict and is just a list with all the attributes for the object
-                    current_object_with_attributes = []
+                    current_object_with_attributes = [self.objects_with_attributes[object_id].get('name')]
                     for attribute in self.attributes:
                         current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
 
                     self.objects_within_pointing_bounding_box_with_attributes.append(current_object_with_attributes)
-                else:
+                #else:
                     ## TO DO IF OBJECT ATTRIBUTES ARE NOT AVAILABLE
 
         unique_features = list(set().union(self.objects_within_pointing_bounding_box_with_attributes))
         return unique_features
+
+
+    def select_reference_object(self):
+
+        unique_features = self.get_unique_feature(current_object)
+        if len(unique_features) is not 0:
+            # HERE I CAN USE ANY OF THE UNIQUE FEATURES TO REFERNCE THE OBJECTS
+            # using last element of this list as the first few items will be the names of the objects that are unique
+            unique_feature = unique_features[-1]
+            for current_object in self.objects_within_pointing_bounding_box_with_attributes:
+                if unique_feature in current_object:
+                    object_with_unique_feature = current_object.get('name')
+            for current_object in self.objects_within_pointing_bounding_box:
+                if current_object.get('name') == object_with_unique_feature:
+                    world_coordinate_of_object_with_unique_feature = current_object.get('world_coordinate')
+            reference_object = {
+                "name": object_with_unique_feature
+                "unique_feature": unique_feature
+                "world_coordinate":world_coordinate_of_object_with_unique_feature
+            }
+
+        elif len(unique_features) == 0:
+            reference_object = self.find_closest_object_in_bounding_box_to_user()
+        
+        return reference_object
+
 
     def execute(self, userdata):
         rospy.loginfo('ObjectDisambiguation state executing')
@@ -356,7 +400,7 @@ class ObjectDisambiguation(State):
         self.objects_within_pointing_bounding_box = rospy.get_param('/objects_within_pointing_bounding_box')
         self.person_head_world_coordinate = rospy.get_param('/person_head_world_coordinate')
         self.current_table = rospy.get_param("/current_table")
-        
+        self.reference_object = self.select_reference_object()
 
         # print objects_within_pointing_bounding_box
         # print objects_within_pointing_bounding_box[0].get('name')
