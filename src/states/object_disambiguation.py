@@ -41,14 +41,17 @@ class ObjectDisambiguation(State):
         # Stores the possible directions in terms of compass coordinates to use as part of disambiguating objects
         self.compass_directions = ["north", "east", "south", "west", "north", "centre"]
         # Stores the possible directions to use as part of disambiguating objects
-        self.standard_directions = ["up", "right", "down", "left", "up", "centre"]
+        self.standard_directions = ["front", "right", "behind", "left", "front", "centre"]
+        # Number of directions that can be referenced will be stored here, if the reference object is closest to the person, then only 2 (right or left) 
+        # directions make sense, the default value is 4
+        self.directions = 4
 
         self.objects_with_attributes = self.util.object_attributes
         self.list_of_attributes = self.util.list_of_attributes
         self.list_of_objects_capable_of_disambiguation = self.util.list_of_objects_capable_of_disambiguation
 
     def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
-        #Converting north, south, east, west TO up, down , right , left
+        #Converting north, south, east, west TO front, behind , right , left
         if direction_of_current_object.lower() in self.standard_directions:
             index = self.standard_directions.index(direction_of_current_object.lower())
             return self.compass_directions[index]
@@ -66,6 +69,7 @@ class ObjectDisambiguation(State):
         angle_between_points = math.atan2(deltaX, deltaY)/math.pi*180
         distance_between_points = math.hypot(deltaX, deltaY)
 
+        # Test it out if this distance of 0.02 is useful or if i should change it back to 0
         if distance_between_points < 0.02:
             compass_direction = self.compass_directions[5]
             return compass_direction
@@ -76,8 +80,13 @@ class ObjectDisambiguation(State):
 
         else:
             angle_between_points = angle_between_points
-        
-        direction_index = int(round(angle_between_points / 90))
+
+        if self.directions == 4:
+            max_angle = 90
+            direction_index = (int(round(angle_between_points / max_angle)))
+        elif self.directions ==2:
+            max_angle = 180
+            direction_index = 2*(int(round(angle_between_points / max_angle)))
         compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
@@ -108,11 +117,11 @@ class ObjectDisambiguation(State):
         reference_vector = np.array([reference_point[0],reference_point[1]])
         view_point_vector = np.array([view_point[0],view_point[1]])
         new_y_axis_vector = np.subtract(reference_vector,view_point_vector)
-        magnitude_new_y_axis_vector = np.linalg.norm(new_y_axis_vector)
+        new_y_axis_vector_magnitude = np.linalg.norm(new_y_axis_vector)
 
         # To find the angle to rotate the coordinate system by:
         # Here I had to concider the value change of angle when it lies in diffrent quadrants:
-        theta = math.acos((reference_point[0]-view_point[0])/magnitude_new_y_axis_vector)
+        theta = math.acos((reference_point[0]-view_point[0])/new_y_axis_vector_magnitude)
 
         if view_point[1] > reference_point[1]:
             theta = 2*(math.pi) - theta
@@ -396,9 +405,12 @@ class ObjectDisambiguation(State):
                 "unique_feature": unique_feature,
                 "world_coordinate":world_coordinate_of_object_with_unique_feature
             }
+            self.directions = 4
 
         else:
             reference_object = self.find_closest_object_in_bounding_box_to_user()
+            # only right or left directions as all of them will essentially be behind the nearest object
+            self.directions = 2
         
         return reference_object
 

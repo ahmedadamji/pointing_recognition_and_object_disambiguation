@@ -33,6 +33,6 @@ list_of_attributes:
     texture: ['smooth','wrinkled']
     size: ['medium','long', 'large']
     shape: ['round', 'curved']
-    position: ["north", "right", "east", "down", "south", "left", "west", "up", "north", "centre"]
+    position: ["north", "front", "right", "east", "behind", "south", "left", "west", "centre"]
 
 list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange']
