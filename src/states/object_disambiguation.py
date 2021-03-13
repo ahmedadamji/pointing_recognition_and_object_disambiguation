@@ -146,8 +146,8 @@ class ObjectDisambiguation(State):
         wp = np.array(wp).reshape(3,1)
 
         rp = np.matmul(rtw, wp)
-        point_of_interest_transformed = ndarray.tolist([rp[0],rp[1]])
-
+        point_of_interest_transformed = [rp[0],rp[1]]
+        
         print point_of_interest_transformed
 
 
