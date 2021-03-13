@@ -379,8 +379,31 @@ class ObjectDisambiguation(State):
 
         #unique_features = list(set().union(self.objects_within_pointing_bounding_box_with_attributes))
 
+
+        # # Combining all elements from the list of lists into one list:
+        # merged_objects_within_pointing_bounding_box_with_attributes = []
+
+        # for item in self.objects_within_pointing_bounding_box_with_attributes:
+        #     merged_objects_within_pointing_bounding_box_with_attributes += item
+        
+        # # Finding only unique values in these lists:
+
+        # # insert the list to the set
+        # list_set = set(merged_objects_within_pointing_bounding_box_with_attributes)
+        # # convert the set to the list
+        # unique_features = (list(list_set))
+
+        # These functions count the number of times an attribute is repeated in objects found within pointing bounding box and if it is not repeated it is a unique feature
         counts = Counter(chain.from_iterable(self.objects_within_pointing_bounding_box_with_attributes))
         unique_features = [k for k, c in counts.items() if c == 1]
+
+        # Removing all elements that are object names as these are unique objects found, but not features:
+        for element in self.util.list_of_objects_capable_of_disambiguation:
+            if element in unique_features:
+                unique_features.remove(element)
+        print unique_features
+
+
         return unique_features
 
 
@@ -391,8 +414,8 @@ class ObjectDisambiguation(State):
         world_coordinate_of_object_with_unique_feature = None
         if len(unique_features) is not 0:
             # HERE I CAN USE ANY OF THE UNIQUE FEATURES TO REFERNCE THE OBJECTS
-            # using last element of this list as the first few items will be the names of the objects that are unique
-            unique_feature = unique_features[-1]
+            # using the first element only as there can be more than one unique feature found
+            unique_feature = unique_features[0]
             print unique_feature
             for current_object in self.objects_within_pointing_bounding_box_with_attributes:
                 if unique_feature in current_object:
