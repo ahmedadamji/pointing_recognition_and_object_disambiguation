@@ -1,5 +1,5 @@
 from approach_person import ApproachPersonPointing
-from openpose_actions import GetPose
+from pointing_location_detection import PointingLocationDetection
 from object_detection import ObjectDetection
 from approach_pointed_object import ApproachPointedObject
 from pointed_object_detection import PointedObjectDetection

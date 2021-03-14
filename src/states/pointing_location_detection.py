@@ -33,9 +33,9 @@ from sympy.geometry import Line2D, Line3D, Segment3D
 # cap = cv2.VideoCapture(0)
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
 
-class GetPose(State):
+class PointingLocationDetection(State):
     def __init__(self):
-        rospy.loginfo('GetPose state initialized')
+        rospy.loginfo('PointingLocationDetection state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
         self.intersection_point_pub = rospy.Publisher('/intersection_point', IntersectionData)
@@ -135,6 +135,7 @@ class GetPose(State):
             # can do so that in the selected pixel space, I can compare the depth, if the
             # depth of the pointcloud is less then it is intersecting
             # or i can just check if the point is inside the box selected
+            # ADD ANOTHER CONDITION OF hypothesis_point_3d[2]- meshDistance SHOULD BE LESS THAN A CERTAIN AMOUNT
             if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
                 hypothesis_point_3d = [hypothesis_point_3d[0], hypothesis_point_3d[1], hypothesis_point_3d[2]]
 
@@ -348,7 +349,7 @@ class GetPose(State):
         print("Right hand keypoints: \n" + str(np.around(datum.handKeypoints[1]).astype(int)))
 
     def execute(self, userdata):
-        rospy.loginfo('GetPose state executing')
+        rospy.loginfo('PointingLocationDetection state executing')
         # # Flags
         # args = self.set_flags()
 
