@@ -11,8 +11,11 @@ sys.path.append('/opt/ros/kinetic/lib/python2.7/dist-packages')
 #importing mediapipe
 import mediapipe as mp
 
+import numpy as np
+
 ## SOURCE CODE MODIFIED
 ## FROM: https://google.github.io/mediapipe/solutions/hands
+## HAND CLASSIFICATION CODE: https://github.com/JuliaPoo/MultiHand-Tracking/blob/master/src/multi_hand_tracker.py
 
 class ClassifyHands:
     def __init__(self):
@@ -75,7 +78,39 @@ class ClassifyHands:
         print ("This is the left hand: ",leftHand)
         print ("This is the right hand: ",rightHand)
 
+    def get_np_array_for_hand_landmarks(self,hand_landmarks,keypoint):
+        return np.array([self.get_hand_landmarks(hand_landmarks,keypoint).x,self.get_hand_landmarks(hand_landmarks,keypoint).y,self.get_hand_landmarks(hand_landmarks,keypoint).z])
 
+
+    def is_left_hand(self,hand_landmarks):
+        # Returns True if hand_landmark is left hand and False if left hand.
+        ## THIS WILL BE THE OTHER WAY ROUND IF THE CAMERA WAS NOT A SELFIE/WEB CAM AND WOULD INSTEAD BE TRUE FOR THE RIGHT HAND
+        
+        digitgroups = [
+            (17,18,19,20),
+            (13,14,15,16),
+            (9,10,11,12),
+            (5,6,7,8),
+            (2,3,4) # Thumb
+        ]
+        
+        palm_dir_vec = np.array([0,0,0], dtype=np.float64)
+        for digit in digitgroups:
+            for idx in digit[1:]:
+                palm_dir_vec += self.get_np_array_for_hand_landmarks(hand_landmarks,idx) - self.get_np_array_for_hand_landmarks(hand_landmarks,digit[0])
+              
+        palm_pos_vec = np.array([0,0,0], dtype=np.float64)
+        for digit in digitgroups:
+            palm_pos_vec += self.get_np_array_for_hand_landmarks(hand_landmarks,digit[0])  
+        palm_pos_vec /= len(digitgroups)
+        
+        top_palm_pos_vec = self.get_np_array_for_hand_landmarks(hand_landmarks,9)
+        
+        val = np.dot(np.cross(self.get_np_array_for_hand_landmarks(hand_landmarks,2) - palm_pos_vec, palm_dir_vec), top_palm_pos_vec - palm_pos_vec)
+
+        if val < 0: return True
+        
+        return False
 
     def classify_each_hand(self):
 
@@ -106,7 +141,8 @@ class ClassifyHands:
 
                     for hand_landmarks in results.multi_hand_landmarks:
 
-                        self.classify_palm(hand_landmarks)
+                        #self.classify_palm(hand_landmarks)
+                        print(self.is_left_hand(hand_landmarks))
 
                         self.mp_drawing.draw_landmarks(
                             image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
