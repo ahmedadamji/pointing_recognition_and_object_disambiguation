@@ -41,6 +41,11 @@ class Util:
         camera_point_3d = self.get_3d_depth_point_from_2d_camera_point(camera_point)
         world_coordinate = self.transform_from_camera_frame_to_world_frame(camera_point_3d)
         return world_coordinate
+    
+    def get_2d_pixel_coordinate_from_world_coordinate(self, world_point):
+        camera_point_3d = self.transform_from_world_frame_to_camera_frame(world_point)
+        camera_point_2d = self.get_2d_camera_point_from_3d_depth_point(camera_point_3d)
+        return camera_point_2d
 
     def get_3d_depth_point_from_2d_camera_point(self, camera_point):
 
