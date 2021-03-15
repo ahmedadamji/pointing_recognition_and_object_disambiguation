@@ -22,7 +22,6 @@ class ClassifyHands:
 
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands
-        self.classify_each_hand()
 
     def get_hand_landmarks(self,hand_landmarks,keypoint):
         if keypoint == 0:
@@ -113,6 +112,8 @@ class ClassifyHands:
         return False
 
     def classify_each_hand(self):
+        self.right_hand_counter = 0
+        self.left_hand_counter = 0
 
         # For webcam input:
         cap = cv2.VideoCapture(0)
@@ -141,31 +142,21 @@ class ClassifyHands:
 
                     for hand_landmarks in results.multi_hand_landmarks:
 
-                        #self.classify_palm(hand_landmarks)
-                        print(self.is_left_hand(hand_landmarks))
-
                         self.mp_drawing.draw_landmarks(
                             image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+
+                        #self.classify_palm(hand_landmarks)
+                        classification = self.is_left_hand(hand_landmarks)
+                        if classification == False:
+                            self.right_hand_counter += 1
+                        elif classification == True:
+                            self.left_hand_counter += 1
+
                 cv2.imshow('MediaPipe Hands', image)
+                if self.right_hand_counter>30:
+                    return 'right'
+                elif self.left_hand_counter>30:
+                    return 'left'
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
         cap.release()
-
-def main(args):
-    # Instantiating the class
-    CH = ClassifyHands()
-
-    # Ensure that the node continues running with rospy.spin()
-    # Wrapping rospy.spin() in an exception handler in case of KeyboardInterrupts
-    try:
-        rospy.spin()
-    except KeyboardInterrupt:
-        print("Shutting down")
-
-    # To destroy all image windows before closing node
-    cv2.destroyAllWindows()
-
-
-# Check if the node is executing in the main path
-if __name__ == '__main__':
-    main(sys.argv)
