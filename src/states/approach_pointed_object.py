@@ -96,9 +96,12 @@ class ApproachPointedObject(State):
         # print intersection_point_2d
         # print intersection_point_3d
 
+        self.tiago.talk("I am now checking which table the pointed object lies on" )
+
         table = self.get_table(intersection_point_world)
         # saving selected table name to use its location while looking at person gesturing 
         rospy.set_param('/current_table', table)
+        self.tiago.talk("I will now approach " + str(table.get('name')))
         self.approach_table(table, wait)
         
         return 'outcome1'

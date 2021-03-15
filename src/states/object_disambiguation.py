@@ -15,7 +15,7 @@ from collections import Counter
 from itertools import chain
 
 # Imported for features of human robot interaction such as text to speech
-from utilities import Tiago, Util
+from utilities import Tiago, Util#, ClassifyHands
 
 
 
@@ -284,6 +284,9 @@ class ObjectDisambiguation(State):
 
         
     def gather_user_response(self, attribute):
+        # Stores a list of valid responses
+        valid_responses = self.list_of_attributes.get(attribute)
+
         if not attribute == "position":
             self.tiago.talk("Could you please tell me the " + attribute + " of the object you are pointing at?" )
         else:
@@ -291,12 +294,13 @@ class ObjectDisambiguation(State):
             if self.reference_object.get('unique_feature') is not "distance":
                 self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get('unique_feature')) + " object?")
             else:
-                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?")
+                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?, Which I understand, is a " + str(self.reference_object.get('name')))
+                self.tiago.talk("Please use your palm to answer this question, if the object you are pointing at, is on the right side, show your right palm, else show your left palm!")
+                # user_response = self.util.classify_each_hand()
+                # return user_response
         
-        # Stores a list of valid responses
-        valid_responses = self.list_of_attributes.get(attribute)
 
-        user_response = self.tiago.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
+        user_response = self.tiago.get_data_from_user("speech", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
 
 

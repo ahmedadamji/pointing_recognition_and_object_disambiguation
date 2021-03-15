@@ -16,10 +16,13 @@ class LookAtPersonGesturing(State):
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
+        #creates an instance of tiago class to interact with the user and perform physical actions
         self.tiago = Tiago()
 
     def execute(self, userdata, wait=True):
         rospy.loginfo('LookAtPersonGesturing state executing')
+
+        self.tiago.talk("I will now look towards the person to recognise hand gestures, to gather responses for disambiguation." )
         
         # Lift tiago's torso and set head to default
         self.tiago.look_at_person(True)

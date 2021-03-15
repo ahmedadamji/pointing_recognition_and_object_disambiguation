@@ -16,10 +16,13 @@ class ApproachPersonPointing(State):
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
+        #creates an instance of tiago class to interact with the user and perform physical actions
         self.tiago = Tiago()
 
     def execute(self, userdata, wait=True):
         rospy.loginfo('ApproachPersonPointing state executing')
+
+        self.tiago.talk("I am now going to lift my torso, and then approach the person at table 0" )
         
         # Lift tiago's torso and set head to default
         self.tiago.lift_torso_head_default(True)
@@ -47,6 +50,7 @@ class ApproachPersonPointing(State):
         if wait:
             if movebase_client.wait_for_result():
                 rospy.loginfo('Goal location achieved!')
+                self.tiago.talk("I have now reached the goal location" )
                 # operator = getLocation()           
                 # if operator:
                 #     return get_closer_to_person(operator)

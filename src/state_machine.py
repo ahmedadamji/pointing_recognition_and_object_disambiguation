@@ -29,9 +29,9 @@ def main():
 
     with sm:
         # Add states to the container
-        # StateMachine.add('approach_person_pointing', ApproachPersonPointing(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
-        # StateMachine.add('detect_objects', ObjectDetection(classify), transitions={'outcome1':'get_pose', 'outcome2': 'get_pose'})
-        # StateMachine.add('get_pose', PointingLocationDetection(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
+        StateMachine.add('approach_person_pointing', ApproachPersonPointing(), transitions={'outcome1':'detect_objects', 'outcome2': 'detect_objects'})
+        StateMachine.add('detect_objects', ObjectDetection(classify), transitions={'outcome1':'get_pose', 'outcome2': 'get_pose'})
+        StateMachine.add('get_pose', PointingLocationDetection(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
         StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
         StateMachine.add('detect_pointed_object', PointedObjectDetection(classify), transitions={'outcome1':'look_at_person_gesturing', 'outcome2': 'end'})
         StateMachine.add('look_at_person_gesturing', LookAtPersonGesturing(), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})

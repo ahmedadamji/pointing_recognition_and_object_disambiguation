@@ -217,6 +217,7 @@ class PointingLocationDetection(State):
         intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(xyz_array, skipFactor, maxDistance, start_point, end_point)
         
         rospy.loginfo('displaying extended pointing line towards mesh')
+        self.tiago.talk("I have computed the line of pointing and I am now going to display it to you" )
         # Stores extended line upto mesh
         cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (intersection_point_2d[0],intersection_point_2d[1]), (255,255,0), 1)
         # Stores box around overlapping point
@@ -350,6 +351,8 @@ class PointingLocationDetection(State):
 
     def execute(self, userdata):
         rospy.loginfo('PointingLocationDetection state executing')
+
+        self.tiago.talk("I am now going to look towards the person and determine weather he / she is pointing, and at which location" )
         # # Flags
         # args = self.set_flags()
 
@@ -425,6 +428,8 @@ class PointingLocationDetection(State):
                 # Later try to shift this functionality to is_pointing() funtion
                 if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
                     print('left hand pointing')
+
+                    self.tiago.talk("I see that the person is pointing with their left hand" )
                     self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], open_pose_output_image, 1, 0.05)
 
                     # Saving world coordinate for head for use during disambiguation in reference to user location
@@ -435,6 +440,8 @@ class PointingLocationDetection(State):
                     
                 elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
                     print('right hand pointing')
+
+                    self.tiago.talk("I see that the person is pointing with their right hand" )
                     self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], open_pose_output_image, 1, 0.05)
 
                     # Saving world coordinate for head for use during disambiguation in reference to user location

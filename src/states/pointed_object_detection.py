@@ -160,6 +160,7 @@ class PointedObjectDetection(State):
         self.intersection_point_world = rospy.get_param("/intersection_point_world")
         self.current_table = rospy.get_param("/current_table")
 
+        self.tiago.talk("The objects I found close to the location of pointing are displayed within the box in the image shown to you now" )
         self.draw_bounding_box_around_intersection_point()
 
         yolo_detections = self.detect_objects()

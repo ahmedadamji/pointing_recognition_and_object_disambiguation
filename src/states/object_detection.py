@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import rospy
+
+from utilities import Tiago
 from smach import State
 from geometry_msgs.msg import Point, Pose
 from collections import namedtuple
@@ -11,12 +13,15 @@ class ObjectDetection(State):
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
 
+        # creates an instance of classify class to classify yolo detections
         self.classify = classify
-
+        # creates an instance of tiago class to interact with the user and perform physical actions
+        self.tiago = Tiago()
 
     def detect_objects(self):
 
         self.classify.subscribe_to_vision_messages()
+        self.tiago.talk("I am now going to look straight ahead and classify objects using yolo object detection" )
         yolo_detections = self.classify.yolo_object_detection()
         # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
