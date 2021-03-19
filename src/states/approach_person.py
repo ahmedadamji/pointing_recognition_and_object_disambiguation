@@ -42,7 +42,6 @@ class ApproachPersonPointing(State):
 
     def detect_person(self):
         self.classify.subscribe_to_vision_messages()
-        self.tiago.talk("I am now going to look around to see if i can find a person" )
         yolo_detections = self.classify.yolo_object_detection()
         # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
@@ -130,7 +129,7 @@ class ApproachPersonPointing(State):
 
     def check_person_around_table(self):
         degrees = 0
-        while degrees >= -90:
+        while degrees > -90:
             if not degrees == 0:
                 self.rotate_around_base(degrees)
             if self.detect_person():
@@ -172,6 +171,8 @@ class ApproachPersonPointing(State):
                 all_tables_checked = True
             current_table = rospy.get_param('/current_table')
             self.move_to_table(current_table)
+
+            self.tiago.talk("I am now going to look around to see if i can find a person" )
 
             person_found = self.check_person_around_table()
             print person_found

@@ -32,8 +32,8 @@ tables:
       position: { x: 0.11683, y: -9.8525, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
     person_check_location:
-      position: { x: -2.456, y: -6.697, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
+      position: { x: -0.239, y: -8.59, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.300, w: 0.954 }
     cuboid:
       max_xyz: [ 0.81, -10.77, 3.0 ]
       min_xyz: [ -0.55, -11.53, 0.00 ]
@@ -44,8 +44,8 @@ tables:
       position: { x: 2.4824, y: -7.5183, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
     person_check_location:
-      position: { x: -2.456, y: -6.697, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
+      position: { x: 2.414, y: -6.6582, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.491, w: 0.871 }
     cuboid:
       max_xyz: [ 3.00, -8.23, 3 ]
       min_xyz: [ 2.04, -8.99, 0.00 ]
@@ -56,8 +56,8 @@ tables:
       position: { x: 3.0824, y: -4.4662, z: 3 }
       orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
     person_check_location:
-      position: { x: -2.456, y: -6.697, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
+      position: { x: 2.919, y: -3.518, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.512, w: 0.859 }
     cuboid:
       max_xyz: [ 3.65, -5.10, 0.815 ]
       min_xyz: [ 2.69, -5.86, 0.00 ]
