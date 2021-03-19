@@ -32,6 +32,7 @@ class ApproachPersonPointing(State):
                 rospy.set_param('/current_table', self.tables[table_id])
                 return
         print("All tables have been checked")
+        return 'all_tables_checked'
 
     def detect_person(self):
         self.classify.subscribe_to_vision_messages()
@@ -40,7 +41,7 @@ class ApproachPersonPointing(State):
         # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
             return None
-        self.classify.yolo_get_object_coordinates()
+        #self.classify.yolo_get_object_coordinates()
 
         for index in range(len(yolo_detections)):
             if (yolo_detections[index].name == 'person'):
@@ -78,18 +79,60 @@ class ApproachPersonPointing(State):
         goal.target_pose.pose = Pose(position = Point(**location),
                                     orientation = Quaternion(**orientation))
 
-        movebase_client.send_goal(goal)
+        self.movebase_client.send_goal(goal)
 
         rospy.loginfo('GOAL SENT! o:')
 
         # waits for the server to finish performing the action
-        if movebase_client.wait_for_result():
+        if self.movebase_client.wait_for_result():
             rospy.loginfo('Goal location achieved!')
             # operator = getLocation()           
             # if operator:
             #     return get_closer_to_person(operator)
         else:
             rospy.logwarn("Couldn't reach the goal!")
+
+    def move_to_table(self,current_table):
+        #location = rospy.get_param('/pointing_person_approach')
+        location = current_table.get('person_check_location')
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.header.frame_id = 'map'
+        goal.target_pose.pose = Pose(position = Point(**location['position']),
+                                    orientation = Quaternion(**location['orientation']))
+
+
+        self.movebase_client.send_goal(goal)
+
+        rospy.loginfo('GOAL SENT! o:')
+
+        # waits for the server to finish performing the action
+        if wait:
+            if self.movebase_client.wait_for_result():
+
+                rospy.set_param('/current_table/' + '/status', 'checked')
+                rospy.loginfo('Goal location achieved!')
+                self.tiago.talk("I have now reached the goal location" )
+                # operator = getLocation()
+                # if operator:
+                #     return get_closer_to_person(operator)
+            else:
+                rospy.logwarn("Couldn't reach the goal!")
+
+    def check_person_around_table(self):
+        degrees = 0
+        while degrees <= 90:
+            if not degrees == 0:
+                self.rotate(degrees)
+            if self.detect_person():
+                print('Person was found at this table')
+                return True
+            degrees += 45
+                
+        print('No Person was found at this table')
+        return False
+
 
 
     def execute(self, userdata, wait=True):
@@ -101,45 +144,31 @@ class ApproachPersonPointing(State):
         self.tiago.lift_torso_head_default(True)
 
         # create the action client:
-        movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
+        self.movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
 
         # wait until the action server has started up and started listening for goals
-        movebase_client.wait_for_server()
+        self.movebase_client.wait_for_server()
 
-        self.get_table()
-        current_table rospy.get_param('/current_table')
+        # self.get_table()
+        # current_table = rospy.get_param('/current_table')
+        # self.move_to_table(current_table)
 
-        #location = rospy.get_param('/pointing_person_approach')
-        location = current_table.get('person_check_location')
+        person_found = False
+        all_tables_checked = False
 
-        goal = MoveBaseGoal()
-        goal.target_pose.header.stamp = rospy.Time.now()
-        goal.target_pose.header.frame_id = 'map'
-        goal.target_pose.pose = Pose(position = Point(**location['position']),
-                                    orientation = Quaternion(**location['orientation']))
+        while (person_found == False) and (all_tables_checked == False):
 
+            # Moving to the next table
+            status = self.get_table()
+            if status == 'all_tables_checked':
+                all_tables_checked = True
+            current_table = rospy.get_param('/current_table')
+            self.move_to_table(current_table)
 
-        movebase_client.send_goal(goal)
-
-        rospy.loginfo('GOAL SENT! o:')
-
-        # waits for the server to finish performing the action
-        if wait:
-            if movebase_client.wait_for_result():
-
-                rospy.set_param('/current_table/' + '/status', 'checked')
-                rospy.loginfo('Goal location achieved!')
-                self.tiago.talk("I have now reached the goal location" )
-                # operator = getLocation()
-                # if operator:
-                #     return get_closer_to_person(operator)
-            else:
-                rospy.logwarn("Couldn't reach the goal!")
+            person_found = self.check_person_around_table()
+            if person_found:
+                return 'outcome1'
         
-        if self.detect_person():
-            print('Person was found at this table')
-        else:
-            self.rotate()
-            print('No Person was found at this table')
+        print('Person wasnt found at any table')
         
-        return 'outcome1'
+        return 'outcome2'
