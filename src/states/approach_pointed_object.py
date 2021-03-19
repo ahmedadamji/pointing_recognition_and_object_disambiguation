@@ -54,7 +54,7 @@ class ApproachPointedObject(State):
         # wait until the action server has started up and started listening for goals
         movebase_client.wait_for_server()
 
-        location = table.get('location')
+        location = table.get('approach_location')
 
 
         goal = MoveBaseGoal()

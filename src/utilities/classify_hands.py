@@ -72,8 +72,9 @@ class ClassifyHands:
     def classify_palm(self,hand_landmarks):
         ## THIS WILL BE THE OTHER WAY ROUND IF THE CAMERA WAS NOT A SELFIE/WEB CAM AND WOULD INSTEAD BE TRUE FOR THE RIGHT HAND
         
-        leftHand = bool(self.get_hand_landmarks(hand_landmarks,5).x>self.get_hand_landmarks(hand_landmarks,17).x)
-        rightHand = bool(self.get_hand_landmarks(hand_landmarks,5).x<self.get_hand_landmarks(hand_landmarks,17).x)
+        # If 1 does not work try 5
+        leftHand = bool(self.get_hand_landmarks(hand_landmarks,1).x>self.get_hand_landmarks(hand_landmarks,17).x)
+        rightHand = bool(self.get_hand_landmarks(hand_landmarks,1).x<self.get_hand_landmarks(hand_landmarks,17).x)
         print ("This is the left hand: ",leftHand)
         print ("This is the right hand: ",rightHand)
 
@@ -84,6 +85,7 @@ class ClassifyHands:
     def is_left_hand(self,hand_landmarks):
         # Returns True if hand_landmark is left hand and False if left hand.
         ## THIS WILL BE THE OTHER WAY ROUND IF THE CAMERA WAS NOT A SELFIE/WEB CAM AND WOULD INSTEAD BE TRUE FOR THE RIGHT HAND
+        ## HAND CLASSIFICATION CODE: https://github.com/JuliaPoo/MultiHand-Tracking/blob/master/src/multi_hand_tracker.py
         
         digitgroups = [
             (17,18,19,20),

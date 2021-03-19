@@ -16,36 +16,52 @@ pointing_person_approach:
 
 tables:
   - name: 'table0'
-    location:
+    approach_location:
       position: { x: -2.1598, y: -7.8729, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
+    person_check_location:
+      position: { x: -2.456, y: -6.697, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
     cuboid:
       max_xyz: [ -1.61, -8.42, 3.0 ]
       min_xyz: [ -2.61, -9.42, 0.00 ]
+    status: 'not checked'
 
   - name: 'table1'
-    location:
+    approach_location:
       position: { x: 0.11683, y: -9.8525, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
+    person_check_location:
+      position: { x: -2.456, y: -6.697, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
     cuboid:
       max_xyz: [ 0.81, -10.77, 3.0 ]
       min_xyz: [ -0.55, -11.53, 0.00 ]
+    status: 'not checked'
       
   - name: 'table2'
-    location:
+    approach_location:
       position: { x: 2.4824, y: -7.5183, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
+    person_check_location:
+      position: { x: -2.456, y: -6.697, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
     cuboid:
       max_xyz: [ 3.00, -8.23, 3 ]
       min_xyz: [ 2.04, -8.99, 0.00 ]
+    status: 'not checked'
       
   - name: 'table3'
-    location:
+    approach_location:
       position: { x: 3.0824, y: -4.4662, z: 3 }
       orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
+    person_check_location:
+      position: { x: -2.456, y: -6.697, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
     cuboid:
       max_xyz: [ 3.65, -5.10, 0.815 ]
       min_xyz: [ 2.69, -5.86, 0.00 ]
+    status: 'not checked'
 
 
 

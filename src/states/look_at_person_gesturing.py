@@ -38,7 +38,7 @@ class LookAtPersonGesturing(State):
         person_approach_location = rospy.get_param('/pointing_person_approach')
         # getting approach point for current table to use the same position and not move the robot base as it is already next to the table.
         table = rospy.get_param('/current_table')
-        table_approach_location = table.get('location')
+        table_approach_location = table.get('approach_location')
 
         goal = MoveBaseGoal()
         goal.target_pose.header.stamp = rospy.Time.now()
