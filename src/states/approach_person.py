@@ -3,12 +3,13 @@ import rospy
 import actionlib
 
 
-from utilities import Tiago
+from utilities import Tiago, Util
 from smach import State
 from geometry_msgs.msg import Pose
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 import tf
+import math
 
 
 class ApproachPersonPointing(State):
@@ -17,8 +18,12 @@ class ApproachPersonPointing(State):
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
+        # creates an instance of classify class to classify yolo detections
+        self.classify = classify
         #creates an instance of tiago class to interact with the user and perform physical actions
         self.tiago = Tiago()
+        #creates an instance of util class to transform point frames
+        self.util = Util()
         # Collects the details of tables in the environment from the util class and saves in self.tables
         self.tables = self.util.tables
 
@@ -30,6 +35,7 @@ class ApproachPersonPointing(State):
                 table_name = self.tables[table_id].get('name')
                 print table_name + ' is the current table to be approached'
                 rospy.set_param('/current_table', self.tables[table_id])
+                self.tables[table_id]["status"] = "checked"
                 return
         print("All tables have been checked")
         return 'all_tables_checked'
@@ -58,12 +64,14 @@ class ApproachPersonPointing(State):
         orientation = amcl_msg.pose.pose.orientation
 
         #converting to euler from quaternion pose
-        quaternion = Quaternion(**orientation))
+        quaternion = [orientation.x, orientation.y, orientation.z, orientation.w]
         (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quaternion)
         euler = (roll, pitch, yaw)
 
         # Setting the goal in Quaternion
         tiago_radians = euler[2]
+        if tiago_radians < 0:
+            tiago_radians += 2*math.pi
         # Finding target angle in radians
         target = degrees*(math.pi/180)
         goal_angle = tiago_radians+target
@@ -76,8 +84,8 @@ class ApproachPersonPointing(State):
         goal = MoveBaseGoal()
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.header.frame_id = 'map'
-        goal.target_pose.pose = Pose(position = Point(**location),
-                                    orientation = Quaternion(**orientation))
+        goal.target_pose.pose.position = location
+        goal.target_pose.pose.orientation = orientation
 
         self.movebase_client.send_goal(goal)
 
@@ -108,27 +116,27 @@ class ApproachPersonPointing(State):
         rospy.loginfo('GOAL SENT! o:')
 
         # waits for the server to finish performing the action
-        if wait:
-            if self.movebase_client.wait_for_result():
+        if self.movebase_client.wait_for_result():
 
-                rospy.set_param('/current_table/' + '/status', 'checked')
-                rospy.loginfo('Goal location achieved!')
-                self.tiago.talk("I have now reached the goal location" )
-                # operator = getLocation()
-                # if operator:
-                #     return get_closer_to_person(operator)
-            else:
-                rospy.logwarn("Couldn't reach the goal!")
+
+            # rospy.set_param('/current_table/' + '/status', 'checked')
+            rospy.loginfo('Goal location achieved!')
+            self.tiago.talk("I have now reached the goal location" )
+            # operator = getLocation()
+            # if operator:
+            #     return get_closer_to_person(operator)
+        else:
+            rospy.logwarn("Couldn't reach the goal!")
 
     def check_person_around_table(self):
         degrees = 0
-        while degrees <= 90:
+        while degrees >= -90:
             if not degrees == 0:
-                self.rotate(degrees)
+                self.rotate_around_base(degrees)
             if self.detect_person():
                 print('Person was found at this table')
                 return True
-            degrees += 45
+            degrees -= 45
                 
         print('No Person was found at this table')
         return False
@@ -166,6 +174,7 @@ class ApproachPersonPointing(State):
             self.move_to_table(current_table)
 
             person_found = self.check_person_around_table()
+            print person_found
             if person_found:
                 return 'outcome1'
         

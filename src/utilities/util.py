@@ -137,12 +137,13 @@ class Util:
         self.tables = [
             {
                 'name':     table['name'],
-                'location': table['location'],
-                'cuboid':   table['cuboid']
+                'approach_location': table['approach_location'],
+                'person_check_location': table['person_check_location'],
+                'cuboid':   table['cuboid'],
+                'status':   table['status']
             }
             for table in tables_param
         ]
-
 
     def shutdown(self):
 
