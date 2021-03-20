@@ -12,13 +12,13 @@ import math
 
 
 class ApproachPerson(State):
-    def __init__(self, classify):
+    def __init__(self, classify_objects):
         rospy.loginfo('ApproachPerson state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
-        # creates an instance of classify class to classify yolo detections
-        self.classify = classify
+        # creates an instance of classify_objects class to classify yolo detections
+        self.classify_objects = classify_objects
         #creates an instance of tiago class to interact with the user and perform physical actions
         self.tiago = Tiago()
         #creates an instance of util class to transform point frames
@@ -40,12 +40,12 @@ class ApproachPerson(State):
         return 'all_tables_checked'
 
     def detect_person(self):
-        self.classify.subscribe_to_vision_messages()
-        yolo_detections = self.classify.yolo_object_detection()
+        self.classify_objects.subscribe_to_vision_messages()
+        yolo_detections = self.classify_objects.yolo_object_detection()
         # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
             return None
-        #self.classify.yolo_get_object_coordinates()
+        #self.classify_objects.yolo_get_object_coordinates()
 
         for index in range(len(yolo_detections)):
             if (yolo_detections[index].name == 'person'):

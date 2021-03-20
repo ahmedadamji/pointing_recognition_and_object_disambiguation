@@ -16,12 +16,12 @@ from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, Po
 
 # Refered catering_erl for yolo_object_recognition
 class PointedObjectDetection(State):
-    def __init__(self, classify):
+    def __init__(self, classify_objects):
         rospy.loginfo('PointedObjectDetection state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
 
-        self.classify = classify
+        self.classify_objects = classify_objects
         self.bridge = CvBridge()
 
         #creates an instance of tiago class to interact with the user
@@ -85,12 +85,12 @@ class PointedObjectDetection(State):
 
     def detect_objects(self):
 
-        self.classify.subscribe_to_vision_messages()
-        yolo_detections = self.classify.yolo_object_detection(self.box_start_point_2d, self.box_end_point_2d, self.intersection_point_2d)
+        self.classify_objects.subscribe_to_vision_messages()
+        yolo_detections = self.classify_objects.yolo_object_detection(self.box_start_point_2d, self.box_end_point_2d, self.intersection_point_2d)
         # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
             return None
-        self.classify.yolo_get_object_coordinates()
+        self.classify_objects.yolo_get_object_coordinates()
         return yolo_detections
 
     def get_object_indices(self, yolo_detections):

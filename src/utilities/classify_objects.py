@@ -10,7 +10,7 @@ from sensor_msgs.msg import Image, PointCloud2, RegionOfInterest
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 from cv_bridge import CvBridge, CvBridgeError
 
-class Classify:
+class ClassifyObjects:
     def __init__(self, dataset='coco'):
         # Defauts to coco dataset unless another trained model package is needed
         self.dataset = dataset

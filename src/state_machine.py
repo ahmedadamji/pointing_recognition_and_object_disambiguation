@@ -4,7 +4,7 @@ import cv2
 from smach import State, StateMachine
 
 
-from utilities import Classify
+from utilities import ClassifyObjects
 # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
 #from utilities import GetPoseBeforeGazebo
 from states import ApproachPerson, PointingLocationDetection, ApproachPointedObject, PointedObjectDetection, ObjectDisambiguation, LookAtPersonForInteraction
@@ -20,7 +20,7 @@ def main():
     #actions.execute()
 
     # default dataset for yolo3 is coco unless change needed for more accurate detection from a particular dataset, which is passed here.
-    classify = Classify(dataset='coco')
+    classify_objects = ClassifyObjects(dataset='coco')
     
 
     # Create a SMACH state machine
@@ -29,10 +29,10 @@ def main():
 
     with sm:
         # Add states to the container
-        StateMachine.add('approach_person', ApproachPerson(classify), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
+        StateMachine.add('approach_person', ApproachPerson(classify_objects), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
         StateMachine.add('detect_pointing_location', PointingLocationDetection(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
         StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
-        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify), transitions={'outcome1':'look_at_person_for_interaction', 'outcome2': 'end'})
+        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify_objects), transitions={'outcome1':'look_at_person_for_interaction', 'outcome2': 'end'})
         StateMachine.add('look_at_person_for_interaction', LookAtPersonForInteraction(), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
         StateMachine.add('disambiguate_objects', ObjectDisambiguation(), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
