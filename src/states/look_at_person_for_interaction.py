@@ -10,9 +10,9 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 
 
-class LookAtPersonGesturing(State):
+class LookAtPersonForInteraction(State):
     def __init__(self):
-        rospy.loginfo('LookAtPersonGesturing state initialized')
+        rospy.loginfo('LookAtPersonForInteraction state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
@@ -22,7 +22,7 @@ class LookAtPersonGesturing(State):
         self.move = Move()
 
     def execute(self, userdata, wait=True):
-        rospy.loginfo('LookAtPersonGesturing state executing')
+        rospy.loginfo('LookAtPersonForInteraction state executing')
 
         self.tiago.talk("I will now look towards the person to recognise hand gestures, to gather responses for disambiguation." )
         

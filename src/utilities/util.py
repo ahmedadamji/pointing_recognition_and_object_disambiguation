@@ -80,9 +80,9 @@ class Util:
         camera_point_stamped.header = self.depth_points.header
         camera_point_stamped.point = Point(*camera_point_3d)
 
-        person_point = self.transformer.transformPoint('map', camera_point_stamped)
-        #print person_point
-        tf_point = person_point.point
+        world_point_stamped = self.transformer.transformPoint('map', camera_point_stamped)
+        #print world_point_stamped
+        tf_point = world_point_stamped.point
         world_point = np.array([tf_point.x, tf_point.y, tf_point.z])
         return world_point
 
@@ -98,9 +98,9 @@ class Util:
         world_point_stamped.header = self.map_points.header
         world_point_stamped.point = Point(*world_point)
 
-        person_point = self.transformer.transformPoint('xtion_rgb_optical_frame', world_point_stamped)
-        #print person_point
-        tf_point = person_point.point
+        camera_point_stamped = self.transformer.transformPoint('xtion_rgb_optical_frame', world_point_stamped)
+        #print camera_point_stamped
+        tf_point = camera_point_stamped.point
         camera_point_3d = np.array([tf_point.x, tf_point.y, tf_point.z])
         return camera_point_3d
 

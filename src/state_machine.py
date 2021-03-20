@@ -7,7 +7,7 @@ from smach import State, StateMachine
 from utilities import Classify
 # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
 #from utilities import GetPoseBeforeGazebo
-from states import ApproachPerson, ObjectDetection, PointingLocationDetection, ApproachPointedObject, PointedObjectDetection, ObjectDisambiguation, LookAtPersonGesturing
+from states import ApproachPerson, PointingLocationDetection, ApproachPointedObject, PointedObjectDetection, ObjectDisambiguation, LookAtPersonForInteraction
 
 
 
@@ -32,8 +32,8 @@ def main():
         StateMachine.add('approach_person', ApproachPerson(classify), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
         StateMachine.add('detect_pointing_location', PointingLocationDetection(), transitions={'outcome1':'approach_object', 'outcome2': 'approach_object'})
         StateMachine.add('approach_object', ApproachPointedObject(), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
-        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify), transitions={'outcome1':'look_at_person_gesturing', 'outcome2': 'end'})
-        StateMachine.add('look_at_person_gesturing', LookAtPersonGesturing(), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
+        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify), transitions={'outcome1':'look_at_person_for_interaction', 'outcome2': 'end'})
+        StateMachine.add('look_at_person_for_interaction', LookAtPersonForInteraction(), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
         StateMachine.add('disambiguate_objects', ObjectDisambiguation(), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
     
