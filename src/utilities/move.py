@@ -54,7 +54,7 @@ class Move:
 
         #getting current Tiago Location and Orientation in quaternion
         amcl_msg = rospy.wait_for_message('/amcl_pose', PoseWithCovarianceStamped)
-        location = amcl_msg.pose.pose.position
+        position = amcl_msg.pose.pose.position
         orientation = amcl_msg.pose.pose.orientation
 
         #converting to euler from quaternion pose
@@ -93,9 +93,13 @@ class Move:
         position_array = [position.x, position.y, position.z]
         orientation_array = [orientation.x, orientation.y, orientation.z, orientation.w]
         location = {
-            'position': position_array
+            'position': position_array,
             'orientation': orientation_array
         }
+        # location = {
+        #     'position': { 'x': position.x, 'y': position.y, 'z': position.z },
+        #     'orientation': { 'x': orientation.x, 'y': orientation.y, 'z': orientation.z, 'w': orientation.w }
+        # }
 
         # waits for the server to finish performing the action
         if self.movebase_client.wait_for_result():

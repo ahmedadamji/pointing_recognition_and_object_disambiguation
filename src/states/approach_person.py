@@ -80,7 +80,8 @@ class ApproachPerson(State):
             if self.detect_person():
                 print('Person was found at this table')
                 # Saves the location where the pwerson was found to rosparm to use this later while looking back at person for gathering responses
-                rospy.set_param('/pointing_person_approach', location)
+                rospy.set_param('/pointing_person_approach_orientation', [location.get('orientation')[0].item(), location.get('orientation')[1].item(), location.get('orientation')[2].item(), location.get('orientation')[3].item()])
+                # rospy.set_param('/pointing_person_approach', location)
 
                 return True
             degrees -= 45

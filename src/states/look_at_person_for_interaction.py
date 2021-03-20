@@ -18,7 +18,7 @@ class LookAtPersonForInteraction(State):
         #creates an instance of tiago class to interact with the user and perform physical actions
         self.tiago = tiago
         #creates an instance of move class to move robot across the map
-        self.move = util
+        self.move = move
 
     def execute(self, userdata, wait=True):
         rospy.loginfo('LookAtPersonForInteraction state executing')
@@ -31,14 +31,15 @@ class LookAtPersonForInteraction(State):
 
         #location = rospy.get_param('/hand_gesture_approach')
         # getting approach point for person to use the same orientation to turn towards person.
-        person_approach_location = rospy.get_param('/pointing_person_approach')
+        pointing_person_approach_orientation = rospy.get_param('/pointing_person_approach_orientation')
+        pointing_person_approach_orientation = { 'x': pointing_person_approach_orientation[0], 'y': pointing_person_approach_orientation[1], 'z': pointing_person_approach_orientation[2], 'w': pointing_person_approach_orientation[3] }
         # getting approach point for current table to use the same position and not move the robot base as it is already next to the table.
         table = rospy.get_param('/current_table')
         table_approach_location = table.get('approach_location')
 
         location = {
-            'position': table_approach_location['position']
-            'orientation': person_approach_location['orientation']
+            'position': table_approach_location['position'],
+            'orientation': pointing_person_approach_orientation
         }
 
         # Sending Move class the location to move to, and stores result in movebase
