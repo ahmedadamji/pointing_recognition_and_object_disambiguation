@@ -70,17 +70,20 @@ class ApproachPerson(State):
     def check_person_around_table(self):
         degrees = 0
         while degrees > -90:
-            if not degrees == 0:
-                # Sending Move class the angle to rotate about, and stores result in rotate
-                rotate = self.move.rotate_around_base(degrees)
-                if rotate == True:
-                    print("The robot has rotated around the base by " + str(degrees) + " degrees anticlockwise")
-                else:
-                    # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
-                    print("The robot has not been able to rotate around it's base")
+
+            # Sending Move class the angle to rotate about, and stores result in rotate, and also returns the final movebase location
+            rotate, location = self.move.rotate_around_base(degrees)
+            if rotate == True:
+                print("The robot has rotated around the base by " + str(degrees) + " degrees anticlockwise")
+            else:
+                # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
+                print("The robot has not been able to rotate around it's base")
 
             if self.detect_person():
                 print('Person was found at this table')
+                # Saves the location where the pwerson was found to rosparm to use this later while looking back at person for gathering responses
+                rospy.set_param('/pointing_person_approach', location)
+
                 return True
             degrees -= 45
                 
@@ -94,7 +97,7 @@ class ApproachPerson(State):
 
         # Collects the details of tables in the environment from the util class and saves in self.tables
         self.tables = self.util.tables
-        
+
         # CHANGE TABLE NAME HERE:
         self.tiago.talk("I am now going to lift my torso, and then approach the person at table 0" )
         

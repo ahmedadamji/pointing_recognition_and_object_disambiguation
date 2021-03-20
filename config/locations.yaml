@@ -1,15 +1,3 @@
-# This is actually the approach point for tiago, I need to change the name for this so that is either actually is relative to the girl_pointing or change the name to approach_point
-pointing_person_approach:
-  position: 
-    x: -2.456
-    y: -6.697
-    z: 0.0985
-  orientation: 
-    x: 0.0
-    y: 0.0
-    z: -0.586
-    w: 0.810
-
 # This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
 # I have added some on each side as it is not the dimentions of the flat surface on the top (only done for table0 yet, other dimentions are still rough for the cuboid)
 # For table one it is assuming it is a square top with 1 m sides
@@ -65,7 +53,17 @@ tables:
 
 
 
-
+# # This is actually the approach point for tiago, I need to change the name for this so that is either actually is relative to the girl_pointing or change the name to approach_point
+# pointing_person_approach:
+#   position: 
+#     x: -2.456
+#     y: -6.697
+#     z: 0.0985
+#   orientation: 
+#     x: 0.0
+#     y: 0.0
+#     z: -0.586
+#     w: 0.810
 
 
   # table0:

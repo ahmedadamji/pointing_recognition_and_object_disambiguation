@@ -73,7 +73,7 @@ class Move:
         goal_angle = tiago_radians+target
 
         # Saving the Target Position and Orientation:
-        position = Point(position.x, position.y, position.x)
+        position = Point(position.x, position.y, position.z)
         (x,y,z,w)= tf.transformations.quaternion_from_euler(0,0, goal_angle)
         orientation = Quaternion(x,y,z,w)
 
@@ -89,13 +89,21 @@ class Move:
 
         rospy.loginfo('GOAL SENT! o:')
 
+        # Saving the Final location in a dict to pass back as the sucessful movebase location
+        position_array = [position.x, position.y, position.z]
+        orientation_array = [orientation.x, orientation.y, orientation.z, orientation.w]
+        location = {
+            'position': position_array
+            'orientation': orientation_array
+        }
+
         # waits for the server to finish performing the action
         if self.movebase_client.wait_for_result():
             rospy.loginfo('Goal location achieved!')
-            return True
+            return True, location
         else:
             rospy.logwarn("Couldn't reach the goal!")
-            return False
+            return False, location
 
 
 
