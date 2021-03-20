@@ -11,7 +11,6 @@ from pointing_recognition.msg import IntersectionData
 from geometry_msgs.msg import PoseStamped
 
 from smach import State
-from utilities import Tiago, Util
 
 import sys
 sys.path.append('/tiago_ws/src/openpose/build/python')
@@ -34,7 +33,7 @@ from sympy.geometry import Line2D, Line3D, Segment3D
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
 
 class PointingLocationDetection(State):
-    def __init__(self):
+    def __init__(self, tiago, util):
         rospy.loginfo('PointingLocationDetection state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
@@ -44,9 +43,9 @@ class PointingLocationDetection(State):
         self.bridge = CvBridge()
         
         #creates an instance of tiago class to interact with the user
-        self.tiago = Tiago()
+        self.tiago = tiago
         #creates an instance of util class to transform point frames
-        self.util = Util()
+        self.util = util
     
     def angle_between_points( self, a, b, c ):
         rospy.loginfo('Calculating angle between points')

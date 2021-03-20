@@ -3,7 +3,6 @@ import rospy
 import actionlib
 
 
-from utilities import Tiago
 from smach import State
 from geometry_msgs.msg import Pose
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -11,15 +10,15 @@ from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, Po
 
 
 class LookAtPersonForInteraction(State):
-    def __init__(self):
+    def __init__(self, tiago, move):
         rospy.loginfo('LookAtPersonForInteraction state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
         #creates an instance of tiago class to interact with the user and perform physical actions
-        self.tiago = Tiago()
+        self.tiago = tiago
         #creates an instance of move class to move robot across the map
-        self.move = Move()
+        self.move = util
 
     def execute(self, userdata, wait=True):
         rospy.loginfo('LookAtPersonForInteraction state executing')

@@ -2,8 +2,6 @@
 import rospy
 import actionlib
 
-
-from utilities import Tiago, Util, Move
 from smach import State
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
@@ -12,7 +10,7 @@ import math
 
 
 class ApproachPerson(State):
-    def __init__(self, classify_objects):
+    def __init__(self, classify_objects, tiago, util, move):
         rospy.loginfo('ApproachPerson state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
@@ -20,11 +18,11 @@ class ApproachPerson(State):
         # creates an instance of classify_objects class to classify yolo detections
         self.classify_objects = classify_objects
         #creates an instance of tiago class to interact with the user and perform physical actions
-        self.tiago = Tiago()
+        self.tiago = tiago
         #creates an instance of util class to transform point frames
-        self.util = Util()
+        self.util = util
         #creates an instance of move class to move robot across the map
-        self.move = Move()
+        self.move = move
 
 
     def get_table(self):

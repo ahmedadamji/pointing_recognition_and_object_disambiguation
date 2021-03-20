@@ -14,20 +14,18 @@ from scipy.spatial import distance
 from collections import Counter
 from itertools import chain
 
-# Imported for features of human robot interaction such as text to speech
-from utilities import Tiago, Util#, ClassifyHands
 
 
 
 class ObjectDisambiguation(State):
-    def __init__(self):
+    def __init__(self, tiago, util):
         rospy.loginfo('ObjectDisambiguation state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
 
         #creates an instance of tiago class to interact with the user
-        self.tiago = Tiago()
+        self.tiago = tiago
         #creates an instance of util class to use featues such as extract attributes of objects from yaml file and transform point frames
-        self.util = Util()
+        self.util = util
 
         # Stores details of objects that have been eliminated during disambiguation
         self.eliminated_objects = []

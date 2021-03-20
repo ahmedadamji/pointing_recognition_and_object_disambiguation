@@ -5,7 +5,6 @@ import numpy as np
 import cv2
 
 from smach import State
-from utilities import Tiago, Util
 
 from geometry_msgs.msg import Point, Pose
 from collections import namedtuple
@@ -16,7 +15,7 @@ from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, Po
 
 # Refered catering_erl for yolo_object_recognition
 class PointedObjectDetection(State):
-    def __init__(self, classify_objects):
+    def __init__(self, classify_objects, tiago, util):
         rospy.loginfo('PointedObjectDetection state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
@@ -25,9 +24,9 @@ class PointedObjectDetection(State):
         self.bridge = CvBridge()
 
         #creates an instance of tiago class to interact with the user
-        self.tiago = Tiago()
+        self.tiago = tiago
         #creates an instance of util class to transform point frames
-        self.util = Util()
+        self.util = util
     
     def define_bounding_box_around_intersection_point(self, point_3d):
         centre = np.array([point_3d[0],point_3d[1],point_3d[2]])
