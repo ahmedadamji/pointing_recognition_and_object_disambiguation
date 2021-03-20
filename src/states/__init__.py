@@ -1,6 +1,5 @@
 from approach_person import ApproachPerson
 from pointing_location_detection import PointingLocationDetection
-from object_detection import ObjectDetection
 from approach_pointed_object import ApproachPointedObject
 from pointed_object_detection import PointedObjectDetection
 from look_at_person_gesturing import LookAtPersonGesturing
@@ -9,3 +8,4 @@ from object_disambiguation import ObjectDisambiguation
 #from start import Start
 #from manipulate import Manipulate
 #from deposit import Deposit
+#from object_detection import ObjectDetection
