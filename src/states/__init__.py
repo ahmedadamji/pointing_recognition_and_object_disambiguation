@@ -1,4 +1,4 @@
-from approach_person import ApproachPersonPointing
+from approach_person import ApproachPerson
 from pointing_location_detection import PointingLocationDetection
 from object_detection import ObjectDetection
 from approach_pointed_object import ApproachPointedObject

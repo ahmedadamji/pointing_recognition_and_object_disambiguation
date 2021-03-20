@@ -24,8 +24,8 @@ class ApproachPointedObject(State):
         self.tiago = Tiago()
         #creates an instance of util class to transform point frames
         self.util = Util()
-        # Collects the details of tables in the environment from the util class and saves in self.tables
-        self.tables = self.util.tables
+        #creates an instance of move class to move robot across the map
+        self.move = Move()
 
 
     def get_table(self, intersection_point_world):
@@ -46,44 +46,27 @@ class ApproachPointedObject(State):
 
 
     def approach_table(self, table, wait=True):
-        rospy.loginfo('Approaching table selected')
-        
-        # create the action client:
-        movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
 
-        # wait until the action server has started up and started listening for goals
-        movebase_client.wait_for_server()
+        rospy.loginfo('Approaching selected table')
 
         location = table.get('approach_location')
-
-
-        goal = MoveBaseGoal()
-        goal.target_pose.header.stamp = rospy.Time.now()
-        goal.target_pose.header.frame_id = 'map'
-        goal.target_pose.pose = Pose(position = Point(**location['position']),
-                                    orientation = Quaternion(**location['orientation']))
-
-
-        movebase_client.send_goal(goal)
-
-        rospy.loginfo('GOAL SENT! o:')
+        # Sending Move class the location to move to, and stores result in movebase
+        movebase = self.move.move_base(location)
+        if movebase == True:
+            self.tiago.talk("I have now reached the goal location" )
+        else:
+            # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
+            self.tiago.talk("I have not been able to reach the goal location" )
 
         # Sets robot pose to check table
         self.tiago.check_table(True)
-
-        # waits for the server to finish performing the action
-        if wait:
-            if movebase_client.wait_for_result():
-                rospy.loginfo('Goal location achieved!')
-                # operator = getLocation()           
-                # if operator:
-                #     return get_closer_to_person(operator)
-            else:
-                rospy.logwarn("Couldn't reach the goal!")
         
 
 
     def execute(self, userdata, wait=True):
+
+        # Collects the details of tables in the environment from the util class and saves in self.tables
+        self.tables = self.util.tables
 
         rospy.loginfo('ApproachPointedObject state executing')
 

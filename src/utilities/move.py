@@ -5,48 +5,98 @@ import actionlib
 
 # imported to create move base goals
 from std_msgs.msg import Header
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-
-def move():
-    header = Header(frame_id = 'map', stamp = rospy.Time.now())
-
-    # creating Pose and MoveBaseGoal:
-    
-    pose = Pose()
-    pose.position.x = 2.5
-    pose.position.y = -2.2
-    pose.position.z = 0
-    pose.orientation.x = 0
-    pose.orientation.y = 0
-    pose.orientation.z = 1
-    pose.orientation.w = 3
-    
-    # Storing the goal here:
-    goal = MoveBaseGoal()
-    goal.target_pose.header = header
-    goal.target_pose.pose = pose
-    
-    # creating the action client:
-    move_base_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
-    move_base_client.wait_for_server()
+import tf
+import math
 
 
-    # sending goal!
-    move_base_client.send_goal(goal)
+class Move:
 
-    # logging information about goal sent
-    rospy.loginfo('GOAL SENT! o:')
-    move_base_client.wait_for_result()
-    #move_base_client.get_result()
-    
-    # logging information about goal reached
-    rospy.loginfo('GOAL REACHED! (:')
+    def __init__(self):
+
+        # Creating the Transform Listner:
+        self.transformer = tf.TransformListener()
+
+        # create the action client:
+        self.movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
+
+        # wait until the action server has started up and started listening for goals
+        self.movebase_client.wait_for_server()
+
+    def move_base(self, location):
+        # Creating Target Pose Header:
+        header = Header(frame_id = 'map', stamp = rospy.Time.now())
+
+        # creating Pose and MoveBaseGoal:
+        pose = Pose(position = Point(**location['position']), orientation = Quaternion(**location['orientation']))
+
+        # Storing the goal here:
+        goal = MoveBaseGoal()
+        goal.target_pose.header = header
+        goal.target_pose.pose = pose
+
+        # sending goal!
+        self.movebase_client.send_goal(goal)
+
+        # logging information about goal sent
+        rospy.loginfo('GOAL SENT! o:')
+
+        if self.movebase_client.wait_for_result():
+            rospy.loginfo('Goal location achieved!')
+            return True
+
+        else:
+            rospy.logwarn("Couldn't reach the goal!")
+            return False
+
+    def rotate_around_base(self, degrees):
+
+        #getting current Tiago Location and Orientation in quaternion
+        amcl_msg = rospy.wait_for_message('/amcl_pose', PoseWithCovarianceStamped)
+        location = amcl_msg.pose.pose.position
+        orientation = amcl_msg.pose.pose.orientation
+
+        #converting to euler from quaternion pose
+        quaternion = [orientation.x, orientation.y, orientation.z, orientation.w]
+        (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quaternion)
+        euler = (roll, pitch, yaw)
+
+        # Setting the goal in Quaternion
+        tiago_radians = euler[2]
+        if tiago_radians < 0:
+            tiago_radians += 2*math.pi
+
+        # Finding target angle in radians
+        target = degrees*(math.pi/180)
+        # Adding current tiago angle to the target angle to rotate, to find goal anle to be achieved
+        goal_angle = tiago_radians+target
+
+        # Saving the Target Position and Orientation:
+        position = Point(position.x, position.y, position.x)
+        (x,y,z,w)= tf.transformations.quaternion_from_euler(0,0, goal_angle)
+        orientation = Quaternion(x,y,z,w)
 
 
-if __name__ == '__main__':
-    rospy.init_node('move')
-    try:
-        move()
-    except rospy.ROSInterruptException:
-        pass
+        # Sending move base goal
+        goal = MoveBaseGoal()
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.header.frame_id = 'map'
+        goal.target_pose.pose.position = position
+        goal.target_pose.pose.orientation = orientation
+
+        self.movebase_client.send_goal(goal)
+
+        rospy.loginfo('GOAL SENT! o:')
+
+        # waits for the server to finish performing the action
+        if self.movebase_client.wait_for_result():
+            rospy.loginfo('Goal location achieved!')
+            return True
+        else:
+            rospy.logwarn("Couldn't reach the goal!")
+            return False
+
+
+
+
