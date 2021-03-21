@@ -174,7 +174,7 @@ class PointingLocationDetection(State):
 
 
 
-    def get_pointing_line(self, hand_tip, head, xyz_array, hand, open_pose_output_image, maxDistance = 5, skipFactor = 0.05):
+    def get_pointing_line(self, hand_tip, head, xyz_array, open_pose_output_image, maxDistance = 5, skipFactor = 0.05):
         rospy.loginfo('calucating the line of pointing')
         
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
@@ -431,7 +431,7 @@ class PointingLocationDetection(State):
                     print('left hand pointing')
 
                     self.tiago.talk("I see that the person is pointing with their left hand" )
-                    self.get_pointing_line(left_hand_tip, head, xyz_array, datum.handKeypoints[0][i], open_pose_output_image, 1, 0.05)
+                    self.get_pointing_line(left_hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05)
 
                     # Saving world coordinate for head for use during disambiguation in reference to user location
                     person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
@@ -443,7 +443,7 @@ class PointingLocationDetection(State):
                     print('right hand pointing')
 
                     self.tiago.talk("I see that the person is pointing with their right hand" )
-                    self.get_pointing_line(right_hand_tip, head, xyz_array, datum.handKeypoints[1][i], open_pose_output_image, 1, 0.05)
+                    self.get_pointing_line(right_hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05)
 
                     # Saving world coordinate for head for use during disambiguation in reference to user location
                     person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)

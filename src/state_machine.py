@@ -18,7 +18,7 @@ def set_params():
     params["body"] = 1
     params["number_people_max"] = 1
     params['model_folder'] = '/tiago_ws/src/openpose/models/'
-    params['model_pose'] = 'BODY_25'
+    params['model_pose'] = 'COCO'
     # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
     # will use the fairly accurate 320x240
     params['net_resolution'] = '320x240' # 368x368 (multiples of 16)
@@ -42,7 +42,6 @@ def main():
     opWrapper = op.WrapperPython()
     opWrapper.configure(params)
     opWrapper.start()
-    print('a')
 
     # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
     #actions = GetPoseBeforeGazebo()

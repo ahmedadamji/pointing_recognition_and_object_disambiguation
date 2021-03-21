@@ -4,7 +4,7 @@
   <arg name="world"  default="pointing1"/>
   <arg name="gzpose" default="-x 0.0  -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y  0.0"/>
   <!-- <arg name="gzpose" default="-x 0.0 -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y -1.570796" if="$(arg lost)"/> -->
-  <arg name="gzclient"          default="true"/>
+  <arg name="gzclient"          default="false"/> <!--SET TO FALSE TO NOT START GAZEBO TO SAVE GPU MEMORY-->
   <arg name="public_sim"        default="false"/>
   <arg name="extra_gazebo_args" default=""/>
 
