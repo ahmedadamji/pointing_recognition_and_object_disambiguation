@@ -33,7 +33,7 @@ from sympy.geometry import Line2D, Line3D, Segment3D
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
 
 class PointingLocationDetection(State):
-    def __init__(self, tiago, util):
+    def __init__(self, opWrapper, tiago, util):
         rospy.loginfo('PointingLocationDetection state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
@@ -41,6 +41,8 @@ class PointingLocationDetection(State):
         self.msg_to_send = IntersectionData()
         
         self.bridge = CvBridge()
+
+        self.opWrapper = opWrapper
         
         #creates an instance of tiago class to interact with the user
         self.tiago = tiago
@@ -321,25 +323,25 @@ class PointingLocationDetection(State):
     #     parser.add_argument("--num_gpu", default=op.get_gpu_number(), help="Number of GPUs.")
     #     return parser.parse_known_args()
 
-    def set_params(self):
-        rospy.loginfo('Setting OpenPose default parameters')
-        params = dict()
-        params["body"] = 1
-        params["number_people_max"] = 1
-        params['model_folder'] = '/tiago_ws/src/openpose/models/'
-        params['model_pose'] = 'COCO'
-        # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
-        # will use the fairly accurate 320x240
-        params['net_resolution'] = '320x240' # 368x368 (multiples of 16)
-        # params['face_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-        # params['hand_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-        # params['flir_camera'] = True # Used when using Flir camera
-        # params['frame_undistort'] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
-        params['hand'] = True
-        params['face'] = False
-        # params["3d"] = True
-        # params['3d_views'] = 2
-        return params
+    # def set_params(self):
+    #     rospy.loginfo('Setting OpenPose default parameters')
+    #     params = dict()
+    #     params["body"] = 1
+    #     params["number_people_max"] = 1
+    #     params['model_folder'] = '/tiago_ws/src/openpose/models/'
+    #     params['model_pose'] = 'COCO'
+    #     # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
+    #     # will use the fairly accurate 320x240
+    #     params['net_resolution'] = '320x240' # 368x368 (multiples of 16)
+    #     # params['face_net_resolution'] = '160x80' # 368x368 (multiples of 16)
+    #     # params['hand_net_resolution'] = '160x80' # 368x368 (multiples of 16)
+    #     # params['flir_camera'] = True # Used when using Flir camera
+    #     # params['frame_undistort'] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
+    #     params['hand'] = True
+    #     params['face'] = False
+    #     # params["3d"] = True
+    #     # params['3d_views'] = 2
+    #     return params
 
     def print_body_parameters(self, datum):
         rospy.loginfo('Printing Body Parameters')
@@ -355,8 +357,8 @@ class PointingLocationDetection(State):
         # # Flags
         # args = self.set_flags()
 
-        # Set Params
-        params = self.set_params()
+        # # Set Params
+        # params = self.set_params()
 
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
         
@@ -378,17 +380,17 @@ class PointingLocationDetection(State):
             print(e)
 
         try:
-            # Starting OpenPose
-            #opWrapper = op.WrapperPython(op.ThreadManagerMode.Synchronous)
-            # ^^ This makes the openpose segmentation visible via webcam.
-            opWrapper = op.WrapperPython()
-            opWrapper.configure(params)
-            opWrapper.start()
+            # # Starting OpenPose
+            # #opWrapper = op.WrapperPython(op.ThreadManagerMode.Synchronous)
+            # # ^^ This makes the openpose segmentation visible via webcam.
+            # opWrapper = op.WrapperPython()
+            # opWrapper.configure(params)
+            # opWrapper.start()
 
             # Process Image
             datum = op.Datum()
             datum.cvInputData = cv_image
-            opWrapper.emplaceAndPop(op.VectorDatum([datum]))
+            self.opWrapper.emplaceAndPop(op.VectorDatum([datum]))
 
 
             # Display Image And Print Body Keypoints
@@ -463,6 +465,6 @@ class PointingLocationDetection(State):
         # To destroy cv2 window at the end of state
         cv2.destroyAllWindows()
 
-        #opWrapper.stop()
+        #self.opWrapper.stop()
         
         return 'outcome1'
