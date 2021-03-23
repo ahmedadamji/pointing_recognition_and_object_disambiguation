@@ -2,38 +2,31 @@
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
 
-from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
-from sensor_msgs.srv import SetCameraInfo
-import sensor_msgs.point_cloud2 as pc2
+from sensor_msgs.msg import Image, PointCloud2, CameraInfo
 
 from pointing_recognition.msg import IntersectionData
 
-from geometry_msgs.msg import PoseStamped
 
 from smach import State
 
-import sys
-sys.path.append('/tiago_ws/src/openpose/build/python')
-from openpose import pyopenpose as op
+from pointing_recognition.srv import OpenPoseKeypoints
 
 import cv2
 import math
 import numpy as np
 import ros_numpy
-import argparse
-import open3d as o3d
 
-import sympy
-from sympy import Point2D, Point3D
-from sympy.abc import L
-from sympy.geometry import Line2D, Line3D, Segment3D
+# import sympy
+# from sympy import Point2D, Point3D
+# from sympy.abc import L
+# from sympy.geometry import Line2D, Line3D, Segment3D
 
 
 # cap = cv2.VideoCapture(0)
 # cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
 
 class PointingLocationDetection(State):
-    def __init__(self, opWrapper, tiago, util):
+    def __init__(self, tiago, util):
         rospy.loginfo('PointingLocationDetection state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
@@ -41,38 +34,12 @@ class PointingLocationDetection(State):
         self.msg_to_send = IntersectionData()
         
         self.bridge = CvBridge()
-
-        self.opWrapper = opWrapper
         
         #creates an instance of tiago class to interact with the user
         self.tiago = tiago
         #creates an instance of util class to transform point frames
         self.util = util
-    
-    def angle_between_points( self, a, b, c ):
-        rospy.loginfo('Calculating angle between points')
-        ba = np.array(a) - np.array(b)
-        bc = np.array(c) - np.array(b)
 
-        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-        angle = np.arccos(cosine_angle)
-
-        print np.degrees(angle)
-        return np.degrees(angle)
-
-    def get_elbow_angle(self, shoulder,elbow,hand_tip, hand):
-        rospy.loginfo('Calculating elbow angle')
-        angle = 0
-        angle = self.angle_between_points(shoulder, elbow, hand_tip)
-        rospy.loginfo('%s angle:%f'%(hand,angle))
-        return angle
-
-    def get_hand_tip_delta(self, hand_tip, chest, hand):
-        rospy.loginfo('Calculating hand tip delta')
-        #comparing the x coordinate of chest and hand tip
-        handtipdelta = hand_tip[0] - chest[0]
-        rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
-        return handtipdelta
 
     def normalize(self, array):
         #rospy.loginfo('normalizing recieved array')
@@ -242,113 +209,8 @@ class PointingLocationDetection(State):
 
         #cv2.waitKey(0)
 
-    
-    
-    def get_body_points_3d(self, human, pos, xyz_array):
-        #rospy.loginfo('Requesting body keypoints')
-        # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
-        if pos == 'Head':
-            pnt_index = 0
-        elif pos == 'Neck':
-            pnt_index = 1
-        elif pos == 'RShoulder':
-            pnt_index = 2
-        elif pos == 'RElbow':
-            pnt_index = 3
-        elif pos == 'RWrist':
-            pnt_index = 4
-        elif pos == 'LShoulder':
-            pnt_index = 5
-        elif pos == 'LElbow':
-            pnt_index = 6
-        elif pos == 'LWrist':
-            pnt_index = 7
-        elif pos == 'MidHip':
-            pnt_index = 8
-        elif pos == 'RHip':
-            pnt_index = 9
-        elif pos == 'LHip':
-            pnt_index = 12
-        else:
-            rospy.logerr('Unknown  [%s]', pos)
-            return None
-
-        pnt = [int(human[pnt_index][0]), int(human[pnt_index][1])]
-        # returns the x,y,z coordinates in meters
-        return self.get_depth(pnt, xyz_array)
-
-    def get_hand_points_3d(self, hand, pos, xyz_array):
-        #rospy.loginfo('Requesting hand keypoints')
-        # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
-
-        if pos == 'first_finger_tip':
-            pnt_index = 8
-        elif pos == 'first_finger_dip_joint':
-            pnt_index = 7
-        elif pos == 'first_finger_pip_joint':
-            pnt_index = 6
-        elif pos == 'first_finger_mcp_joint':
-            pnt_index = 5
-        else:
-            rospy.logerr('Unknown  [%s]', pos)
-            return None
-        
-        pnt = [int(hand[pnt_index][0]), int(hand[pnt_index][1])]
-        # returns the x,y,z coordinates in meters
-        return self.get_depth(pnt, xyz_array)
-
-    def get_depth(self, pnt, xyz_array):
-        #rospy.loginfo('Requesting depth data at requested pixel')
-        # Gets the z distance from tiago to the object at pixel x,y in the camera image.
-        # x and y are in pixels
-        x = pnt[0]
-        y = pnt[1]
 
 
-        #print(np.shape(xyz_array))
-        # transposing to get output using format xyz_array[x][y] instead of xyz_array[y][x]
-        #print(xyz_array[487][224]) # reading random coordinate, supposed to be chest / head
-        # To check the range of the rgbd camera
-        #print(xyz_array[479][639])
-        #print(xyz_array[0][0])
-        #print(depth_points.header.frame_id)
-        #print(depth_points.height, depth_points.width)
-
-        # xyz_array returns in meters
-        return xyz_array[x][y]
-
-
-    # def set_flags(self):
-    #     parser = argparse.ArgumentParser()
-    #     parser.add_argument("--num_gpu", default=op.get_gpu_number(), help="Number of GPUs.")
-    #     return parser.parse_known_args()
-
-    # def set_params(self):
-    #     rospy.loginfo('Setting OpenPose default parameters')
-    #     params = dict()
-    #     params["body"] = 1
-    #     params["number_people_max"] = 1
-    #     params['model_folder'] = '/tiago_ws/src/openpose/models/'
-    #     params['model_pose'] = 'COCO'
-    #     # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
-    #     # will use the fairly accurate 320x240
-    #     params['net_resolution'] = '320x240' # 368x368 (multiples of 16)
-    #     # params['face_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-    #     # params['hand_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-    #     # params['flir_camera'] = True # Used when using Flir camera
-    #     # params['frame_undistort'] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
-    #     params['hand'] = True
-    #     params['face'] = False
-    #     # params["3d"] = True
-    #     # params['3d_views'] = 2
-    #     return params
-
-    def print_body_parameters(self, datum):
-        rospy.loginfo('Printing Body Parameters')
-        print("Body keypoints: \n" + str(np.around(datum.poseKeypoints).astype(int)))
-        #print("Face keypoints: \n" + str(np.around(datum.faceKeypoints).fillna(0.0).astype(int)))
-        print("Left hand keypoints: \n" + str(np.around(datum.handKeypoints[0]).astype(int)))
-        print("Right hand keypoints: \n" + str(np.around(datum.handKeypoints[1]).astype(int)))
 
     def execute(self, userdata):
         rospy.loginfo('PointingLocationDetection state executing')
@@ -368,98 +230,43 @@ class PointingLocationDetection(State):
         xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(depth_points, remove_nans=False)
         xyz_array = np.transpose(xyz_array, (1, 0, 2))
 
-
-
-        #img_msg2 = rospy.wait_for_message('/xtion/depth_registered/image_raw',Image)
-        #print(img_msg.height, img_msg.width)
-        #print(img_msg2.height, img_msg2.width)
-
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
-        except CvBridgeError as e:
-            print(e)
+            rospy.loginfo('waiting for openpose_detection service')
+            rospy.wait_for_service('/openpose_detection')
+            rospy.loginfo('connected to openpose_detection service')
 
-        try:
-            # # Starting OpenPose
-            # #opWrapper = op.WrapperPython(op.ThreadManagerMode.Synchronous)
-            # # ^^ This makes the openpose segmentation visible via webcam.
-            # opWrapper = op.WrapperPython()
-            # opWrapper.configure(params)
-            # opWrapper.start()
+            # running object recognition
+            try:
+                compute_pointing = rospy.ServiceProxy('/openpose_detection', OpenPoseKeypoints)
+                self.pointing_result = compute_pointing(img_msg, depth_points)
 
-            # Process Image
-            datum = op.Datum()
-            datum.cvInputData = cv_image
-            self.opWrapper.emplaceAndPop(op.VectorDatum([datum]))
+            except rospy.ServiceException as e:
+                print('Pointing detection failed')
+                rospy.logwarn(e)
+                return 'outcome2'
+            
+            self.tiago.talk("I see that the person is pointing with their " + str(self.pointing_result.hand) + " hand")
+            open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pointing_result.open_pose_output_image_msg, "bgr8")
+            hand_tip = np.array(self.pointing_result.hand_tip)
+            head = np.array(self.pointing_result.head)
+            self.get_pointing_line(hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05) # (hand_tip, head, open_pose_output_image, maxDistance, skipFactor)
 
+            # Saving world coordinate for head for use during disambiguation in reference to user location
+            person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(self.pointing_result.head)
+            rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
 
-            # Display Image And Print Body Keypoints
-            human_count = len(datum.poseKeypoints)
-            print('Number of humans in frame: {}'.format(human_count))
-            self.print_body_parameters(datum)
-            open_pose_output_image = datum.cvOutputData
-            cv2.imshow("OpenPose Results", open_pose_output_image)
-            cv2.waitKey(5000)
+            return 'outcome1'
+            
 
-            for i in range(human_count):
-                print('=================================')
-                #get_body_angle(datum.poseKeypoints[i], 'waist')
-                #angle = get_body_angle(datum.poseKeypoints[i], 'left_elbow')
+        except rospy.ROSInterruptException:
+            pass
+        except rospy.ServiceException as ex:
+            rospy.logwarn('service call openpose_detection failed')
+            rospy.logwarn(ex)
+        except rospy.ROSException as ex:
+            rospy.logwarn('timed out waiting for openpose_detection service')
+            rospy.logwarn(ex)
 
-                poseKeypoints = datum.poseKeypoints[i]
-                handKeypointsL = datum.handKeypoints[0][i]
-                handKeypointsR = datum.handKeypoints[1][i]
-
-
-                head = self.get_body_points_3d(poseKeypoints, 'Head', xyz_array)
-                chest = self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array)
-                right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
-                left_shoulder = self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array)
-                right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
-                left_elbow = self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array)
-                right_elbow = self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array)
-                left_hand_tip = self.get_hand_points_3d(handKeypointsL, 'first_finger_tip', xyz_array)
-                right_hand_tip = self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array)
-                left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
-                right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
-                left_hand_tip_delta = self.get_hand_tip_delta(left_hand_tip,chest,'left')
-                right_hand_tip_delta = self.get_hand_tip_delta(right_hand_tip,chest,'right')
-
-                # Parameters that need to be satisfied in case hand is pointing based on observed data points
-                # Later try to shift this functionality to is_pointing() funtion
-                if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
-                    print('left hand pointing')
-
-                    self.tiago.talk("I see that the person is pointing with their left hand" )
-                    self.get_pointing_line(left_hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05)
-
-                    # Saving world coordinate for head for use during disambiguation in reference to user location
-                    person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
-                    rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
-
-                    return 'outcome1'
-                    
-                elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
-                    print('right hand pointing')
-
-                    self.tiago.talk("I see that the person is pointing with their right hand" )
-                    self.get_pointing_line(right_hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05)
-
-                    # Saving world coordinate for head for use during disambiguation in reference to user location
-                    person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
-                    rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
-
-                    return 'outcome1'
-
-                else:
-                    print('hand not pointing')
-
-                
-
-        
-        except Exception as e:
-            print(e)
-            sys.exit(-1)
 
         
         # To destroy cv2 window at the end of state

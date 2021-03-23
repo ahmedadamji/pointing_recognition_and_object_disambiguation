@@ -1,5 +1,9 @@
-#image topic to subscribe, confidence for object detection, non-maximum suppression
-sensor_msgs/Image image_raw
-string dataset
-float32 confidence
-float32 nms
+#image topic to subscribe
+sensor_msgs/Image img_msg
+sensor_msgs/PointCloud2 depth_points
+---
+#Response
+string hand
+float32[] hand_tip
+float32[] head
+sensor_msgs/Image open_pose_output_image_msg
