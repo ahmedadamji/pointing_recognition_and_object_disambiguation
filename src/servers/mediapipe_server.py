@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/python3.6
+
+
+## ADD REFERENCE HERE
+
 import rospy
 import cv2
 #import math
@@ -15,9 +19,18 @@ from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
 from sensor_msgs.srv import SetCameraInfo
 import sensor_msgs.point_cloud2 as pc2
 
+# Done this because python had problems importing the correct cv2
 import sys
-sys.path.append('/tiago_ws/src/openpose/build/python')
-from openpose import pyopenpose as op
+ros_path = '/opt/ros/kinetic/lib/python2.7/dist-packages'
+if ros_path in sys.path:
+    sys.path.remove(ros_path)
+import cv2
+sys.path.append('/opt/ros/kinetic/lib/python2.7/dist-packages')
+
+#importing mediapipe
+import mediapipe as mp
+mp_drawing = mp.solutions.drawing_utils
+mp_holistic = mp.solutions.holistic
 
 
 class openpose_server():

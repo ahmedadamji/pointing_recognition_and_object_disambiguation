@@ -1,8 +1,8 @@
-#image topic to subscribe
+# 2d image and point cloud messages as input data to pointing 
 sensor_msgs/Image img_msg
 sensor_msgs/PointCloud2 depth_points
 ---
-#Response
+# Output data from the openpose server
 string hand
 float32[] hand_tip
 float32[] head
