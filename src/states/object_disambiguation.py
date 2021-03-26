@@ -351,6 +351,30 @@ class ObjectDisambiguation(State):
             for objects in self.objects_inside_bounding_box_not_compared:
                 self.tiago.talk(objects.get('name'))
 
+    def find_unique_feature_of_identified_object(self, identified_object):
+        unique_feature = ""
+        # Loop to identify unique feature of identified object
+        ## Note: THIS METHOD HAS TWO LIMITATIONS:
+        ## IT ONLY FINDS UNIQUE FEATURES FROM THOSE THAT HAVE BEEN STATED IN THE DATABASE FOR THE OBJECT
+        ## IT ALSO DOES ONLY FINDS ITS UNIQUE FEATURE IN RELATION TO OTHER OBJECTS THAT ARE CAPABLE OF DISAMBIGUATION AND DOES NOT FIND COMPARISONS TO OTHER OBJECTS
+        ## TO DO SO COMPUTER VISION METHODS MUST BE USED TO FIND ATTRIBUTES SUCH AS SHAPE AND COLOUR!!!
+        for current_object in self.objects_with_attributes:
+            if current_object.get('name') == identified_object:
+                for key in current_object:
+                    if not key is 'name': # TO AVOID MATCHES FOR ATTRIBUTE NAMES
+                        if current_object[key] in self.unique_features:
+                            unique_feature = current_object[key]
+
+
+        if not len(unique_feature) == 0:
+            print("Unique feature of this object is: " + str(unique_feature))
+            self.tiago.talk("The unique feature of this object is that it is " + str(unique_feature))
+        else:
+            print("The object found has no unique attributes!")
+            self.tiago.talk("The object found has no unique attributes!")
+
+
+
     def disambiguate_until_unique_feature_found(self):
 
         self.tiago.talk("Please only refer to the objects that were notified to you earlier, as objects found close to the location of pointing, while answering these questions")
@@ -359,13 +383,13 @@ class ObjectDisambiguation(State):
 
             indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
 
-            # The == condition ensures that even if it doesnt match for all objects it still goes to the next questionst
+            # The == condition ensures that even if it doesnt match for all objects it still goes to the next questions
             if len(indices_for_attribute_match) == 1:
-                # Two indices needed as there is a bracket around every number:
+
                 identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
                 print identified_object
-                self.tiago.talk("The identified object is a " + identified_object)
-
+                self.tiago.talk("The identified object is a " + str(identified_object))
+                self.find_unique_feature_of_identified_object(identified_object)
                 self.notify_status_of_other_objects()
 
                 return
