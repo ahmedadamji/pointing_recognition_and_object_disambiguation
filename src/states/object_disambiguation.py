@@ -351,6 +351,7 @@ class ObjectDisambiguation(State):
             for objects in self.objects_inside_bounding_box_not_compared:
                 self.tiago.talk(objects.get('name'))
 
+
     def find_unique_feature_of_identified_object(self, identified_object):
         unique_feature = ""
         # Loop to identify unique feature of identified object
@@ -375,7 +376,7 @@ class ObjectDisambiguation(State):
 
 
 
-    def disambiguate_until_unique_feature_found(self):
+    def disambiguate_until_object_identified(self):
 
         self.tiago.talk("Please only refer to the objects that were notified to you earlier, as objects found close to the location of pointing, while answering these questions")
 
@@ -386,10 +387,15 @@ class ObjectDisambiguation(State):
             # The == condition ensures that even if it doesnt match for all objects it still goes to the next questions
             if len(indices_for_attribute_match) == 1:
 
+                ## Responding with disambiguation results
+
                 identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
                 print identified_object
                 self.tiago.talk("The identified object is a " + str(identified_object))
                 self.find_unique_feature_of_identified_object(identified_object)
+                world_coordinate_of_identified_object = identified_object.get("world_coordinate")
+                print("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
+                self.tiago.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
                 self.notify_status_of_other_objects()
 
                 return
@@ -510,31 +516,17 @@ class ObjectDisambiguation(State):
         #     }
         
 
-        self.disambiguate_until_unique_feature_found()
+        self.disambiguate_until_object_identified()
                 
 
 
 
-        # for object in len(list_of_objects_within_bounding_box):
-        #     attributes_from_detected_objects = list_of_objects_within_bounding_box[object].attributes
-        #     print "Current object being compared: " + list_of_objects_within_bounding_box[object].name
-        #     for attribute in len(attributes_from_user)
-        #         if attributes_from_user[attribute] == attributes_from_detected_objects[attribute]:
-        #             match += 1
-        #         else:
-        #             print "Attribute does not match"
-        #     self.total_matches.append(match)
-        # indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
-        # if len(indices_for_attribute_match) == 1:
-        #     identified_object = list_of_objects_within_bounding_box[indices_for_attribute_match[0]]
-        #     return identified_object
-        # else:
-        #     # Return Object With Highest Confidence
-        #     for object in len(indices_for_attribute_match):
-        #         detection_confidence.append(list_of_objects_within_bounding_box[indices_for_attribute_match[object]].confidence)
-        #     highest_confidence_index = indices_for_attribute_match[np.argmax(detection_confidence)]
-        #     identified_object = list_of_objects_within_bounding_box[highest_confidence_index]
-        #     return identified_object
+    # ## Return Object With Highest Confidence
+    # for object in len(indices_for_attribute_match):
+    #     detection_confidence.append(list_of_objects_within_bounding_box[indices_for_attribute_match[object]].confidence)
+    # highest_confidence_index = indices_for_attribute_match[np.argmax(detection_confidence)]
+    # identified_object = list_of_objects_within_bounding_box[highest_confidence_index]
+    # return identified_object
 
 
 
