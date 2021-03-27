@@ -56,11 +56,12 @@ class openpose_server():
         rospy.loginfo('%s angle:%f'%(hand,angle))
         return angle
 
-    def get_hand_tip_delta(self, hand_tip, chest, hand):
+    def get_hand_tip_delta(self, hand_tip, spine_chest, hand):
         # After testing, change hand tip delta as a test parameter for is pointing or not to height difference between hand and chest
         rospy.loginfo('Calculating hand tip delta')
-        #comparing the x coordinate of chest and hand tip
-        handtipdelta = hand_tip[0] - chest[0]
+        ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
+        #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
+        handtipdelta = hand_tip[1] - spine_chest[1]
         rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
         return handtipdelta
 
@@ -97,9 +98,28 @@ class openpose_server():
         # params['3d_views'] = 2
         return params
 
+    def get_mid_hip(self, left_hip, right_hip):
+        x = (left_hip[0]+right_hip[0])/2
+        y = (left_hip[1]+right_hip[1])/2
+        z = (left_hip[2]+right_hip[2])/2
+        mid_hip = [x,y,z]
+        return mid_hip
+    
+    def get_spine_chest(self, neck, mid_hip):
+        #The spine_chest refered by microsoft psi for calculating the hand tip delta, with respect to https://docs.microsoft.com/en-us/azure/kinect-dk/body-joints
+        # is 2/3 above the mid_hip, between the neck and the mid_hip, therefore as this is not automatically detected, this rough figure will be used, aditionally as this keypoint is not an actual body part
+        # There are no papers that give the rative value of distance between these two points
+        x = (mid_hip[0] + (neck[0]-mid_hip[0]))*2/3
+        y = (mid_hip[1] + (neck[1]-mid_hip[1]))*2/3
+        z = (mid_hip[2] + (neck[2]-mid_hip[2]))*2/3
+        spine_chest = [x,y,z]
+        return spine_chest
+
+
+
     def get_body_points_3d(self, human, pos, xyz_array):
         #rospy.loginfo('Requesting body keypoints')
-        # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
+        # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/02_output.md
         if pos == 'Head':
             pnt_index = 0
         elif pos == 'Neck':
@@ -116,12 +136,10 @@ class openpose_server():
             pnt_index = 6
         elif pos == 'LWrist':
             pnt_index = 7
-        elif pos == 'MidHip':
-            pnt_index = 8
         elif pos == 'RHip':
-            pnt_index = 9
+            pnt_index = 8
         elif pos == 'LHip':
-            pnt_index = 12
+            pnt_index = 11
         else:
             rospy.logerr('Unknown  [%s]', pos)
             return None
@@ -132,7 +150,7 @@ class openpose_server():
 
     def get_hand_points_3d(self, hand, pos, xyz_array):
         #rospy.loginfo('Requesting hand keypoints')
-        # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/output.md
+        # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/02_output.md
 
         if pos == 'first_finger_tip':
             pnt_index = 8
@@ -236,15 +254,18 @@ class openpose_server():
                 chest = self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array)
                 right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
                 left_shoulder = self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array)
-                right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
                 left_elbow = self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array)
                 right_elbow = self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array)
+                left_hip = self.get_body_points_3d(poseKeypoints, 'LHip', xyz_array)
+                right_hip = self.get_body_points_3d(poseKeypoints, 'RHip', xyz_array)
+                mid_hip = self.get_mid_hip(left_hip, right_hip)
+                spine_chest = self.get_spine_chest(neck, mid_hip)
                 left_hand_tip = self.get_hand_points_3d(handKeypointsL, 'first_finger_tip', xyz_array)
                 right_hand_tip = self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array)
                 left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
                 right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
-                left_hand_tip_delta = self.get_hand_tip_delta(left_hand_tip,chest,'left')
-                right_hand_tip_delta = self.get_hand_tip_delta(right_hand_tip,chest,'right')
+                left_hand_tip_delta = self.get_hand_tip_delta(left_hand_tip,spine_chest,'left')
+                right_hand_tip_delta = self.get_hand_tip_delta(right_hand_tip,spine_chest,'right')
 
 
                 open_pose_output_image_msg = self.bridge.cv2_to_imgmsg(open_pose_output_image, encoding="bgr8")
@@ -252,14 +273,14 @@ class openpose_server():
                 # Parameters that need to be satisfied in case hand is pointing based on observed data points
                 # Later try to shift this functionality to is_pointing() funtion
 
-                if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>0.5)):
+                if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>-0.1)):
                     print('left hand pointing')
                     hand = 'left'
 
                     return OpenPoseKeypointsResponse(hand, left_hand_tip, head, open_pose_output_image_msg)
 
                     
-                elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>0.5)):
+                elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>-0.1)):
                     print('right hand pointing')
                     hand = 'right'
 
