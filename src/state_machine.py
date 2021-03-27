@@ -63,12 +63,12 @@ def main():
 
     with sm:
         # Add states to the container
-        StateMachine.add('approach_person', ApproachPerson(classify_objects, tiago, util, move), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
-        StateMachine.add('detect_pointing_location', PointingLocationDetection(tiago, util), transitions={'outcome1':'approach_object', 'outcome2': 'end'})
-        StateMachine.add('approach_object', ApproachPointedObject(tiago, util, move), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
-        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify_objects, tiago, util), transitions={'outcome1':'look_at_person_for_interaction', 'outcome2': 'end'})
-        StateMachine.add('look_at_person_for_interaction', LookAtPersonForInteraction(tiago, move), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
-        StateMachine.add('disambiguate_objects', ObjectDisambiguation(tiago, util), transitions={'outcome1':'end', 'outcome2': 'end'})
+        # StateMachine.add('approach_person', ApproachPerson(classify_objects, tiago, util, move), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
+        StateMachine.add('detect_pointing_location', PointingLocationDetection(tiago, util), transitions={'outcome1':'end', 'outcome2': 'end'})
+        # StateMachine.add('approach_object', ApproachPointedObject(tiago, util, move), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'detect_pointed_object'})
+        # StateMachine.add('detect_pointed_object', PointedObjectDetection(classify_objects, tiago, util), transitions={'outcome1':'look_at_person_for_interaction', 'outcome2': 'end'})
+        # StateMachine.add('look_at_person_for_interaction', LookAtPersonForInteraction(tiago, move), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
+        # StateMachine.add('disambiguate_objects', ObjectDisambiguation(tiago, util), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
     
     #cv2.waitKey(0)

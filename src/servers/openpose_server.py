@@ -61,8 +61,10 @@ class openpose_server():
         rospy.loginfo('Calculating hand tip delta')
         ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
         #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
-        handtipdelta = hand_tip[1] - spine_chest[1]
-        rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
+        # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
+        handtipdelta = -(hand_tip[1] - spine_chest[1])
+        print("The handtipdelta for the "+ str(hand) + " hand is " + str(handtipdelta) + " meters")
+        #rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
         return handtipdelta
 
 
@@ -108,10 +110,10 @@ class openpose_server():
     def get_spine_chest(self, neck, mid_hip):
         #The spine_chest refered by microsoft psi for calculating the hand tip delta, with respect to https://docs.microsoft.com/en-us/azure/kinect-dk/body-joints
         # is 2/3 above the mid_hip, between the neck and the mid_hip, therefore as this is not automatically detected, this rough figure will be used, aditionally as this keypoint is not an actual body part
-        # There are no papers that give the rative value of distance between these two points
-        x = (mid_hip[0] + (neck[0]-mid_hip[0]))*2/3
-        y = (mid_hip[1] + (neck[1]-mid_hip[1]))*2/3
-        z = (mid_hip[2] + (neck[2]-mid_hip[2]))*2/3
+        # There are no papers that give the rative value of distance between these two points (verify this again)
+        x = mid_hip[0] + (neck[0]-mid_hip[0])*2/3
+        y = mid_hip[1] + (neck[1]-mid_hip[1])*2/3
+        z = mid_hip[2] + (neck[2]-mid_hip[2])*2/3
         spine_chest = [x,y,z]
         return spine_chest
 
@@ -251,7 +253,7 @@ class openpose_server():
 
 
                 head = self.get_body_points_3d(poseKeypoints, 'Head', xyz_array)
-                chest = self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array)
+                neck = self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array)
                 right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
                 left_shoulder = self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array)
                 left_elbow = self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array)
@@ -273,14 +275,18 @@ class openpose_server():
                 # Parameters that need to be satisfied in case hand is pointing based on observed data points
                 # Later try to shift this functionality to is_pointing() funtion
 
-                if ((left_elbow_angle > 120)and(abs(left_hand_tip_delta)>-0.1)):
+                ## Reduced value from -0.1 for hand tip delta from microsoft PSI's implementation as the position of the chest is a rough estimate in comparison to the original keypoint
+                # The value used is the best case value when person is closest to table
+                # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
+
+                if ((left_elbow_angle > 120)and(left_hand_tip_delta>-0.35)):
                     print('left hand pointing')
                     hand = 'left'
 
                     return OpenPoseKeypointsResponse(hand, left_hand_tip, head, open_pose_output_image_msg)
 
                     
-                elif ((right_elbow_angle > 120)and(abs(right_hand_tip_delta)>-0.1)):
+                elif ((right_elbow_angle > 120)and(right_hand_tip_delta>-0.35)):
                     print('right hand pointing')
                     hand = 'right'
 
@@ -290,6 +296,9 @@ class openpose_server():
                 else:
                     print('hand not pointing')
                     hand = 'none_pointing'
+                
+                # To destroy the cv2 window at the end
+                cv2.destroyAllWindows()
 
                 
 
