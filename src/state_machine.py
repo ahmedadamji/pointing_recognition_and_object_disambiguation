@@ -51,6 +51,8 @@ def main():
     classify_objects = ClassifyObjects(dataset='coco')
     #creates an instance of tiago class to interact with the user and perform physical actions
     tiago = Tiago()
+    # Lift tiago's torso and set head to default
+    tiago.lift_torso_head_default(True)
     #creates an instance of util class to use featues such as extract attributes of objects from yaml file and transform point frames
     util = Util()
     #creates an instance of move class to move robot across the map

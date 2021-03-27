@@ -99,9 +99,6 @@ class ApproachPerson(State):
 
         # CHANGE TABLE NAME HERE:
         self.tiago.talk("I am now going to lift my torso, and then approach the person at table 0" )
-        
-        # Lift tiago's torso and set head to default
-        self.tiago.lift_torso_head_default(True)
 
         # create the action client:
         self.movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
