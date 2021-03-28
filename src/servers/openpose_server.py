@@ -70,10 +70,10 @@ class openpose_server():
 
     def print_body_parameters(self, datum):
         rospy.loginfo('Printing Body Parameters')
-        print("Body keypoints: \n" + str(np.around(datum.poseKeypoints).astype(int)))
+        print("Body keypoints: \n" + str(datum.poseKeypoints.astype(float)))
         #print("Face keypoints: \n" + str(np.around(datum.faceKeypoints).fillna(0.0).astype(int)))
-        print("Left hand keypoints: \n" + str(np.around(datum.handKeypoints[0]).astype(int)))
-        print("Right hand keypoints: \n" + str(np.around(datum.handKeypoints[1]).astype(int)))
+        print("Left hand keypoints: \n" + str(datum.handKeypoints[0].astype(float)))
+        print("Right hand keypoints: \n" + str(datum.handKeypoints[1].astype(float)))
 
     # def set_flags(self):
     #     parser = argparse.ArgumentParser()
@@ -279,14 +279,14 @@ class openpose_server():
                 # The value used is the best case value when person is closest to table
                 # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
 
-                if ((left_elbow_angle > 120)and(left_hand_tip_delta>-0.35)):
+                if ((left_elbow_angle > 120)and(left_hand_tip_delta>-0.40)):
                     print('left hand pointing')
                     hand = 'left'
 
                     return OpenPoseKeypointsResponse(hand, left_hand_tip, head, open_pose_output_image_msg)
 
                     
-                elif ((right_elbow_angle > 120)and(right_hand_tip_delta>-0.35)):
+                elif ((right_elbow_angle > 120)and(right_hand_tip_delta>-0.40)):
                     print('right hand pointing')
                     hand = 'right'
 
