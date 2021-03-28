@@ -56,17 +56,29 @@ class openpose_server():
         rospy.loginfo('%s angle:%f'%(hand,angle))
         return angle
 
-    def get_hand_tip_delta(self, hand_tip, spine_chest, hand):
+    def get_hand_tip_chest_delta(self, hand_tip, spine_chest, hand):
         # After testing, change hand tip delta as a test parameter for is pointing or not to height difference between hand and chest
-        rospy.loginfo('Calculating hand tip delta')
+        rospy.loginfo('Calculating hand tip and chest delta')
         ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
         #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
         # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
-        handtipdelta = -(hand_tip[1] - spine_chest[1])
-        print("The handtipdelta for the "+ str(hand) + " hand is " + str(handtipdelta) + " meters")
-        #rospy.loginfo('%s handtipdelta:%f'%(hand, handtipdelta))
-        return handtipdelta
+        hand_tip_chest_delta = -(hand_tip[1] - spine_chest[1])
+        print("The hand_tip_chest_delta for the "+ str(hand) + " hand is " + str(hand_tip_chest_delta) + " meters")
+        #rospy.loginfo('%s hand_tip_chest_delta:%f'%(hand, hand_tip_chest_delta))
+        return hand_tip_chest_delta
 
+    def get_hand_tip_shoulder_delta(self, hand_tip, shoulder, hand):
+        # This parameter is needed to make the classifications for pointing invalid if a person is pointing above a certain height of the shoulder,
+        # as the application does not require pointing up towards a wall, standing objects or the ceiling
+        
+        rospy.loginfo('Calculating hand tip and shoulder delta')
+        ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
+        #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
+        # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
+        hand_tip_shoulder_delta = -(hand_tip[1] - shoulder[1])
+        print("The hand_tip_shoulder_delta for the "+ str(hand) + " hand is " + str(hand_tip_shoulder_delta) + " meters")
+        #rospy.loginfo('%s hand_tip_shoulder_delta:%f'%(hand, hand_tip_shoulder_delta))
+        return hand_tip_shoulder_delta
 
     def print_body_parameters(self, datum):
         rospy.loginfo('Printing Body Parameters')
@@ -266,8 +278,11 @@ class openpose_server():
                 right_hand_tip = self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array)
                 left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
                 right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
-                left_hand_tip_delta = self.get_hand_tip_delta(left_hand_tip,spine_chest,'left')
-                right_hand_tip_delta = self.get_hand_tip_delta(right_hand_tip,spine_chest,'right')
+                left_hand_tip_chest_delta = self.get_hand_tip_chest_delta(left_hand_tip,spine_chest,'left')
+                right_hand_tip_chest_delta = self.get_hand_tip_chest_delta(right_hand_tip,spine_chest,'right')
+                left_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(left_hand_tip,left_shoulder,'left')
+                right_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(right_hand_tip,right_shoulder,'right')
+
 
 
                 open_pose_output_image_msg = self.bridge.cv2_to_imgmsg(open_pose_output_image, encoding="bgr8")
@@ -278,15 +293,16 @@ class openpose_server():
                 ## Reduced value from -0.1 for hand tip delta from microsoft PSI's implementation as the position of the chest is a rough estimate in comparison to the original keypoint
                 # The value used is the best case value when person is closest to table
                 # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
+                # An additional parameter is used here for hand_tip_shoulder_delta, which ensures person pointing above a certain height is not considered.
 
-                if ((left_elbow_angle > 120)and(left_hand_tip_delta>-0.40)):
+                if ((left_elbow_angle > 120)and(left_hand_tip_chest_delta>-0.40)and(left_hand_tip_shoulder_delta<0)):
                     print('left hand pointing')
                     hand = 'left'
 
                     return OpenPoseKeypointsResponse(hand, left_hand_tip, head, open_pose_output_image_msg)
 
                     
-                elif ((right_elbow_angle > 120)and(right_hand_tip_delta>-0.40)):
+                elif ((right_elbow_angle > 120)and(right_hand_tip_chest_delta>-0.40)and(right_hand_tip_shoulder_delta<0)):
                     print('right hand pointing')
                     hand = 'right'
 
