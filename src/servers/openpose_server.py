@@ -82,10 +82,13 @@ class openpose_server():
 
     def print_body_parameters(self, datum):
         rospy.loginfo('Printing Body Parameters')
-        print("Body keypoints: \n" + str(datum.poseKeypoints.astype(float)))
+        body_keypoints = str(datum.poseKeypoints.astype(float))
+        print("Body keypoints: \n" + body_keypoints)
         #print("Face keypoints: \n" + str(np.around(datum.faceKeypoints).fillna(0.0).astype(int)))
-        print("Left hand keypoints: \n" + str(datum.handKeypoints[0].astype(float)))
-        print("Right hand keypoints: \n" + str(datum.handKeypoints[1].astype(float)))
+        left_hand_keypoints = str(datum.handKeypoints[0].astype(float))
+        print("Left hand keypoints: \n" + left_hand_keypoints)
+        right_hand_keypoints = str(datum.handKeypoints[1].astype(float))
+        print("Right hand keypoints: \n" + right_hand_keypoints)
 
     # def set_flags(self):
     #     parser = argparse.ArgumentParser()
@@ -202,6 +205,12 @@ class openpose_server():
         # xyz_array returns in meters
         return xyz_array[x][y]
 
+    def get_keypoint(keypoint, confidence):
+        if keypoint[2] > confidence:
+            return keypoint
+        else:
+            return [float("NaN"), float("NaN"), float("NaN")]
+
     def compute_pointing(self, req):
 
         img_msg = req.img_msg
@@ -263,19 +272,20 @@ class openpose_server():
                 handKeypointsL = datum.handKeypoints[0][i]
                 handKeypointsR = datum.handKeypoints[1][i]
 
+                # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as NaN to eliminate erronous calculations
 
-                head = self.get_body_points_3d(poseKeypoints, 'Head', xyz_array)
-                neck = self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array)
-                right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
-                left_shoulder = self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array)
-                left_elbow = self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array)
-                right_elbow = self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array)
-                left_hip = self.get_body_points_3d(poseKeypoints, 'LHip', xyz_array)
-                right_hip = self.get_body_points_3d(poseKeypoints, 'RHip', xyz_array)
-                mid_hip = self.get_mid_hip(left_hip, right_hip)
-                spine_chest = self.get_spine_chest(neck, mid_hip)
-                left_hand_tip = self.get_hand_points_3d(handKeypointsL, 'first_finger_tip', xyz_array)
-                right_hand_tip = self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array)
+                head = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'Head', xyz_array), 0.1)
+                neck = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array), 0.1)
+                right_shoulder = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array), 0.1)
+                left_shoulder = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array), 0.1)
+                left_elbow = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array), 0.1)
+                right_elbow = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array), 0.1)
+                left_hip = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'LHip', xyz_array), 0.1)
+                right_hip = self.get_keypoint(self.get_body_points_3d(poseKeypoints, 'RHip', xyz_array), 0.1)
+                mid_hip = self.get_keypoint(self.get_mid_hip(left_hip, right_hip), 0.1)
+                spine_chest = self.get_keypoint(self.get_spine_chest(neck, mid_hip), 0.1)
+                left_hand_tip = self.get_keypoint(self.get_hand_points_3d(handKeypointsL, 'first_finger_tip', xyz_array), 0.1)
+                right_hand_tip = self.get_keypoint(self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array), 0.1)
                 left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
                 right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
                 left_hand_tip_chest_delta = self.get_hand_tip_chest_delta(left_hand_tip,spine_chest,'left')
@@ -294,6 +304,8 @@ class openpose_server():
                 # The value used is the best case value when person is closest to table
                 # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
                 # An additional parameter is used here for hand_tip_shoulder_delta, which ensures person pointing above a certain height is not considered.
+
+                ## MOVE THIS FOLLOWING CODE TO THE POINTING_LOCATION_DETECTION.PY FILE
 
                 if ((left_elbow_angle > 120)and(left_hand_tip_chest_delta>-0.40)and(left_hand_tip_shoulder_delta<0)):
                     print('left hand pointing')
