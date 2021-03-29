@@ -205,6 +205,13 @@ class PointingLocationDetection(State):
             # Get 2D xy coordinate of the hypothesis point
             hypothesis_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(hypothesis_point_3d))
             print("Advancing across line of pointing")
+
+            # Making sure the hypothesis point does not go outside the camera frame
+            if (hypothesis_point_2d[0] >= 640) or (hypothesis_point_2d[1] >= 420) or (hypothesis_point_2d[0] <= 0) or (hypothesis_point_2d[1] <= 0):
+                print ("Couldn't find an intersection with the depth mesh within the camera frame")
+                # POTENTIAL FUTURE IMPROVEMENT --> Move the robot head along the pointing line so that it is not limited by the camera frame
+                return
+            
             # get the mesh distance of the hypothesis point by checking the depth data of the 2D coordinate:
             meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
 
@@ -227,6 +234,9 @@ class PointingLocationDetection(State):
                 ## TEST HERE IF THERE IS OBSTRUCTION TO POINTING LINE< WILL IT GIVE ERROR< ALSO MAKE IT SUCH THAT THE INTERSECTION IS ONLY CHECKED WITHIN A RADIUS
                 ## OF THE POINTING LINE TO ELIMINATE PROBLEMS WITH FAR AWAY OBJECTS OVERLAPPING WITH MESH, CHECK PERFORMANCE OF THIS AS WELL AND INCLUDE RESULTS OF BOTH
                 ## BEFORE AND AFTER IN REPORT
+
+        print ("Couldn't find an intersection with the depth mesh within the maximum distance for pointing")
+        return
         
 
     ## ATTEMPTS AT FINDING COLLISION WITH MESH -->
@@ -316,14 +326,22 @@ class PointingLocationDetection(State):
 
         start_point, end_point = self.get_pointing_line(hand_tip, head, open_pose_output_image)
 
-        maxDistance = 1
+        maxDistance = 5
         skipFactor = 0.05
 
-        intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(xyz_array, start_point, end_point, maxDistance, skipFactor)
+        try:
+            intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(xyz_array, start_point, end_point, maxDistance, skipFactor)
 
-        self.display_pointing_line(open_pose_output_image,start_point_2d, intersection_point_2d)
+            self.display_pointing_line(open_pose_output_image,start_point_2d, intersection_point_2d)
 
-        self.set_params(intersection_point_2d, intersection_point_3d, head)
+            self.set_params(intersection_point_2d, intersection_point_3d, head)
+
+            return True
+
+        except Exception as e:
+            print('Couldnt detect pointing location')
+            rospy.logwarn(e)
+            return False
 
 
     def execute(self, userdata):
@@ -364,10 +382,11 @@ class PointingLocationDetection(State):
 
             self.tiago.talk("I see that the person is pointing with their " + str(hand) + " hand at a table")
 
-            self.detect_pointing_location(hand_tip)
-            
-            return 'outcome1'
-            
+            result = self.detect_pointing_location(hand_tip)
+
+            if result == False:
+                self.tiago.talk("I cannot find the location for where the person is pointing")
+                return 'outcome2'
 
         except rospy.ROSInterruptException:
             pass
