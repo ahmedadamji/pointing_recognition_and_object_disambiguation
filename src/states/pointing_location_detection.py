@@ -137,102 +137,7 @@ class PointingLocationDetection(State):
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
-    # def GetMeshDepthAtPoint(self, ICameraIntrinsics depthIntrinsics, depth_points, Point3D point, bool undistort):
-    #     Point2D depthSpacePoint = self.ToPixelSpace(point, undistort)
-
-    #     x = int (math.round(depthSpacePoint.x))
-    #     y = int (math.round(depthSpacePoint.y))
-    #     if ((x < 0) or (x >= depth_points.width) or (y < 0) or (y >= depth_points.height)):
-    #         return float('NaN')
-
-    #     byteOffset = int ((y * depth_points.stride) + (x * 2))
-    #     depth = int(depth_points.ReadBytes(2, byteOffset))
-    #     if (depth == 0):
-    #         return float('NaN')
-
-    #     return float (depth / 1000)
-
-    # def ToPixelSpace(self, Point3D pt, bool distort):
-    #     # X points in the depth dimension. Y points to the left, and Z points up.
-    #     pixelPt = Point2D((-pt.y / pt.x), (-pt.z / pt.x))
-    #     if (distort):
-    #         this.DistortPoint(pixelPt, out pixelPt)
-
-    #     tmp = Point3D(pixelPt.x, pixelPt.y, 1.0)
-    #     tmp = tmp.TransformBy(this.transform)
-    #     return Point2D(tmp.x, tmp.y)
-
-
-    # Move this function to util
-    def project_depth_array_to_2d_image_pixels(self, point_3d):
-        #rospy.loginfo('projecting depth array to 2d image pixels')
-        camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
-        depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
-        uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
-        x = int(uvw[0] / uvw[2])
-        y = int(uvw[1] / uvw[2])
-
-        return x,y
-
-    def intersect_line_with_depth_mesh(self, xyz_array, skipFactor, maxDistance, start_point, end_point):
-        # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
-        delta = skipFactor * self.normalize(end_point - start_point)
-        maxSteps = int(maxDistance / (np.linalg.norm(delta)))
-        hypothesis_point_3d = start_point
-        for i in range(maxSteps):
-            # The delta is the maximum feature size in the x axis of the depth camera frame of the object,
-            # the hypothesis point may not lie on an object appearing smaller than this size from the distance of the robot.
-            # This may also affect objects that are curved on the edges and if the sides do not lie within the pointing line.
-            hypothesis_point_3d += delta
-            # Get 2D xy coordinate of the hypothesis point
-            hypothesis_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(hypothesis_point_3d))
-            print("Advancing across line of pointing")
-            # get the mesh distance of the hypothesis point by checking the depth data of the 2D coordinate:
-            meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
-
-            # if the mesh distance is less than the distance to the point we've hit the mesh
-            # can do so that in the selected pixel space, I can compare the depth, if the
-            # depth of the pointcloud is less then it is intersecting
-            # or i can just check if the point is inside the box selected
-            # ADD ANOTHER CONDITION OF hypothesis_point_3d[2]- meshDistance SHOULD BE LESS THAN A CERTAIN AMOUNT
-            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
-                hypothesis_point_3d = [hypothesis_point_3d[0], hypothesis_point_3d[1], hypothesis_point_3d[2]]
-
-                print "The location of pointing is identified at:"
-                print "DEPTH COORDINATES: "
-                print hypothesis_point_3d
-                print "RGB IMAGE COORDINATES: "
-                print hypothesis_point_2d
-
-                return hypothesis_point_3d, hypothesis_point_2d
-
-                ## TEST HERE IF THERE IS OBSTRUCTION TO POINTING LINE< WILL IT GIVE ERROR< ALSO MAKE IT SUCH THAT THE INTERSECTION IS ONLY CHECKED WITHIN A RADIUS
-                ## OF THE POINTING LINE TO ELIMINATE PROBLEMS WITH FAR AWAY OBJECTS OVERLAPPING WITH MESH, CHECK PERFORMANCE OF THIS AS WELL AND INCLUDE RESULTS OF BOTH
-                ## BEFORE AND AFTER IN REPORT
-        
-
-        ## FIRST ATTEMPTH AT FINDING COLLISION WITH MESH -->
-        # exit = False
-        # for x in range(640 - tip[0] - 20):
-        #     for y in range(480 - tip[1] - 20):
-        #         if math.isnan((xyz_array[x+tip[0]+20][y+tip[1]+20])[0]):
-        #             point = Point3D(0,0,0)
-        #         else:
-        #             recorded_point = np.array(xyz_array[x+tip[0]+20][y+tip[1]+20])
-        #             point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
-                
-        #         intersection = np.array(line.intersection(point))
-        #         if intersection.size > 0:
-        #             print(line.intersection(point))
-        #             exit = True
-        #         if(exit):
-        #             break
-        #     if(exit):
-        #         break
-
-
-
-    def get_pointing_line(self, hand_tip, head, xyz_array, open_pose_output_image, maxDistance = 5, skipFactor = 0.05):
+    def get_pointing_line(self, hand_tip, head, open_pose_output_image):
         rospy.loginfo('calucating the line of pointing')
         
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
@@ -273,8 +178,106 @@ class PointingLocationDetection(State):
         
         #cv2.waitKey(0)
 
-        intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(xyz_array, skipFactor, maxDistance, start_point, end_point)
+        return start_point, end_point
+
+
+    # Move this function to util
+    def project_depth_array_to_2d_image_pixels(self, point_3d):
+        #rospy.loginfo('projecting depth array to 2d image pixels')
+        camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
+        depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
+        uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
+        x = int(uvw[0] / uvw[2])
+        y = int(uvw[1] / uvw[2])
+
+        return x,y
+
+    def intersect_line_with_depth_mesh(self, xyz_array, start_point, end_point, maxDistance = 5, skipFactor = 0.05):
+        # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
+        delta = skipFactor * self.normalize(end_point - start_point)
+        maxSteps = int(maxDistance / (np.linalg.norm(delta)))
+        hypothesis_point_3d = start_point
+        for i in range(maxSteps):
+            # The delta is the maximum feature size in the x axis of the depth camera frame of the object,
+            # the hypothesis point may not lie on an object appearing smaller than this size from the distance of the robot.
+            # This may also affect objects that are curved on the edges and if the sides do not lie within the pointing line.
+            hypothesis_point_3d += delta
+            # Get 2D xy coordinate of the hypothesis point
+            hypothesis_point_2d = np.array(self.project_depth_array_to_2d_image_pixels(hypothesis_point_3d))
+            print("Advancing across line of pointing")
+            # get the mesh distance of the hypothesis point by checking the depth data of the 2D coordinate:
+            meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
+
+            # if the mesh distance is less than the distance to the point we've hit the mesh
+            # can do so that in the selected pixel space, I can compare the depth, if the
+            # depth of the pointcloud is less then it is intersecting
+            # or i can just check if the point is inside the box selected
+            # ADD ANOTHER CONDITION OF hypothesis_point_3d[2]- meshDistance SHOULD BE LESS THAN A CERTAIN AMOUNT
+            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
+                hypothesis_point_3d = [hypothesis_point_3d[0], hypothesis_point_3d[1], hypothesis_point_3d[2]]
+
+                print "The location of pointing is identified at:"
+                print "DEPTH COORDINATES: "
+                print hypothesis_point_3d
+                print "RGB IMAGE COORDINATES: "
+                print hypothesis_point_2d
+
+                return hypothesis_point_3d, hypothesis_point_2d
+
+                ## TEST HERE IF THERE IS OBSTRUCTION TO POINTING LINE< WILL IT GIVE ERROR< ALSO MAKE IT SUCH THAT THE INTERSECTION IS ONLY CHECKED WITHIN A RADIUS
+                ## OF THE POINTING LINE TO ELIMINATE PROBLEMS WITH FAR AWAY OBJECTS OVERLAPPING WITH MESH, CHECK PERFORMANCE OF THIS AS WELL AND INCLUDE RESULTS OF BOTH
+                ## BEFORE AND AFTER IN REPORT
         
+
+    ## ATTEMPTS AT FINDING COLLISION WITH MESH -->
+
+            # exit = False
+            # for x in range(640 - tip[0] - 20):
+            #     for y in range(480 - tip[1] - 20):
+            #         if math.isnan((xyz_array[x+tip[0]+20][y+tip[1]+20])[0]):
+            #             point = Point3D(0,0,0)
+            #         else:
+            #             recorded_point = np.array(xyz_array[x+tip[0]+20][y+tip[1]+20])
+            #             point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
+                    
+            #         intersection = np.array(line.intersection(point))
+            #         if intersection.size > 0:
+            #             print(line.intersection(point))
+            #             exit = True
+            #         if(exit):
+            #             break
+            #     if(exit):
+            #         break
+
+
+    # def GetMeshDepthAtPoint(self, ICameraIntrinsics depthIntrinsics, depth_points, Point3D point, bool undistort):
+    #     Point2D depthSpacePoint = self.ToPixelSpace(point, undistort)
+
+    #     x = int (math.round(depthSpacePoint.x))
+    #     y = int (math.round(depthSpacePoint.y))
+    #     if ((x < 0) or (x >= depth_points.width) or (y < 0) or (y >= depth_points.height)):
+    #         return float('NaN')
+
+    #     byteOffset = int ((y * depth_points.stride) + (x * 2))
+    #     depth = int(depth_points.ReadBytes(2, byteOffset))
+    #     if (depth == 0):
+    #         return float('NaN')
+
+    #     return float (depth / 1000)
+
+    # def ToPixelSpace(self, Point3D pt, bool distort):
+    #     # X points in the depth dimension. Y points to the left, and Z points up.
+    #     pixelPt = Point2D((-pt.y / pt.x), (-pt.z / pt.x))
+    #     if (distort):
+    #         this.DistortPoint(pixelPt, out pixelPt)
+
+    #     tmp = Point3D(pixelPt.x, pixelPt.y, 1.0)
+    #     tmp = tmp.TransformBy(this.transform)
+    #     return Point2D(tmp.x, tmp.y)
+
+
+
+    def display_pointing_line(self, open_pose_output_image,start_point_2d, intersection_point_2d):
         rospy.loginfo('displaying extended pointing line towards mesh')
         self.tiago.talk("I have computed the line of pointing and I am now going to display it to you" )
         # Stores extended line upto mesh
@@ -286,6 +289,8 @@ class PointingLocationDetection(State):
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
         cv2.waitKey(5000)
+
+    def set_params(self, intersection_point_2d, intersection_point_3d, head):
         
         # self.msg_to_send.intersection_point_2d = intersection_point_2d
         # self.msg_to_send.intersection_point_3d = intersection_point_3d
@@ -301,16 +306,31 @@ class PointingLocationDetection(State):
         #cv2.waitKey(0)
 
 
+        # Saving world coordinate for head for use during disambiguation in reference to user location
+        person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
+        rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
+
+    def detect_pointing_location(self, hand_tip):
+        open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pose_keypoints.open_pose_output_image_msg, "bgr8")
+        head = np.array(self.pose_keypoints.head)
+
+        start_point, end_point = self.get_pointing_line(hand_tip, head, open_pose_output_image)
+
+        maxDistance = 1
+        skipFactor = 0.05
+
+        intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(xyz_array, start_point, end_point, maxDistance, skipFactor)
+
+        self.display_pointing_line(open_pose_output_image,start_point_2d, intersection_point_2d)
+
+        self.set_params(intersection_point_2d, intersection_point_3d, head)
+
 
     def execute(self, userdata):
         rospy.loginfo('PointingLocationDetection state executing')
 
         self.tiago.talk("I am now going to look towards the person and determine weather he / she is pointing, and at which location" )
-        # # Flags
-        # args = self.set_flags()
 
-        # # Set Params
-        # params = self.set_params()
 
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
         
@@ -325,7 +345,7 @@ class PointingLocationDetection(State):
             rospy.wait_for_service('/openpose_detection')
             rospy.loginfo('connected to openpose_detection service')
 
-            # running object recognition
+            # running openpose detection
             try:
                 openpose_detection = rospy.ServiceProxy('/openpose_detection', OpenPoseKeypoints)
                 self.pose_keypoints = openpose_detection(img_msg, depth_points)
@@ -335,6 +355,7 @@ class PointingLocationDetection(State):
                 rospy.logwarn(e)
                 return 'outcome2'
 
+
             hand, hand_tip = self.is_pointing()
 
             if hand == 'none_pointing':
@@ -342,15 +363,9 @@ class PointingLocationDetection(State):
                 return 'outcome2'
 
             self.tiago.talk("I see that the person is pointing with their " + str(hand) + " hand at a table")
+
+            self.detect_pointing_location(hand_tip)
             
-            open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pose_keypoints.open_pose_output_image_msg, "bgr8")
-            head = np.array(self.pose_keypoints.head)
-            self.get_pointing_line(hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05) # (hand_tip, head, open_pose_output_image, maxDistance, skipFactor)
-
-            # Saving world coordinate for head for use during disambiguation in reference to user location
-            person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
-            rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
-
             return 'outcome1'
             
 
