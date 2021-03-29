@@ -119,7 +119,7 @@ class openpose_server():
             rospy.logerr('Unknown  [%s]', pos)
             return None
         
-        # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (639,0,nan) to eliminate erronous calculations
+        # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (nan,nan,nan) to eliminate erronous calculations
         keypoint = self.get_keypoint(human[pnt_index],0.5)
         pnt = [int(keypoint[0]), int(keypoint[1])]
         # returns the x,y,z coordinates in meters
@@ -140,8 +140,10 @@ class openpose_server():
         else:
             rospy.logerr('Unknown  [%s]', pos)
             return None
-        
-        pnt = [int(hand[pnt_index][0]), int(hand[pnt_index][1])]
+
+        # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (nan,nan,nan) to eliminate erronous calculations
+        keypoint = self.get_keypoint(hand[pnt_index],0.2)
+        pnt = [int(keypoint[0]), int(keypoint[1])]
         # returns the x,y,z coordinates in meters
         return self.get_depth(pnt, xyz_array)
 
@@ -240,6 +242,8 @@ class openpose_server():
                 left_shoulder = self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array)
                 left_elbow = self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array)
                 right_elbow = self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array)
+                left_wrist = self.get_body_points_3d(poseKeypoints, 'LWrist', xyz_array)
+                right_wrist = self.get_body_points_3d(poseKeypoints, 'RWrist', xyz_array)
                 left_hip = self.get_body_points_3d(poseKeypoints, 'LHip', xyz_array)
                 right_hip = self.get_body_points_3d(poseKeypoints, 'RHip', xyz_array)
                 mid_hip = self.get_mid_hip_3d(left_hip, right_hip)
@@ -250,9 +254,9 @@ class openpose_server():
                 open_pose_output_image_msg = self.bridge.cv2_to_imgmsg(open_pose_output_image, encoding="bgr8")
 
                 # To destroy the cv2 window at the end
-                #cv2.destroyAllWindows()
+                # cv2.destroyAllWindows()
 
-                return OpenPoseKeypointsResponse(head, right_shoulder, left_shoulder, left_elbow, right_elbow, spine_chest, left_hand_tip, right_hand_tip, open_pose_output_image_msg)
+                return OpenPoseKeypointsResponse(head, right_shoulder, left_shoulder, left_elbow, right_elbow, spine_chest, left_hand_tip, right_hand_tip, left_wrist, right_wrist, open_pose_output_image_msg)
 
 
                

@@ -52,26 +52,26 @@ class PointingLocationDetection(State):
         print np.degrees(angle)
         return np.degrees(angle)
 
-    def get_elbow_angle(self, shoulder,elbow,hand_tip, hand):
+    def get_elbow_angle(self, shoulder,elbow,wrist, hand):
         #To correctly calculate the angles, this must be done using the 3D points found at these keypoints and therefore this function needs to move to yje pointing_location_detection.py file
         rospy.loginfo('Calculating elbow angle')
         angle = 0
-        angle = self.angle_between_points(shoulder, elbow, hand_tip)
+        angle = self.angle_between_points(shoulder, elbow, wrist)
         rospy.loginfo('%s angle:%f'%(hand,angle))
         return angle
 
-    def get_hand_tip_chest_delta(self, hand_tip, spine_chest, hand):
+    def get_wrist_chest_delta(self, wrist, spine_chest, hand):
         # After testing, change hand tip delta as a test parameter for is pointing or not to height difference between hand and chest
         rospy.loginfo('Calculating hand tip and chest delta')
         ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
         #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
         # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
-        hand_tip_chest_delta = -(hand_tip[1] - spine_chest[1])
-        print("The hand_tip_chest_delta for the "+ str(hand) + " hand is " + str(hand_tip_chest_delta) + " meters")
-        #rospy.loginfo('%s hand_tip_chest_delta:%f'%(hand, hand_tip_chest_delta))
-        return hand_tip_chest_delta
+        wrist_chest_delta = -(wrist[1] - spine_chest[1])
+        print("The wrist_chest_delta for the "+ str(hand) + " hand is " + str(wrist_chest_delta) + " meters")
+        #rospy.loginfo('%s wrist_chest_delta:%f'%(hand, wrist_chest_delta))
+        return wrist_chest_delta
 
-    def get_hand_tip_shoulder_delta(self, hand_tip, shoulder, hand):
+    def get_wrist_shoulder_delta(self, wrist, shoulder, hand):
         # This parameter is needed to make the classifications for pointing invalid if a person is pointing above a certain height of the shoulder,
         # as the application does not require pointing up towards a wall, standing objects or the ceiling
         
@@ -79,10 +79,16 @@ class PointingLocationDetection(State):
         ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
         #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
         # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
-        hand_tip_shoulder_delta = -(hand_tip[1] - shoulder[1])
-        print("The hand_tip_shoulder_delta for the "+ str(hand) + " hand is " + str(hand_tip_shoulder_delta) + " meters")
-        #rospy.loginfo('%s hand_tip_shoulder_delta:%f'%(hand, hand_tip_shoulder_delta))
-        return hand_tip_shoulder_delta
+        wrist_shoulder_delta = -(wrist[1] - shoulder[1])
+        print("The wrist_shoulder_delta for the "+ str(hand) + " hand is " + str(wrist_shoulder_delta) + " meters")
+        #rospy.loginfo('%s wrist_shoulder_delta:%f'%(hand, wrist_shoulder_delta))
+        return wrist_shoulder_delta
+
+    def check_finger_tip(self, hand_tip, hand):
+        if (math.isnan(hand_tip[0])) or (math.isnan(hand_tip[1])) or (math.isnan(hand_tip[2])):
+            print("Sorry, but I could not detect the exact location of the person's "+ hand + " finger tip to be used for pointing location detection")
+            self.tiago.talk("Sorry, but I could not detect the exact location of the person's "+ hand + " finger tip to be used for pointing location detection")
+            return "isnan"
 
     def is_pointing(self):
 
@@ -93,14 +99,16 @@ class PointingLocationDetection(State):
         spine_chest = np.array(self.pose_keypoints.spine_chest)
         left_hand_tip = np.array(self.pose_keypoints.left_hand_tip)
         right_hand_tip = np.array(self.pose_keypoints.right_hand_tip)
+        left_wrist = np.array(self.pose_keypoints.left_wrist)
+        right_wrist = np.array(self.pose_keypoints.left_wrist)
 
 
-        left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
-        right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
-        left_hand_tip_chest_delta = self.get_hand_tip_chest_delta(left_hand_tip,spine_chest,'left')
-        right_hand_tip_chest_delta = self.get_hand_tip_chest_delta(right_hand_tip,spine_chest,'right')
-        left_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(left_hand_tip,left_shoulder,'left')
-        right_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(right_hand_tip,right_shoulder,'right')
+        left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_wrist,'left')
+        right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_wrist,'right')
+        left_wrist_chest_delta = self.get_wrist_chest_delta(left_wrist,spine_chest,'left')
+        right_wrist_chest_delta = self.get_wrist_chest_delta(right_wrist,spine_chest,'right')
+        left_wrist_shoulder_delta = self.get_wrist_shoulder_delta(left_wrist,left_shoulder,'left')
+        right_wrist_shoulder_delta = self.get_wrist_shoulder_delta(right_wrist,right_shoulder,'right')
 
 
         # Parameters that need to be satisfied in case hand is pointing based on observed data points
@@ -109,18 +117,28 @@ class PointingLocationDetection(State):
         ## Reduced value from -0.1 for hand tip delta from microsoft PSI's implementation as the position of the chest is a rough estimate in comparison to the original keypoint
         # The value used is the best case value when person is closest to table
         # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
-        # An additional parameter is used here for hand_tip_shoulder_delta, which ensures person pointing above a certain height is not considered.
+        # An additional parameter is used here for wrist_shoulder_delta, which ensures person pointing above a certain height is not considered.
 
-        if ((left_elbow_angle > 120)and(left_hand_tip_chest_delta>-0.40)and(left_hand_tip_shoulder_delta<0)):
-            print('left hand pointing')
+        if ((left_elbow_angle > 120)and(left_wrist_chest_delta>-0.40)and(left_wrist_shoulder_delta<0)):
+            print('left hand has been raised in pointing position')
+            self.tiago.talk("I can see that the person's left hand has been raised in pointing position")
+
             hand = 'left'
+
+            if(self.check_finger_tip(left_hand_tip, hand) == "isnan"):
+                return
 
             return hand, left_hand_tip
 
             
-        elif ((right_elbow_angle > 120)and(right_hand_tip_chest_delta>-0.40)and(right_hand_tip_shoulder_delta<0)):
-            print('right hand pointing')
+        elif ((right_elbow_angle > 120)and(right_wrist_chest_delta>-0.40)and(right_wrist_shoulder_delta<0)):
+            print('right hand has been raised in pointing position')
+            self.tiago.talk("I can see that the person's right hand has been raised in pointing position")
+
             hand = 'right'
+
+            if(self.check_finger_tip(right_hand_tip, hand) == "isnan"):
+                return
 
             return hand, right_hand_tip
 
@@ -178,7 +196,7 @@ class PointingLocationDetection(State):
         
         #cv2.waitKey(0)
 
-        return start_point, end_point
+        return start_point_3d, end_point_3d, start_point_2d, end_point_2d
 
 
     # Move this function to util
@@ -192,7 +210,7 @@ class PointingLocationDetection(State):
 
         return x,y
 
-    def intersect_line_with_depth_mesh(self, xyz_array, start_point, end_point, maxDistance = 5, skipFactor = 0.05):
+    def intersect_line_with_depth_mesh(self, start_point, end_point, maxDistance = 5, skipFactor = 0.05):
         # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
         delta = skipFactor * self.normalize(end_point - start_point)
         maxSteps = int(maxDistance / (np.linalg.norm(delta)))
@@ -213,7 +231,7 @@ class PointingLocationDetection(State):
                 return
             
             # get the mesh distance of the hypothesis point by checking the depth data of the 2D coordinate:
-            meshDistance = xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
+            meshDistance = self.xyz_array[hypothesis_point_2d[0]][hypothesis_point_2d[1]][2]
 
             # if the mesh distance is less than the distance to the point we've hit the mesh
             # can do so that in the selected pixel space, I can compare the depth, if the
@@ -244,10 +262,10 @@ class PointingLocationDetection(State):
             # exit = False
             # for x in range(640 - tip[0] - 20):
             #     for y in range(480 - tip[1] - 20):
-            #         if math.isnan((xyz_array[x+tip[0]+20][y+tip[1]+20])[0]):
+            #         if math.isnan((self.xyz_array[x+tip[0]+20][y+tip[1]+20])[0]):
             #             point = Point3D(0,0,0)
             #         else:
-            #             recorded_point = np.array(xyz_array[x+tip[0]+20][y+tip[1]+20])
+            #             recorded_point = np.array(self.xyz_array[x+tip[0]+20][y+tip[1]+20])
             #             point = Point3D(recorded_point[0],recorded_point[1],recorded_point[2])
                     
             #         intersection = np.array(line.intersection(point))
@@ -324,13 +342,13 @@ class PointingLocationDetection(State):
         open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pose_keypoints.open_pose_output_image_msg, "bgr8")
         head = np.array(self.pose_keypoints.head)
 
-        start_point, end_point = self.get_pointing_line(hand_tip, head, open_pose_output_image)
+        start_point_3d, end_point_3d, start_point_2d, end_point_2d  = self.get_pointing_line(hand_tip, head, open_pose_output_image)
 
         maxDistance = 5
         skipFactor = 0.05
 
         try:
-            intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(xyz_array, start_point, end_point, maxDistance, skipFactor)
+            intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(start_point_3d, end_point_3d, maxDistance, skipFactor)
 
             self.display_pointing_line(open_pose_output_image,start_point_2d, intersection_point_2d)
 
@@ -355,8 +373,8 @@ class PointingLocationDetection(State):
         # To save the depth coordinates once so that I don't have to call it again and doesnt slow everything
         ## MAKE XYZ_ARRAY A GLOBAL VARIABLE
         depth_points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
-        xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(depth_points, remove_nans=False)
-        xyz_array = np.transpose(xyz_array, (1, 0, 2))
+        self.xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(depth_points, remove_nans=False)
+        self.xyz_array = np.transpose(self.xyz_array, (1, 0, 2))
 
         try:
             rospy.loginfo('waiting for openpose_detection service')
@@ -373,8 +391,12 @@ class PointingLocationDetection(State):
                 rospy.logwarn(e)
                 return 'outcome2'
 
-
-            hand, hand_tip = self.is_pointing()
+            try:
+                hand, hand_tip = self.is_pointing()
+            except Exception as e:
+                print('Couldnt detect pointing location')
+                rospy.logwarn(e)
+                return 'outcome2'
 
             if hand == 'none_pointing':
                 self.tiago.talk("I can see that the person is not pointing at any table")
