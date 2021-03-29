@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import cv2
-#import math
+import math
 import numpy as np
 import ros_numpy
 #import argparse
@@ -121,6 +121,10 @@ class openpose_server():
         
         # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (nan,nan,nan) to eliminate erronous calculations
         keypoint = self.get_keypoint(human[pnt_index],0.5)
+        if (math.isnan(keypoint[0]) or math.isnan(keypoint[0])):
+            pnt = [float("NaN"),float("NaN")]
+            return self.get_depth(pnt, xyz_array)
+
         pnt = [int(keypoint[0]), int(keypoint[1])]
         # returns the x,y,z coordinates in meters
         return self.get_depth(pnt, xyz_array)
@@ -143,6 +147,10 @@ class openpose_server():
 
         # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (nan,nan,nan) to eliminate erronous calculations
         keypoint = self.get_keypoint(hand[pnt_index],0.2)
+        if (math.isnan(keypoint[0]) or math.isnan(keypoint[0])):
+            pnt = [float("NaN"),float("NaN")]
+            return self.get_depth(pnt, xyz_array)
+
         pnt = [int(keypoint[0]), int(keypoint[1])]
         # returns the x,y,z coordinates in meters
         return self.get_depth(pnt, xyz_array)
@@ -151,8 +159,11 @@ class openpose_server():
         #rospy.loginfo('Requesting depth data at requested pixel')
         # Gets the z distance from tiago to the object at pixel x,y in the camera image.
         # x and y are in pixels
+
         x = pnt[0]
         y = pnt[1]
+        if (math.isnan(x) or math.isnan(y)):
+            return [float("NaN"), float("NaN"), float("NaN")]
 
 
         #print(np.shape(xyz_array))
@@ -172,7 +183,7 @@ class openpose_server():
             return keypoint
         else:
             # This number is used so that the keypoint lies in the lower left corner of the image which makes the keypoint meaningless
-            return [639, 0, float("NaN")]
+            return [float("NaN"), float("NaN"), float("NaN")]
 
     def compute_pointing(self, req):
 

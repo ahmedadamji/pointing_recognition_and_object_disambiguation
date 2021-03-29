@@ -100,9 +100,10 @@ class PointingLocationDetection(State):
         left_hand_tip = np.array(self.pose_keypoints.left_hand_tip)
         right_hand_tip = np.array(self.pose_keypoints.right_hand_tip)
         left_wrist = np.array(self.pose_keypoints.left_wrist)
-        right_wrist = np.array(self.pose_keypoints.left_wrist)
+        right_wrist = np.array(self.pose_keypoints.right_wrist)
 
-
+        print right_shoulder,right_elbow,right_wrist,'right'
+        print left_shoulder,left_elbow,left_wrist,'left'
         left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_wrist,'left')
         right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_wrist,'right')
         left_wrist_chest_delta = self.get_wrist_chest_delta(left_wrist,spine_chest,'left')
