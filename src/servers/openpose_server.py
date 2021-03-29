@@ -212,6 +212,7 @@ class openpose_server():
         if keypoint[2] > confidence:
             return keypoint
         else:
+            # This number is used so that the keypoint lies in the lower left corner of the image which makes the keypoint meaningless
             return [639, 0, float("NaN")]
 
     def compute_pointing(self, req):
@@ -299,42 +300,14 @@ class openpose_server():
 
                 open_pose_output_image_msg = self.bridge.cv2_to_imgmsg(open_pose_output_image, encoding="bgr8")
 
-                # Parameters that need to be satisfied in case hand is pointing based on observed data points
-                # Later try to shift this functionality to is_pointing() funtion
-
-                ## Reduced value from -0.1 for hand tip delta from microsoft PSI's implementation as the position of the chest is a rough estimate in comparison to the original keypoint
-                # The value used is the best case value when person is closest to table
-                # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
-                # An additional parameter is used here for hand_tip_shoulder_delta, which ensures person pointing above a certain height is not considered.
-
-                ## MOVE THIS FOLLOWING CODE TO THE POINTING_LOCATION_DETECTION.PY FILE
-
-                if ((left_elbow_angle > 120)and(left_hand_tip_chest_delta>-0.40)and(left_hand_tip_shoulder_delta<0)):
-                    print('left hand pointing')
-                    hand = 'left'
-
-                    # To destroy the cv2 window at the end
-                    #cv2.destroyAllWindows()
-
-                    return OpenPoseKeypointsResponse(hand, left_hand_tip, head, open_pose_output_image_msg)
-
-                    
-                elif ((right_elbow_angle > 120)and(right_hand_tip_chest_delta>-0.40)and(right_hand_tip_shoulder_delta<0)):
-                    print('right hand pointing')
-                    hand = 'right'
-
-                    # To destroy the cv2 window at the end
-                    #cv2.destroyAllWindows()
-
-                    return OpenPoseKeypointsResponse(hand, right_hand_tip, head, open_pose_output_image_msg)
 
 
-                else:
-                    print('hand not pointing')
-                    hand = 'none_pointing'
 
-                    # To destroy the cv2 window at the end
-                    #cv2.destroyAllWindows()
+                return OpenPoseKeypointsResponse(left_elbow_angle, right_elbow_angle, left_hand_tip_chest_delta, right_hand_tip_chest_delta, 
+                                                 left_hand_tip_shoulder_delta, right_hand_tip_shoulder_delta, left_hand_tip, right_hand_tip, head, open_pose_output_image_msg)
+
+                # To destroy the cv2 window at the end
+                #cv2.destroyAllWindows()
                 
 
 

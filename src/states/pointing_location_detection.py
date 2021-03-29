@@ -209,6 +209,38 @@ class PointingLocationDetection(State):
 
         #cv2.waitKey(0)
 
+    def is_pointing(self):
+
+        # Parameters that need to be satisfied in case hand is pointing based on observed data points
+        # Later try to shift this functionality to is_pointing() funtion
+
+        ## Reduced value from -0.1 for hand tip delta from microsoft PSI's implementation as the position of the chest is a rough estimate in comparison to the original keypoint
+        # The value used is the best case value when person is closest to table
+        # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
+        # An additional parameter is used here for hand_tip_shoulder_delta, which ensures person pointing above a certain height is not considered.
+
+        ## MOVE THIS FOLLOWING CODE TO THE POINTING_LOCATION_DETECTION.PY FILE
+
+        if ((self.pose_keypoints.left_elbow_angle > 120)and(self.pose_keypoints.left_hand_tip_chest_delta>-0.40)and(self.pose_keypoints.left_hand_tip_shoulder_delta<0)):
+            print('left hand pointing')
+            hand = 'left'
+
+            return hand, self.pose_keypoints.left_hand_tip
+
+            
+        elif ((self.pose_keypoints.right_elbow_angle > 120)and(self.pose_keypoints.right_hand_tip_chest_delta>-0.40)and(self.pose_keypoints.right_hand_tip_shoulder_delta<0)):
+            print('right hand pointing')
+            hand = 'right'
+
+            return hand, self.pose_keypoints.right_hand_tip
+
+
+        else:
+            print('hand not pointing')
+            hand = 'none_pointing'
+
+            return hand, [0,0,0]
+
 
 
 
@@ -237,22 +269,29 @@ class PointingLocationDetection(State):
 
             # running object recognition
             try:
-                compute_pointing = rospy.ServiceProxy('/openpose_detection', OpenPoseKeypoints)
-                self.pointing_result = compute_pointing(img_msg, depth_points)
+                openpose_detection = rospy.ServiceProxy('/openpose_detection', OpenPoseKeypoints)
+                self.pose_keypoints = openpose_detection(img_msg, depth_points)
 
             except rospy.ServiceException as e:
                 print('Pointing detection failed')
                 rospy.logwarn(e)
                 return 'outcome2'
+
+            hand, hand_tip = self.is_pointing()
+
+            if hand == 'none_pointing':
+                self.tiago.talk("I can see that the person is not pointing at any table")
+                return 'outcome2'
+
+            self.tiago.talk("I see that the person is pointing with their " + str(hand) + " hand at a table")
             
-            self.tiago.talk("I see that the person is pointing with their " + str(self.pointing_result.hand) + " hand")
-            open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pointing_result.open_pose_output_image_msg, "bgr8")
-            hand_tip = np.array(self.pointing_result.hand_tip)
-            head = np.array(self.pointing_result.head)
+            open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pose_keypoints.open_pose_output_image_msg, "bgr8")
+            hand_tip = np.array(hand_tip)
+            head = np.array(self.pose_keypoints.head)
             self.get_pointing_line(hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05) # (hand_tip, head, open_pose_output_image, maxDistance, skipFactor)
 
             # Saving world coordinate for head for use during disambiguation in reference to user location
-            person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(self.pointing_result.head)
+            person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
             rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
 
             return 'outcome1'
