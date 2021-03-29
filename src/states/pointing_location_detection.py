@@ -41,6 +41,97 @@ class PointingLocationDetection(State):
         self.util = util
 
 
+    def angle_between_points( self, a, b, c ):
+        rospy.loginfo('Calculating angle between points')
+        ba = np.array(a) - np.array(b)
+        bc = np.array(c) - np.array(b)
+
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.arccos(cosine_angle)
+
+        print np.degrees(angle)
+        return np.degrees(angle)
+
+    def get_elbow_angle(self, shoulder,elbow,hand_tip, hand):
+        #To correctly calculate the angles, this must be done using the 3D points found at these keypoints and therefore this function needs to move to yje pointing_location_detection.py file
+        rospy.loginfo('Calculating elbow angle')
+        angle = 0
+        angle = self.angle_between_points(shoulder, elbow, hand_tip)
+        rospy.loginfo('%s angle:%f'%(hand,angle))
+        return angle
+
+    def get_hand_tip_chest_delta(self, hand_tip, spine_chest, hand):
+        # After testing, change hand tip delta as a test parameter for is pointing or not to height difference between hand and chest
+        rospy.loginfo('Calculating hand tip and chest delta')
+        ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
+        #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
+        # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
+        hand_tip_chest_delta = -(hand_tip[1] - spine_chest[1])
+        print("The hand_tip_chest_delta for the "+ str(hand) + " hand is " + str(hand_tip_chest_delta) + " meters")
+        #rospy.loginfo('%s hand_tip_chest_delta:%f'%(hand, hand_tip_chest_delta))
+        return hand_tip_chest_delta
+
+    def get_hand_tip_shoulder_delta(self, hand_tip, shoulder, hand):
+        # This parameter is needed to make the classifications for pointing invalid if a person is pointing above a certain height of the shoulder,
+        # as the application does not require pointing up towards a wall, standing objects or the ceiling
+        
+        rospy.loginfo('Calculating hand tip and shoulder delta')
+        ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
+        #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
+        # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
+        hand_tip_shoulder_delta = -(hand_tip[1] - shoulder[1])
+        print("The hand_tip_shoulder_delta for the "+ str(hand) + " hand is " + str(hand_tip_shoulder_delta) + " meters")
+        #rospy.loginfo('%s hand_tip_shoulder_delta:%f'%(hand, hand_tip_shoulder_delta))
+        return hand_tip_shoulder_delta
+
+    def is_pointing(self):
+
+        right_shoulder = np.array(self.pose_keypoints.right_shoulder)
+        left_shoulder = np.array(self.pose_keypoints.left_shoulder)
+        left_elbow = np.array(self.pose_keypoints.left_elbow)
+        right_elbow = np.array(self.pose_keypoints.right_elbow)
+        spine_chest = np.array(self.pose_keypoints.spine_chest)
+        left_hand_tip = np.array(self.pose_keypoints.left_hand_tip)
+        right_hand_tip = np.array(self.pose_keypoints.right_hand_tip)
+
+
+        left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
+        right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
+        left_hand_tip_chest_delta = self.get_hand_tip_chest_delta(left_hand_tip,spine_chest,'left')
+        right_hand_tip_chest_delta = self.get_hand_tip_chest_delta(right_hand_tip,spine_chest,'right')
+        left_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(left_hand_tip,left_shoulder,'left')
+        right_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(right_hand_tip,right_shoulder,'right')
+
+
+        # Parameters that need to be satisfied in case hand is pointing based on observed data points
+        # Later try to shift this functionality to is_pointing() funtion
+
+        ## Reduced value from -0.1 for hand tip delta from microsoft PSI's implementation as the position of the chest is a rough estimate in comparison to the original keypoint
+        # The value used is the best case value when person is closest to table
+        # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
+        # An additional parameter is used here for hand_tip_shoulder_delta, which ensures person pointing above a certain height is not considered.
+
+        if ((left_elbow_angle > 120)and(left_hand_tip_chest_delta>-0.40)and(left_hand_tip_shoulder_delta<0)):
+            print('left hand pointing')
+            hand = 'left'
+
+            return hand, left_hand_tip
+
+            
+        elif ((right_elbow_angle > 120)and(right_hand_tip_chest_delta>-0.40)and(right_hand_tip_shoulder_delta<0)):
+            print('right hand pointing')
+            hand = 'right'
+
+            return hand, right_hand_tip
+
+
+        else:
+            print('hand not pointing')
+            hand = 'none_pointing'
+
+            return hand, [0,0,0]
+
+
     def normalize(self, array):
         #rospy.loginfo('normalizing recieved array')
         normalized = array/np.linalg.norm(array, axis = 0)
@@ -209,39 +300,6 @@ class PointingLocationDetection(State):
 
         #cv2.waitKey(0)
 
-    def is_pointing(self):
-
-        # Parameters that need to be satisfied in case hand is pointing based on observed data points
-        # Later try to shift this functionality to is_pointing() funtion
-
-        ## Reduced value from -0.1 for hand tip delta from microsoft PSI's implementation as the position of the chest is a rough estimate in comparison to the original keypoint
-        # The value used is the best case value when person is closest to table
-        # Additionaly the value they have used is not based upon pointing downwards, and therefore an extra distance between the hand tip and the chest is needed (verify this)
-        # An additional parameter is used here for hand_tip_shoulder_delta, which ensures person pointing above a certain height is not considered.
-
-        ## MOVE THIS FOLLOWING CODE TO THE POINTING_LOCATION_DETECTION.PY FILE
-
-        if ((self.pose_keypoints.left_elbow_angle > 120)and(self.pose_keypoints.left_hand_tip_chest_delta>-0.40)and(self.pose_keypoints.left_hand_tip_shoulder_delta<0)):
-            print('left hand pointing')
-            hand = 'left'
-
-            return hand, self.pose_keypoints.left_hand_tip
-
-            
-        elif ((self.pose_keypoints.right_elbow_angle > 120)and(self.pose_keypoints.right_hand_tip_chest_delta>-0.40)and(self.pose_keypoints.right_hand_tip_shoulder_delta<0)):
-            print('right hand pointing')
-            hand = 'right'
-
-            return hand, self.pose_keypoints.right_hand_tip
-
-
-        else:
-            print('hand not pointing')
-            hand = 'none_pointing'
-
-            return hand, [0,0,0]
-
-
 
 
     def execute(self, userdata):
@@ -286,7 +344,6 @@ class PointingLocationDetection(State):
             self.tiago.talk("I see that the person is pointing with their " + str(hand) + " hand at a table")
             
             open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pose_keypoints.open_pose_output_image_msg, "bgr8")
-            hand_tip = np.array(hand_tip)
             head = np.array(self.pose_keypoints.head)
             self.get_pointing_line(hand_tip, head, xyz_array, open_pose_output_image, 1, 0.05) # (hand_tip, head, open_pose_output_image, maxDistance, skipFactor)
 

@@ -37,49 +37,6 @@ class openpose_server():
         rospy.loginfo('openpose_detection service initialised')
         rospy.spin()
 
-    
-    def angle_between_points( self, a, b, c ):
-        rospy.loginfo('Calculating angle between points')
-        ba = np.array(a) - np.array(b)
-        bc = np.array(c) - np.array(b)
-
-        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-        angle = np.arccos(cosine_angle)
-
-        print np.degrees(angle)
-        return np.degrees(angle)
-
-    def get_elbow_angle(self, shoulder,elbow,hand_tip, hand):
-        #To correctly calculate the angles, this must be done using the 3D points found at these keypoints and therefore this function needs to move to yje pointing_location_detection.py file
-        rospy.loginfo('Calculating elbow angle')
-        angle = 0
-        angle = self.angle_between_points(shoulder, elbow, hand_tip)
-        rospy.loginfo('%s angle:%f'%(hand,angle))
-        return angle
-
-    def get_hand_tip_chest_delta(self, hand_tip, spine_chest, hand):
-        # After testing, change hand tip delta as a test parameter for is pointing or not to height difference between hand and chest
-        rospy.loginfo('Calculating hand tip and chest delta')
-        ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
-        #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
-        # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
-        hand_tip_chest_delta = -(hand_tip[1] - spine_chest[1])
-        print("The hand_tip_chest_delta for the "+ str(hand) + " hand is " + str(hand_tip_chest_delta) + " meters")
-        #rospy.loginfo('%s hand_tip_chest_delta:%f'%(hand, hand_tip_chest_delta))
-        return hand_tip_chest_delta
-
-    def get_hand_tip_shoulder_delta(self, hand_tip, shoulder, hand):
-        # This parameter is needed to make the classifications for pointing invalid if a person is pointing above a certain height of the shoulder,
-        # as the application does not require pointing up towards a wall, standing objects or the ceiling
-        
-        rospy.loginfo('Calculating hand tip and shoulder delta')
-        ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
-        #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
-        # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
-        hand_tip_shoulder_delta = -(hand_tip[1] - shoulder[1])
-        print("The hand_tip_shoulder_delta for the "+ str(hand) + " hand is " + str(hand_tip_shoulder_delta) + " meters")
-        #rospy.loginfo('%s hand_tip_shoulder_delta:%f'%(hand, hand_tip_shoulder_delta))
-        return hand_tip_shoulder_delta
 
     def print_body_parameters(self, datum):
         rospy.loginfo('Printing Body Parameters')
@@ -116,14 +73,14 @@ class openpose_server():
         # params['3d_views'] = 2
         return params
 
-    def get_mid_hip(self, left_hip, right_hip):
+    def get_mid_hip_3d(self, left_hip, right_hip):
         x = (left_hip[0]+right_hip[0])/2
         y = (left_hip[1]+right_hip[1])/2
         z = (left_hip[2]+right_hip[2])/2
         mid_hip = [x,y,z]
         return mid_hip
     
-    def get_spine_chest(self, neck, mid_hip):
+    def get_spine_chest_3d(self, neck, mid_hip):
         #The spine_chest refered by microsoft psi for calculating the hand tip delta, with respect to https://docs.microsoft.com/en-us/azure/kinect-dk/body-joints
         # is 2/3 above the mid_hip, between the neck and the mid_hip, therefore as this is not automatically detected, this rough figure will be used, aditionally as this keypoint is not an actual body part
         # There are no papers that give the rative value of distance between these two points (verify this again)
@@ -285,33 +242,20 @@ class openpose_server():
                 right_elbow = self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array)
                 left_hip = self.get_body_points_3d(poseKeypoints, 'LHip', xyz_array)
                 right_hip = self.get_body_points_3d(poseKeypoints, 'RHip', xyz_array)
-                mid_hip = self.get_mid_hip(left_hip, right_hip)
-                spine_chest = self.get_spine_chest(neck, mid_hip)
+                mid_hip = self.get_mid_hip_3d(left_hip, right_hip)
+                spine_chest = self.get_spine_chest_3d(neck, mid_hip)
                 left_hand_tip = self.get_hand_points_3d(handKeypointsL, 'first_finger_tip', xyz_array)
                 right_hand_tip = self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array)
-                left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_hand_tip,'left')
-                right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_hand_tip,'right')
-                left_hand_tip_chest_delta = self.get_hand_tip_chest_delta(left_hand_tip,spine_chest,'left')
-                right_hand_tip_chest_delta = self.get_hand_tip_chest_delta(right_hand_tip,spine_chest,'right')
-                left_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(left_hand_tip,left_shoulder,'left')
-                right_hand_tip_shoulder_delta = self.get_hand_tip_shoulder_delta(right_hand_tip,right_shoulder,'right')
-
-
 
                 open_pose_output_image_msg = self.bridge.cv2_to_imgmsg(open_pose_output_image, encoding="bgr8")
 
-
-
-
-                return OpenPoseKeypointsResponse(left_elbow_angle, right_elbow_angle, left_hand_tip_chest_delta, right_hand_tip_chest_delta, 
-                                                 left_hand_tip_shoulder_delta, right_hand_tip_shoulder_delta, left_hand_tip, right_hand_tip, head, open_pose_output_image_msg)
-
                 # To destroy the cv2 window at the end
                 #cv2.destroyAllWindows()
-                
+
+                return OpenPoseKeypointsResponse(head, right_shoulder, left_shoulder, left_elbow, right_elbow, spine_chest, left_hand_tip, right_hand_tip, open_pose_output_image_msg)
 
 
-                
+               
 
         
         except Exception as e:
