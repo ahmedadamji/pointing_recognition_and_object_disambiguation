@@ -11,6 +11,7 @@ from collections import namedtuple
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, PointCloud2, RegionOfInterest, PointField
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
+import math
 
 
 # Refered catering_erl for yolo_object_recognition
@@ -30,16 +31,25 @@ class PointedObjectDetection(State):
     
     def define_bounding_box_around_intersection_point(self, point_3d):
         centre = np.array([point_3d[0],point_3d[1],point_3d[2]])
-        sides = np.array([0.30,0.30,0.30])  # 30cm sides # Need to change this to a reasonable number
-        min_xyz = centre-(sides/2)
-        max_xyz = centre+(sides/2)
+        self.radius_of_pointing = rospy.get_param("/radius_of_pointing")
 
-        self.box_start_point_3d = min_xyz
-        self.box_end_point_3d = max_xyz
+        # sides = np.array([0.30,0.30,0.30])  # 30cm sides # Need to change this to a reasonable number
+        # min_xyz = centre-(sides/2)
+        # max_xyz = centre+(sides/2)
+
+        # self.box_start_point_3d = min_xyz
+        # self.box_end_point_3d = max_xyz
+
 
         # For visualisaition purposes on top of 2d image
-        self.box_start_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(min_xyz)
-        self.box_end_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(max_xyz)
+
+        # TO FIND THE RADIUS IN PIXELS TO PLOT
+        dx = self.intersection_point_2d[0] - self.util.get_2d_pixel_coordinate_from_world_coordinate(self.radius_of_pointing + centre)[0]
+        dy = self.intersection_point_2d[1] - self.util.get_2d_pixel_coordinate_from_world_coordinate(self.radius_of_pointing + centre)[1]
+        self.radius_of_pointing_2d = math.hypot(dx, dy)
+
+        # self.box_start_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(min_xyz)
+        # self.box_end_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(max_xyz)
 
     
 
@@ -47,10 +57,10 @@ class PointedObjectDetection(State):
         
         #print self.intersection_point_world
         intersection_point_3d = self.util.transform_from_world_frame_to_camera_frame(self.intersection_point_world)
-        # Finding the bounding box coordinates
-        self.define_bounding_box_around_intersection_point(self.intersection_point_world)
         #print intersection_point_3d
         self.intersection_point_2d = self.util.get_2d_camera_point_from_3d_depth_point(intersection_point_3d)
+        # Finding the bounding box coordinates
+        self.define_bounding_box_around_intersection_point(self.intersection_point_world)
         #print self.intersection_point_2d
 
         image_raw = rospy.wait_for_message('/xtion/rgb/image_raw', Image)
@@ -64,7 +74,11 @@ class PointedObjectDetection(State):
         # box_end_point = (self.intersection_point_2d[0]+150),(self.intersection_point_2d[1]+150)
 
         # Plotting the bounding box
-        cv2.rectangle(frame, self.box_start_point_2d, self.box_end_point_2d, (0,0,255), 1)
+        colour = (0,0,255)
+        thickness = 1
+        #cv2.rectangle(frame, self.box_start_point_2d, self.box_end_point_2d, (0,0,255), 1)
+        cv2.circle(frame, self.intersection_point_2d, self.radius_of_pointing_2d, colour, thickness)
+
         # Plotting the centre point of the bounding box
         cv2.circle(frame,(self.intersection_point_2d[0],self.intersection_point_2d[1]), 4, (0,150,150), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
@@ -85,7 +99,7 @@ class PointedObjectDetection(State):
     def detect_objects(self):
 
         self.classify_objects.subscribe_to_vision_messages()
-        yolo_detections = self.classify_objects.yolo_object_detection(self.box_start_point_2d, self.box_end_point_2d, self.intersection_point_2d)
+        yolo_detections = self.classify_objects.yolo_object_detection(self.radius_of_pointing_2d, self.intersection_point_2d)
         # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
             return None
@@ -114,12 +128,26 @@ class PointedObjectDetection(State):
 
             # if (((self.box_start_point_3d[0] <= xywh[0] <= self.box_end_point_3d[0]) and (self.box_start_point_3d[1] <= xywh[1] <= self.box_end_point_3d[1]))
             #     and ((self.box_start_point_3d[0] <= (xywh[0]+xywh[2]) <= self.box_end_point_3d[0]) and (self.box_start_point_3d[1] <= (xywh[1]+xywh[3]) <= self.box_end_point_3d[1]))):
-                
-            if ((self.box_start_point_3d[0] <= world_coordinate[0] <= self.box_end_point_3d[0]) and (self.box_start_point_3d[1] <= world_coordinate[1] <= self.box_end_point_3d[1]) 
-                and (self.box_start_point_3d[2] <= world_coordinate[2] <= self.box_end_point_3d[2])):
 
+            # A point lies inside the sphere if:
+            #( point.x-centre.x ) ^2 + (point.y-centre.y) ^2 + (point.z-centre.z) ^ 2 <= r^2
+
+            dx_sq = math.pow((world_coordinate[0]-centre[0]), 2)
+            dy_sq = math.pow((world_coordinate[1]-centre[1]), 2)
+            dz_sq = math.pow((world_coordinate[2]-centre[2]), 2)
+            distance_between_point_and_centre = dx_sq + dy_sq + dz_sq
+            rad_sq = math.pow(self.radius_of_pointing, 2)
+
+            if (distance_between_point_and_centre <= rad_sq):
                 self.total_objects_within_pointing_bounding_box += 1
                 objects_within_pointing_bounding_box_indices.append(i)
+
+                
+            # if ((self.box_start_point_3d[0] <= world_coordinate[0] <= self.box_end_point_3d[0]) and (self.box_start_point_3d[1] <= world_coordinate[1] <= self.box_end_point_3d[1]) 
+            #     and (self.box_start_point_3d[2] <= world_coordinate[2] <= self.box_end_point_3d[2])):
+
+            #     self.total_objects_within_pointing_bounding_box += 1
+            #     objects_within_pointing_bounding_box_indices.append(i)
         
         return objects_within_pointing_bounding_box_indices
 
@@ -188,7 +216,7 @@ class PointedObjectDetection(State):
             self.tiago.talk("Therefore further disambiguation is needed")
         
         #rospy.set_param('/objects_on_table', objects_on_table)
-        rospy.set_param('/objects_within_pointing_bounding_box', self.objects_within_pointing_bounding_box)
+        rospy.set_param('/objects_within_pointing_bounding_box', self.objects_within_pointing_bounding_box)  # CHECK IF THE FOLLOWING IS NEEDED.
         rospy.set_param('/camera_point_after_object_detection_2d', [self.intersection_point_2d[0], self.intersection_point_2d[1]])
 
 

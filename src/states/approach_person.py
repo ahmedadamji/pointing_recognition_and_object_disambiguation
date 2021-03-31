@@ -66,8 +66,9 @@ class ApproachPerson(State):
 
 
     def check_person_around_table(self):
-        degrees = 0
-        while degrees > -90:
+        degrees = 45
+        while (degrees > -45) and (degrees < 45):
+
 
             # Sending Move class the angle to rotate about, and stores result in rotate, and also returns the final movebase location
             rotate, location = self.move.rotate_around_base(degrees)
@@ -84,7 +85,8 @@ class ApproachPerson(State):
                 # rospy.set_param('/pointing_person_approach', location)
 
                 return True
-            degrees -= 45
+            degrees -= 20
+
                 
         print('No Person was found at this table')
         return False

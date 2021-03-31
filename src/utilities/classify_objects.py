@@ -25,7 +25,7 @@ class ClassifyObjects:
         self.points = rospy.wait_for_message('/xtion/depth_registered/points', PointCloud2)
     
     # Box start point and endpoint are set to defaut 0,0 as they are only needed in some states when the data is passed.
-    def yolo_object_detection(self, box_start_point = (0,0), box_end_point = (0,0), camera_point_2d = (0,0)):
+    def yolo_object_detection(self, radius_of_pointing_2d = 0, camera_point_2d = (0,0)):
         try:
             rospy.loginfo('waiting for yolo_detection service')
             rospy.wait_for_service('/yolo_detection')
@@ -50,7 +50,10 @@ class ClassifyObjects:
                 return
 
             # Plotting the bounding box
-            cv2.rectangle(frame, box_start_point, box_end_point, (0,0,255), 1)
+            colour = (0,0,255)
+            thickness = 1
+            #cv2.rectangle(frame, box_start_point, box_end_point, (0,0,255), 1)
+            cv2.circle(frame, camera_point_2d, radius_of_pointing_2d, colour, thickness)
             # Plotting the centre point of the bounding box
             cv2.circle(frame,(camera_point_2d[0],camera_point_2d[1]), 4, (0,150,150), 1)
 

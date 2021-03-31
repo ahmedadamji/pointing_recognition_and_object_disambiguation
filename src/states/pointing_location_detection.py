@@ -211,7 +211,7 @@ class PointingLocationDetection(State):
 
         return x,y
 
-    def intersect_line_with_depth_mesh(self, start_point, end_point, maxDistance = 5, skipFactor = 0.05):
+    def intersect_line_with_depth_mesh(self, start_point, end_point, radius_of_pointing = 0.18, maxDistance = 5, skipFactor = 0.05):
         # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
         delta = skipFactor * self.normalize(end_point - start_point)
         maxSteps = int(maxDistance / (np.linalg.norm(delta)))
@@ -239,7 +239,8 @@ class PointingLocationDetection(State):
             # depth of the pointcloud is less then it is intersecting
             # or i can just check if the point is inside the box selected
             # ADD ANOTHER CONDITION OF hypothesis_point_3d[2]- meshDistance SHOULD BE LESS THAN A CERTAIN AMOUNT
-            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2])):
+            mesh_to_hypothesis_point_gap = abs(meshDistance - hypothesis_point_3d[2])
+            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2]) and (mesh_to_hypothesis_point_gap < radius_of_pointing)):
                 hypothesis_point_3d = [hypothesis_point_3d[0], hypothesis_point_3d[1], hypothesis_point_3d[2]]
 
                 print "The location of pointing is identified at:"
@@ -317,7 +318,7 @@ class PointingLocationDetection(State):
         cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
-        cv2.waitKey(5000)
+        cv2.waitKey(0)
 
     def set_params(self, intersection_point_2d, intersection_point_3d, head):
         
@@ -344,12 +345,13 @@ class PointingLocationDetection(State):
         head = np.array(self.pose_keypoints.head)
 
         start_point_3d, end_point_3d, start_point_2d, end_point_2d  = self.get_pointing_line(hand_tip, head, open_pose_output_image)
-
+        radius_of_pointing = 0.18
+        rospy.set_param('/radius_of_pointing', radius_of_pointing)
         maxDistance = 5
         skipFactor = 0.05
 
         try:
-            intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(start_point_3d, end_point_3d, maxDistance, skipFactor)
+            intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(start_point_3d, end_point_3d, radius_of_pointing, maxDistance, skipFactor)
 
             self.display_pointing_line(open_pose_output_image,start_point_2d, intersection_point_2d)
 
@@ -423,7 +425,7 @@ class PointingLocationDetection(State):
 
         
         # To destroy cv2 window at the end of state
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
 
         #self.opWrapper.stop()
         
