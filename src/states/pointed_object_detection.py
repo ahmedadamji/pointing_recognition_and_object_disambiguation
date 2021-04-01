@@ -103,7 +103,7 @@ class PointedObjectDetection(State):
         # Not finding segmentations if no objects detected using yolo
         if not len(yolo_detections):
             return None
-        self.classify_objects.yolo_get_object_coordinates()
+        # self.classify_objects.yolo_get_object_coordinates()
         return yolo_detections
 
     def get_object_indices(self, yolo_detections):

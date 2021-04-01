@@ -44,7 +44,6 @@ class ClassifyObjects:
 
             try:
                 frame = self.bridge.imgmsg_to_cv2(self.detection_result.image_bb, 'bgr8')
-                # cv2.imshow('frame', frame)
             except CvBridgeError as ex:
                 rospy.logwarn(ex)
                 return
@@ -73,113 +72,66 @@ class ClassifyObjects:
             rospy.logwarn('timed out waiting for yolo_detection service')
             rospy.logwarn(ex)
 
+
+
     # def yolo_get_object_coordinates(self):
+    #     # segments objects in pcl by clustering
+    #     # npr is about how much of the cloud to filter out
+    #     # cluster_tol distance between each point to be considered in 1 cluster. 0.02 is 2cm
+    #     # last two are min and max number of points in a cluster
 
-    #     self.points = rospy.wait_for_message('/xtion/depth_registered/points', PointCloud2)
-
-    #     transformer = tf.TransformListener()
-    #     object_coordinates = []
-    #     header = self.points.header
-    #     height = self.points.height
-    #     width = self.points.width
-    #     cloud = np.fromstring(self.points.data, np.float32)
-    #     cloud = cloud.reshape(height, width, 8)
-    #     transformer.waitForTransform('xtion_rgb_optical_frame', 'map', self.points.header.stamp, rospy.Duration(10.0))
-
-
-    #     for each_object in self.detection_result.detected_objects:
-    #         # Enable this only if only dinining table needs to be detected
-    #         # if not each_object.name == 'diningtable':
-    #         #     continue
+    #     try:
+    #         rospy.loginfo('waiting for segment_objects server')
+    #         rospy.wait_for_service('/segment_objects')
+    #         rospy.loginfo('connected to segment_objects server')
             
-    #         region_size = 2
-    #         while True:
-    #             # calculate centre points
-    #             centre_x = int((each_object.xywh[0] + each_object.xywh[2]/2) - region_size)
-    #             centre_y = int((each_object.xywh[1] + each_object.xywh[3]/2) - region_size)
-    #             # extract xyz values along points of interest
-    #             centre_cluster = cloud[centre_y  : centre_y + region_size, centre_x : centre_x + region_size, 0:3]
-    #             not_nan_count = 0
+    #         segmentation_request = SegmentObjectsRequest(self.points, 0.5, 0.02)
+    #         segmentation_result = self.segment_objects_srv(segmentation_request)
 
-    #             for axes in centre_cluster:
-    #                 for point in axes:
-    #                     # Over here use my method of checking for nan in pointcloud, or else use this method in openpose_actions as well
-    #                     if not (np.isnan(point[0]) or np.isnan(point[1]) or np.isnan(point[2])):
-    #                         not_nan_count += 1
+    #         width = self.points.width
 
-    #             if not_nan_count >= 3:
-    #                 break
-                
-    #             region_size += 2
+    #         rospy.loginfo('No of clusters found from segment objects : ')
+    #         rospy.loginfo(len(segmentation_result.clusters))
 
-    #         mean = np.nanmean(centre_cluster, axis=1)
-    #         mean = np.nanmean(mean, axis=0)
-    #         centre_point = PointStamped()
-    #         centre_point.header = self.points.header
-    #         centre_point.point = Point(*mean)
+    #         bounding_boxes = []
+    #         for cluster in segmentation_result.clusters:
+    #             left = cluster.indices[0]%width
+    #             right = cluster.indices[0]%width
+    #             top = int(cluster.indices[0]/width)
+    #             bottom = int(cluster.indices[0]/width)
 
-    #         object_point = transformer.transformPoint('map', centre_point)
-    #         print object_point
-    #         object_coordinates.append(object_point)
+    #             for index in cluster.indices:
+    #                 row = int(index/width)
+    #                 column = index%width
 
-    def yolo_get_object_coordinates(self):
-        # segments objects in pcl by clustering
-        # npr is about how much of the cloud to filter out
-        # cluster_tol distance between each point to be considered in 1 cluster. 0.02 is 2cm
-        # last two are min and max number of points in a cluster
+    #                 left = min(left, column)
+    #                 right = max(right, column)
+    #                 top = min(top, row)
+    #                 bottom = max(bottom, row)
 
-        try:
-            rospy.loginfo('waiting for segment_objects server')
-            rospy.wait_for_service('/segment_objects')
-            rospy.loginfo('connected to segment_objects server')
-            
-            segmentation_request = SegmentObjectsRequest(self.points, 0.5, 0.02)
-            segmentation_result = self.segment_objects_srv(segmentation_request)
-
-            width = self.points.width
-
-            rospy.loginfo('No of clusters found from segment objects : ')
-            rospy.loginfo(len(segmentation_result.clusters))
-
-            bounding_boxes = []
-            for cluster in segmentation_result.clusters:
-                left = cluster.indices[0]%width
-                right = cluster.indices[0]%width
-                top = int(cluster.indices[0]/width)
-                bottom = int(cluster.indices[0]/width)
-
-                for index in cluster.indices:
-                    row = int(index/width)
-                    column = index%width
-
-                    left = min(left, column)
-                    right = max(right, column)
-                    top = min(top, row)
-                    bottom = max(bottom, row)
-
-                bounding_box = RegionOfInterest()
-                bounding_box.x_offset = left
-                bounding_box.y_offset = top
-                bounding_box.width = right - left
-                bounding_box.height = bottom - top
-                bounding_boxes.append(bounding_box)
+    #             bounding_box = RegionOfInterest()
+    #             bounding_box.x_offset = left
+    #             bounding_box.y_offset = top
+    #             bounding_box.width = right - left
+    #             bounding_box.height = bottom - top
+    #             bounding_boxes.append(bounding_box)
 
 
-            try:
-                frame = self.bridge.imgmsg_to_cv2(self.image_raw, 'bgr8').copy()
-                # cv2.imshow('frame', frame)
-            except CvBridgeError as ex:
-                rospy.logwarn(ex)
-                return
-            for bb in bounding_boxes:
-                cv2.rectangle(frame, (bb.x_offset, bb.y_offset),
-                    (bb.x_offset + bb.width, bb.y_offset + bb.height), (255, 0, 255), 1)
+    #         try:
+    #             frame = self.bridge.imgmsg_to_cv2(self.image_raw, 'bgr8').copy()
+    #             # cv2.imshow('frame', frame)
+    #         except CvBridgeError as ex:
+    #             rospy.logwarn(ex)
+    #             return
+    #         for bb in bounding_boxes:
+    #             cv2.rectangle(frame, (bb.x_offset, bb.y_offset),
+    #                 (bb.x_offset + bb.width, bb.y_offset + bb.height), (255, 0, 255), 1)
 
-            cv2.imshow('PCL Object Segmentation Results', frame)
-            cv2.waitKey(5000)
+    #         cv2.imshow('PCL Object Segmentation Results', frame)
+    #         cv2.waitKey(5000)
 
-            # To destroy cv2 window at the end of state
-            # cv2.destroyAllWindows()
+    #         # To destroy cv2 window at the end of state
+    #         # cv2.destroyAllWindows()
 
-        except rospy.ServiceException as ex:
-            rospy.logwarn(ex)
+    #     except rospy.ServiceException as ex:
+    #         rospy.logwarn(ex)
