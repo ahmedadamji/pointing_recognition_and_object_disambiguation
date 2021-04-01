@@ -318,7 +318,7 @@ class PointingLocationDetection(State):
         cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
-        cv2.waitKey(0)
+        cv2.waitKey(5000)
 
     def set_params(self, intersection_point_2d, intersection_point_3d, head):
         
@@ -333,7 +333,7 @@ class PointingLocationDetection(State):
         rospy.set_param('/intersection_point_world', [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()])
         #rospy.set_param('/start_point_3d', [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
 
-        #cv2.waitKey(0)
+        cv2.waitKey(5000)
 
 
         # Saving world coordinate for head for use during disambiguation in reference to user location
@@ -413,6 +413,14 @@ class PointingLocationDetection(State):
                 self.tiago.talk("I cannot find the location for where the person is pointing")
                 return 'outcome2'
 
+                    
+            # To destroy cv2 window at the end of state
+            cv2.destroyAllWindows()
+
+            #self.opWrapper.stop()
+            
+            return 'outcome1'
+
         except rospy.ROSInterruptException:
             pass
         except rospy.ServiceException as ex:
@@ -423,10 +431,4 @@ class PointingLocationDetection(State):
             rospy.logwarn(ex)
 
 
-        
-        # To destroy cv2 window at the end of state
-        #cv2.destroyAllWindows()
 
-        #self.opWrapper.stop()
-        
-        return 'outcome1'

@@ -299,7 +299,7 @@ class ObjectDisambiguation(State):
                 # return user_response
         
 
-        user_response = self.tiago.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
+        user_response = self.tiago.get_data_from_user("speech", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
 
 

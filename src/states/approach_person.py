@@ -46,7 +46,7 @@ class ApproachPerson(State):
         #self.classify_objects.yolo_get_object_coordinates()
 
         for index in range(len(yolo_detections)):
-            if (yolo_detections[index].name == 'person'):
+            if (yolo_detections[index].name.lower() == 'person'):
                 print('A person was found in frame')
                 return True
         print('No person was found in frame')
@@ -58,6 +58,7 @@ class ApproachPerson(State):
 
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
+        self.move.rotate_around_base(-35)
         if movebase == True:
             self.tiago.talk("I have now reached the goal location" )
         else:
@@ -66,8 +67,8 @@ class ApproachPerson(State):
 
 
     def check_person_around_table(self):
-        degrees = 45
-        while (degrees > -45) and (degrees < 45):
+        degrees = 0
+        while (degrees <= 70):
 
 
             # Sending Move class the angle to rotate about, and stores result in rotate, and also returns the final movebase location
@@ -85,7 +86,7 @@ class ApproachPerson(State):
                 # rospy.set_param('/pointing_person_approach', location)
 
                 return True
-            degrees -= 20
+            degrees += 35
 
                 
         print('No Person was found at this table')

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
   <!-- Storing default arg names -->
-  <arg name="world"  default="test12_pointing_person_left_hand_left_of_table_obstacle"/>
+  <arg name="world"  default="test1"/>
   <arg name="gzpose" default="-x 0.0  -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y  0.0"/>
   <!-- <arg name="gzpose" default="-x 0.0 -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y -1.570796" if="$(arg lost)"/> -->
   <arg name="gzclient"          default="true"/> <!--SET TO FALSE TO NOT START GAZEBO TO SAVE GPU MEMORY-->

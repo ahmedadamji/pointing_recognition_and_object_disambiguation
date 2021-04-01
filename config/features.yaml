@@ -45,7 +45,7 @@ list_of_attributes:
   - colour: ['red','orange','yellow',white]
     type: ['fruit','utensil']
     texture: ['smooth','wrinkled']
-    size: ['small,'medium','long','large']
+    size: ['small','medium','long','large']
     shape: ['round', 'curved','straight']
     position: ["north", "front", "right", "east", "behind", "south", "left", "west", "centre"]
 

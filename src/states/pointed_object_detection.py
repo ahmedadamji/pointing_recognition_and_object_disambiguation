@@ -46,7 +46,7 @@ class PointedObjectDetection(State):
         # TO FIND THE RADIUS IN PIXELS TO PLOT
         dx = self.intersection_point_2d[0] - self.util.get_2d_pixel_coordinate_from_world_coordinate(self.radius_of_pointing + centre)[0]
         dy = self.intersection_point_2d[1] - self.util.get_2d_pixel_coordinate_from_world_coordinate(self.radius_of_pointing + centre)[1]
-        self.radius_of_pointing_2d = math.hypot(dx, dy)
+        self.radius_of_pointing_2d = int(math.hypot(dx, dy))
 
         # self.box_start_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(min_xyz)
         # self.box_end_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(max_xyz)
