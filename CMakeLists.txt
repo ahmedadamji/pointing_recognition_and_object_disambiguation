@@ -59,7 +59,7 @@ add_message_files(
 
 add_service_files(
   FILES
-  OpenPoseKeypoints.srv
+  PoseKeypoints.srv
 )
 
 ## Generate actions in the 'action' folder

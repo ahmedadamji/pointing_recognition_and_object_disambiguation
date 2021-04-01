@@ -8,7 +8,7 @@ import ros_numpy
 
 from cv_bridge import CvBridge, CvBridgeError
 
-from pointing_recognition.srv import OpenPoseKeypoints, OpenPoseKeypointsResponse
+from pointing_recognition.srv import PoseKeypoints, PoseKeypointsResponse
 
 
 from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
@@ -33,7 +33,7 @@ class openpose_server():
         self.opWrapper.start()
 
 
-        serv = rospy.Service('openpose_detection', OpenPoseKeypoints, self.compute_pointing)
+        serv = rospy.Service('openpose_detection', PoseKeypoints, self.compute_pointing)
         rospy.loginfo('openpose_detection service initialised')
         rospy.spin()
 
@@ -267,7 +267,7 @@ class openpose_server():
                 # To destroy the cv2 window at the end
                 # cv2.destroyAllWindows()
 
-                return OpenPoseKeypointsResponse(head, right_shoulder, left_shoulder, left_elbow, right_elbow, spine_chest, left_hand_tip, right_hand_tip, left_wrist, right_wrist, open_pose_output_image_msg)
+                return PoseKeypointsResponse(head, right_shoulder, left_shoulder, left_elbow, right_elbow, spine_chest, left_hand_tip, right_hand_tip, left_wrist, right_wrist, open_pose_output_image_msg)
 
 
                

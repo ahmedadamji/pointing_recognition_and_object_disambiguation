@@ -9,7 +9,7 @@ from pointing_recognition.msg import IntersectionData
 
 from smach import State
 
-from pointing_recognition.srv import OpenPoseKeypoints
+from pointing_recognition.srv import PoseKeypoints
 
 import cv2
 import math
@@ -386,7 +386,7 @@ class PointingLocationDetection(State):
 
             # running openpose detection
             try:
-                openpose_detection = rospy.ServiceProxy('/openpose_detection', OpenPoseKeypoints)
+                openpose_detection = rospy.ServiceProxy('/openpose_detection', PoseKeypoints)
                 self.pose_keypoints = openpose_detection(img_msg, depth_points)
 
             except rospy.ServiceException as e:
