@@ -46,7 +46,6 @@ class ObjectDisambiguation(State):
 
         self.objects_with_attributes = self.util.object_attributes
         self.list_of_attributes = self.util.list_of_attributes
-        self.list_of_objects_capable_of_disambiguation = self.util.list_of_objects_capable_of_disambiguation
 
     def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
         #Converting north, south, east, west TO front, behind , right , left
@@ -315,7 +314,7 @@ class ObjectDisambiguation(State):
         index = 0
         while index < len(self.objects_within_pointing_bounding_box):
             # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
-            if self.objects_within_pointing_bounding_box[index].get('name') in self.list_of_objects_capable_of_disambiguation:
+            if self.objects_within_pointing_bounding_box[index].get('name') in self.util.list_of_objects_capable_of_disambiguation:
                 current_object = self.objects_within_pointing_bounding_box[index]
                 compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
                 index +=1

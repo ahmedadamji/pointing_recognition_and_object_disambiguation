@@ -178,6 +178,22 @@ class PointedObjectDetection(State):
             # self.objects_within_pointing_bounding_box.append([[yolo_detections[index].name],
             #                                    [yolo_detections[index].confidence],
             #                                    [yolo_detections[index].xywh]])
+        
+        # Checking if any objects found are capable of disambiguation
+        # if found object equals one, this does not need to be disambiguated.
+        if len(self.objects_within_pointing_bounding_box) > 1:
+            count = 0
+            for current_object in self.objects_within_pointing_bounding_box:
+                # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
+                if current_object.get('name') in self.util.list_of_objects_capable_of_disambiguation:
+                    count +=1
+            if count == 0:
+                return False
+            else:
+                return True
+        else:
+            return True
+
 
 
 
@@ -191,7 +207,11 @@ class PointedObjectDetection(State):
         self.draw_bounding_box_around_intersection_point()
 
         yolo_detections = self.detect_objects()
-        self.get_objects_within_pointing_bounding_box(yolo_detections)
+        if not self.get_objects_within_pointing_bounding_box(yolo_detections):
+            #print "Objects found are not capable of disambiguation"
+            self.tiago.talk("Sorry but the objects I found are not yet programmed to be disambiguated")
+
+            return 'outcome2'
 
         if self.total_objects_within_pointing_bounding_box == 0:
             #print "No objects were found within pointing bounding box"
