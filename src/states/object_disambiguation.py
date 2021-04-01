@@ -265,14 +265,16 @@ class ObjectDisambiguation(State):
         # Stores indices of objects from within the bounding box to be eliminated
         eliminated_objects_indices = []
         if not all([ v == 0 for v in self.total_matches]):
-            # Index of each object remaining in the bounding box
-            index = 0
-            for match in self.total_matches:
-                if match == 0:
-                    # Updating eliminated objects
-                    eliminated_objects_indices.append(index)
-                    
-                index +=1
+            print "None of the objects found match with the provided attribute"
+            #self.tiago.talk("None of the objects found match with the provided attribute")
+        # Index of each object remaining in the bounding box
+        index = 0
+        for match in self.total_matches:
+            if match == 0:
+                # Updating eliminated objects
+                eliminated_objects_indices.append(index)
+                
+            index +=1
 
         eliminated_objects_indices.reverse()
         for elemination_index in eliminated_objects_indices:
