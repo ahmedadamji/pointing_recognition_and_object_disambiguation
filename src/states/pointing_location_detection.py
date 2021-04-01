@@ -228,6 +228,7 @@ class PointingLocationDetection(State):
             # Making sure the hypothesis point does not go outside the camera frame
             if (hypothesis_point_2d[0] >= 640) or (hypothesis_point_2d[1] >= 420) or (hypothesis_point_2d[0] <= 0) or (hypothesis_point_2d[1] <= 0):
                 print ("Couldn't find an intersection with the depth mesh within the camera frame")
+                self.tiago.talk("I couldn't find an intersection with the depth mesh within the camera frame")
                 # POTENTIAL FUTURE IMPROVEMENT --> Move the robot head along the pointing line so that it is not limited by the camera frame
                 return
             
@@ -255,7 +256,8 @@ class PointingLocationDetection(State):
                 ## OF THE POINTING LINE TO ELIMINATE PROBLEMS WITH FAR AWAY OBJECTS OVERLAPPING WITH MESH, CHECK PERFORMANCE OF THIS AS WELL AND INCLUDE RESULTS OF BOTH
                 ## BEFORE AND AFTER IN REPORT
 
-        print ("Couldn't find an intersection with the depth mesh within the maximum distance for pointing")
+        print ("I couldn't find an intersection with the depth mesh within the maximum distance for pointing")
+        self.tiago.talk("I couldn't find an intersection with the depth mesh within the maximum distance for pointing")
         return
         
 
@@ -410,7 +412,6 @@ class PointingLocationDetection(State):
             result = self.detect_pointing_location(hand_tip)
 
             if result == False:
-                self.tiago.talk("I cannot find the location for where the person is pointing")
                 return 'outcome2'
 
                     

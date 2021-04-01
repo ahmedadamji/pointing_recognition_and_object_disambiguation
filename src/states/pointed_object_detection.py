@@ -115,7 +115,7 @@ class PointedObjectDetection(State):
             # Finding world coordinate for each detection to check weather it is within pointing bounding box and on the table
             world_coordinate = self.get_world_coordinate_for_object(yolo_detections[i])
             # # need intersection_point_world as centre of bounding box
-            # self.intersection_point_world
+            #self.intersection_point_world
 
             # Using the world location of the current table being pointed at to check which objects lie within this region
             self.current_table
@@ -132,9 +132,9 @@ class PointedObjectDetection(State):
             # A point lies inside the sphere if:
             #( point.x-centre.x ) ^2 + (point.y-centre.y) ^2 + (point.z-centre.z) ^ 2 <= r^2
 
-            dx_sq = math.pow((world_coordinate[0]-centre[0]), 2)
-            dy_sq = math.pow((world_coordinate[1]-centre[1]), 2)
-            dz_sq = math.pow((world_coordinate[2]-centre[2]), 2)
+            dx_sq = math.pow((world_coordinate[0]-self.intersection_point_world[0]), 2)
+            dy_sq = math.pow((world_coordinate[1]-self.intersection_point_world[1]), 2)
+            dz_sq = math.pow((world_coordinate[2]-self.intersection_point_world[2]), 2)
             distance_between_point_and_centre = dx_sq + dy_sq + dz_sq
             rad_sq = math.pow(self.radius_of_pointing, 2)
 
