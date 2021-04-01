@@ -169,7 +169,7 @@ class PointedObjectDetection(State):
             world_coordinate = self.get_world_coordinate_for_object(yolo_detections[index])
 
             current_object = {
-            "name": yolo_detections[index].name,
+            "name": yolo_detections[index].name.lower(),
             "confidence": yolo_detections[index].confidence,
             "xywh": yolo_detections[index].xywh,
             "world_coordinate": [world_coordinate[0].item(), world_coordinate[1].item(), world_coordinate[2].item()]

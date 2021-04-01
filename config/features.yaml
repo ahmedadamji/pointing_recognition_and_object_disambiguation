@@ -1,38 +1,52 @@
 object_attributes:
   - name: 'apple'
     colour: 'red'
-    type: 'fresh'
+    type: 'fruit'
     texture: 'smooth'
     size: 'medium'
     shape: 'round'
 
   - name: 'banana'
     colour: 'yellow'
-    type: 'fresh'
+    type: 'fruit'
     texture: 'smooth'
     size: 'long'
     shape: 'curved'
 
   - name: 'orange'
     colour: 'orange'
-    type: 'fresh'
+    type: 'fruit'
     texture: 'wrinkled'
     size: 'medium'
     shape: 'round'
 
+  - name: 'lemon'
+    colour: 'yellow'
+    type: 'fruit'
+    texture: 'wrinkled'
+    size: 'small'
+    shape: 'round'
+
+  - name: 'carrot'
+    colour: 'orange'
+    type: 'vegetable'
+    texture: 'wrinkled'
+    size: 'long'
+    shape: 'straight'
+
   - name: 'bowl'
     colour: 'white'
-    type: 'vessel'
+    type: 'utensil'
     texture: 'smooth'
     size: 'large'
     shape: 'round'
 
 list_of_attributes:
-  - colour: ['red','orange','yellow']
-    type: ['fresh']
+  - colour: ['red','orange','yellow',white]
+    type: ['fruit','utensil']
     texture: ['smooth','wrinkled']
-    size: ['medium','long', 'large']
-    shape: ['round', 'curved']
+    size: ['small,'medium','long','large']
+    shape: ['round', 'curved','straight']
     position: ["north", "front", "right", "east", "behind", "south", "left", "west", "centre"]
 
-list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange']
+list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange','lemon','carrot','bowl']

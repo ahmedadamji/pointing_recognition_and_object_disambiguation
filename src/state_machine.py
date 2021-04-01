@@ -48,7 +48,8 @@ def main():
     #actions.execute()
 
     # default dataset for yolo3 is coco unless change needed for more accurate detection from a particular dataset, which is passed here.
-    classify_objects = ClassifyObjects(dataset='coco')
+    # openimages can be used which offers almost all common objects for detection
+    classify_objects = ClassifyObjects(dataset='openimages')
     #creates an instance of tiago class to interact with the user and perform physical actions
     tiago = Tiago()
     # Lift tiago's torso and set head to default
