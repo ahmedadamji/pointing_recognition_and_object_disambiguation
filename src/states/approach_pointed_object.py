@@ -27,6 +27,7 @@ class ApproachPointedObject(State):
         self.move = move
 
 
+
     def get_table(self, intersection_point_world):
         #tables = rospy.get_param('/tables')
         for table_id in range(0, len(self.tables)):
