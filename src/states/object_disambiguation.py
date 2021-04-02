@@ -67,7 +67,7 @@ class ObjectDisambiguation(State):
         distance_between_points = math.hypot(deltaX, deltaY)
 
         # Test it out if this distance of 0.02 is useful or if i should change it back to 0
-        if distance_between_points < 0.02:
+        if distance_between_points < 0:
             compass_direction = self.compass_directions[5]
             return compass_direction
 
@@ -302,8 +302,11 @@ class ObjectDisambiguation(State):
         user_response = self.tiago.get_data_from_user("speech", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
     
-    def is_unique(self, features):
-        result = List.count(features[0]) == len(features)
+    def is_not_duplicate(self, features):
+        result = False
+        if len(features) > 0 :
+            result = all(elem == features[0] for elem in features)
+        #print result
         if (result):
             return False
         else:
@@ -320,8 +323,13 @@ class ObjectDisambiguation(State):
 
         features = []
         for current_object in self.objects_within_pointing_bounding_box_with_attributes:
-            features.append(current_object.get(attribute))
-        if self.is_unique(features):
+            index = self.attributes.index(attribute)
+            features.append(current_object[index+1])
+        #print(features)
+        #print self.is_not_duplicate(features)
+        #print (attribute == 'position')
+
+        if self.is_not_duplicate(features) or (attribute == 'position'):
             current_attribute_from_user = self.gather_user_response(attribute)
 
             index = 0

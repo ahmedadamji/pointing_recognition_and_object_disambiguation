@@ -61,7 +61,7 @@ class ApproachPointedObject(State):
 
         # Sets robot pose to check table
         self.tiago.check_table(True)
-        retrn True
+        return True
         
 
 

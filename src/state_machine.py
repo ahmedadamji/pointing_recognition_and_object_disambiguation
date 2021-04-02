@@ -49,7 +49,7 @@ def main():
 
     # default dataset for yolo3 is coco unless change needed for more accurate detection from a particular dataset, which is passed here.
     # openimages can be used which offers almost all common objects for detection
-    classify_objects = ClassifyObjects(dataset='openimages')
+    classify_objects = ClassifyObjects(dataset='coco')
     #creates an instance of tiago class to interact with the user and perform physical actions
     tiago = Tiago()
     # Lift tiago's torso and set head to default
@@ -82,8 +82,8 @@ def main():
         #StateMachine.add('approach_person', ApproachPerson(classify_objects, tiago, util, move), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
         #StateMachine.add('detect_pointing_location', PointingLocationDetection(tiago, util), transitions={'outcome1':'approach_object', 'outcome2': 'end'})
         StateMachine.add('approach_object', ApproachPointedObject(tiago, util, move), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'end'})
-        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify_objects, tiago, util), transitions={'outcome1':'look_at_person_for_interaction', 'outcome2': 'end'})
-        StateMachine.add('look_at_person_for_interaction', LookAtPersonForInteraction(tiago, move), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
+        StateMachine.add('detect_pointed_object', PointedObjectDetection(classify_objects, tiago, util), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'end'})
+        # StateMachine.add('look_at_person_for_interaction', LookAtPersonForInteraction(tiago, move), transitions={'outcome1':'disambiguate_objects', 'outcome2': 'disambiguate_objects'})
         StateMachine.add('disambiguate_objects', ObjectDisambiguation(tiago, util), transitions={'outcome1':'end', 'outcome2': 'end'})
         sm.execute()
     
