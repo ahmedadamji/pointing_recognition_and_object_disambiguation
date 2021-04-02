@@ -322,25 +322,40 @@ class PointingLocationDetection(State):
         cv2.imshow("Pointing Line Results", open_pose_output_image)
         cv2.waitKey(5000)
 
-    def set_params(self, intersection_point_2d, intersection_point_3d, head):
+    def set_params(self, intersection_point_2d, intersection_point_3d, head, radius_of_pointing):
         
         # self.msg_to_send.intersection_point_2d = intersection_point_2d
         # self.msg_to_send.intersection_point_3d = intersection_point_3d
 
         # self.intersection_point_pub.publish(self.msg_to_send)
+        print("=================================================================================")
 
-        rospy.set_param('/intersection_point_2d', [intersection_point_2d[0].item(), intersection_point_2d[1].item()])
-        rospy.set_param('/intersection_point_3d', [intersection_point_3d[0].item(), intersection_point_3d[1].item(), intersection_point_3d[2].item()])
+        intersection_point_2d = [intersection_point_2d[0].item(), intersection_point_2d[1].item()]
+        print intersection_point_2d
+        rospy.set_param('/intersection_point_2d', intersection_point_2d)
+
+        intersection_point_3d = [intersection_point_3d[0].item(), intersection_point_3d[1].item(), intersection_point_3d[2].item()]
+        print intersection_point_3d
+        rospy.set_param('/intersection_point_3d', intersection_point_3d)
+
         intersection_point_world = self.util.transform_from_camera_frame_to_world_frame(intersection_point_3d)
-        rospy.set_param('/intersection_point_world', [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()])
-        #rospy.set_param('/start_point_3d', [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
+        intersection_point_world = [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()]
+        print intersection_point_world
+        rospy.set_param('/intersection_point_world', intersection_point_world)
 
-        cv2.waitKey(5000)
+        #rospy.set_param('/start_point_3d', [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
 
 
         # Saving world coordinate for head for use during disambiguation in reference to user location
         person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
-        rospy.set_param('/person_head_world_coordinate', [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()])
+        person_head_world_coordinate = [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()]
+        print person_head_world_coordinate
+        rospy.set_param('/person_head_world_coordinate', person_head_world_coordinate)
+
+        print radius_of_pointing
+        rospy.set_param('/radius_of_pointing', radius_of_pointing)
+
+        print("=================================================================================")
 
     def detect_pointing_location(self, hand_tip):
         open_pose_output_image = self.bridge.imgmsg_to_cv2(self.pose_keypoints.open_pose_output_image_msg, "bgr8")
@@ -348,7 +363,6 @@ class PointingLocationDetection(State):
 
         start_point_3d, end_point_3d, start_point_2d, end_point_2d  = self.get_pointing_line(hand_tip, head, open_pose_output_image)
         radius_of_pointing = 0.18
-        rospy.set_param('/radius_of_pointing', radius_of_pointing)
         maxDistance = 5
         skipFactor = 0.05
 
@@ -357,7 +371,7 @@ class PointingLocationDetection(State):
 
             self.display_pointing_line(open_pose_output_image,start_point_2d, intersection_point_2d)
 
-            self.set_params(intersection_point_2d, intersection_point_3d, head)
+            self.set_params(intersection_point_2d, intersection_point_3d, head, radius_of_pointing)
 
             return True
 

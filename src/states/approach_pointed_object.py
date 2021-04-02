@@ -56,9 +56,11 @@ class ApproachPointedObject(State):
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
             self.tiago.talk("I have not been able to reach the goal location" )
+            return False
 
         # Sets robot pose to check table
         self.tiago.check_table(True)
+        retrn True
         
 
 
@@ -84,6 +86,7 @@ class ApproachPointedObject(State):
         # saving selected table name to use its location while looking at person gesturing 
         rospy.set_param('/current_table', table)
         self.tiago.talk("I will now approach " + str(table.get('name')))
-        self.approach_table(table, wait)
+        if not self.approach_table(table, wait):
+            return 'outcome2'
         
         return 'outcome1'

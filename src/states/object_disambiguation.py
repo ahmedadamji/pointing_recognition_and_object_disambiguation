@@ -24,7 +24,7 @@ class ObjectDisambiguation(State):
 
         #creates an instance of tiago class to interact with the user
         self.tiago = tiago
-        #creates an instance of util class to use featues such as extract attributes of objects from yaml file and transform point frames
+        #creates an instance of util class to use features such as extract attributes of objects from yaml file and transform point frames
         self.util = util
 
         # Stores details of objects that have been eliminated during disambiguation
@@ -301,6 +301,13 @@ class ObjectDisambiguation(State):
 
         user_response = self.tiago.get_data_from_user("speech", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
+    
+    def is_unique(self, features):
+        result = List.count(features[0]) == len(features)
+        if (result):
+            return False
+        else:
+            return True
 
 
     def compare_all_objects_with_chosen_attribute(self, attribute):
@@ -311,30 +318,38 @@ class ObjectDisambiguation(State):
         indices_for_attribute_match = []
         self.total_matches = np.array([])
 
-        current_attribute_from_user = self.gather_user_response(attribute)
+        features = []
+        for current_object in self.objects_within_pointing_bounding_box_with_attributes:
+            features.append(current_object.get(attribute))
+        if self.is_unique(features):
+            current_attribute_from_user = self.gather_user_response(attribute)
 
-        index = 0
-        while index < len(self.objects_within_pointing_bounding_box):
-            # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
-            if self.objects_within_pointing_bounding_box[index].get('name') in self.util.list_of_objects_capable_of_disambiguation:
-                current_object = self.objects_within_pointing_bounding_box[index]
-                compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
-                index +=1
-            else:
-                self.objects_inside_bounding_box_not_compared.append(self.objects_within_pointing_bounding_box.pop(index))
+            index = 0
+            while index < len(self.objects_within_pointing_bounding_box):
+                # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
+                if self.objects_within_pointing_bounding_box[index].get('name') in self.util.list_of_objects_capable_of_disambiguation:
+                    current_object = self.objects_within_pointing_bounding_box[index]
+                    compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
+                    index +=1
+                else:
+                    self.objects_inside_bounding_box_not_compared.append(self.objects_within_pointing_bounding_box.pop(index))
+                    self.objects_within_pointing_bounding_box_with_attributes.pop(index)
+                
+
+            # Updating eliminated objects if attributes do not match:
+            self.update_eliminated_objects()
             
 
-        # Updating eliminated objects if attributes do not match:
-        self.update_eliminated_objects()
+            ## Updating the indices of objects in bounding box where a match is found:
+            indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
+            # This is done to remove extra brackets around each element of the list
+            indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
+            # print indices_for_attribute_match
+            
+            return indices_for_attribute_match, compared_objects
         
-
-        ## Updating the indices of objects in bounding box where a match is found:
-        indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
-        # This is done to remove extra brackets around each element of the list
-        indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
-        # print indices_for_attribute_match
-        
-        return indices_for_attribute_match, compared_objects
+        else:
+            return
     
     def notify_status_of_other_objects(self):
 
@@ -382,8 +397,11 @@ class ObjectDisambiguation(State):
         self.tiago.talk("Please only refer to the objects that were notified to you earlier, as objects found close to the location of pointing, while answering these questions")
 
         for attribute in self.attributes:
-
-            indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
+            try:
+                indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
+            except Exception as e:
+                # This condition removes the need to ask the user for an input when the answer does not any value for a particular attribute (i.e. all objects have the same value)
+                continue
 
             # The == condition ensures that even if it doesnt match for all objects it still goes to the next questions
             if len(indices_for_attribute_match) == 1:
