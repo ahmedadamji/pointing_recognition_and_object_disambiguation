@@ -258,13 +258,14 @@ class ObjectDisambiguation(State):
                 continue
 
         return compared_objects
+        
 
     def update_eliminated_objects(self):
         # This is done so that eliminated objects are only updated if they there is at least one match for the current atrribute
         
         # Stores indices of objects from within the bounding box to be eliminated
         eliminated_objects_indices = []
-        if not all([ v == 0 for v in self.total_matches]):
+        if all([ v == 0 for v in self.total_matches]):
             print "None of the objects found match with the provided attribute"
             #self.tiago.talk("None of the objects found match with the provided attribute")
         # Index of each object remaining in the bounding box
@@ -298,9 +299,9 @@ class ObjectDisambiguation(State):
                 # user_response = self.util.classify_each_hand()
                 # return user_response
         
-
         user_response = self.tiago.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
+
     
     def is_not_duplicate(self, features):
         result = False
@@ -321,12 +322,15 @@ class ObjectDisambiguation(State):
         indices_for_attribute_match = []
         self.total_matches = np.array([])
 
+
         features = []
         for current_object in self.objects_within_pointing_bounding_box_with_attributes:
             index = self.attributes.index(attribute)
             features.append(current_object[index+1])
+            #print current_object
+        #print attribute
         #print(features)
-        #print self.is_not_duplicate(features)
+        # print self.is_not_duplicate(features)
         #print (attribute == 'position')
 
         if self.is_not_duplicate(features) or (attribute == 'position'):
@@ -360,22 +364,6 @@ class ObjectDisambiguation(State):
         
         else:
             return indices_for_attribute_match, compared_objects
-    
-    def notify_status_of_other_objects(self):
-
-        # Called if there were any objects eliminated during disambiguation
-        if len(self.eliminated_objects) is not 0:
-            print 'The eliminated objects are: '
-            print self.eliminated_objects
-            self.tiago.talk("The eliminated objects, in order of elimination, are: ")
-            for objects in self.eliminated_objects:
-                self.tiago.talk(objects)
-
-        # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
-        if len(self.objects_inside_bounding_box_not_compared) is not 0:
-            self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
-            for objects in self.objects_inside_bounding_box_not_compared:
-                self.tiago.talk(objects.get('name'))
 
 
     def find_unique_feature_of_identified_object(self, identified_object):
@@ -400,11 +388,23 @@ class ObjectDisambiguation(State):
         else:
             print("The object found has no unique attributes!")
             self.tiago.talk("The object found has no unique attributes!")
-
     
-    def round_coordinate(self,world_coordinate_of_identified_object):
-        world_coordinate_of_identified_object = np.around(np.array(world_coordinate_of_identified_object),2)
-        return world_coordinate_of_identified_object
+    def notify_status_of_other_objects(self):
+
+        # Called if there were any objects eliminated during disambiguation
+        if len(self.eliminated_objects) is not 0:
+            print 'The eliminated objects are: '
+            print self.eliminated_objects
+            self.tiago.talk("The eliminated objects, in order of elimination, are: ")
+            for objects in self.eliminated_objects:
+                self.tiago.talk(objects)
+
+        # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
+        if len(self.objects_inside_bounding_box_not_compared) is not 0:
+            self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
+            for objects in self.objects_inside_bounding_box_not_compared:
+                self.tiago.talk(objects.get('name'))
+
 
 
     def disambiguate_until_object_identified(self):
@@ -427,13 +427,13 @@ class ObjectDisambiguation(State):
                 #print identified_object.get('name')
                 self.tiago.talk("The identified object is a " + str(identified_object.get('name')))
                 self.find_unique_feature_of_identified_object(identified_object.get('name'))
-                world_coordinate_of_identified_object = identified_object.get("world_coordinate")
-                world_coordinate_of_identified_object = self.round_coordinate(world_coordinate_of_identified_object)
+                world_coordinate_of_identified_object =  np.around(np.array(identified_object.get("world_coordinate")),2) # World coordinate in 2dp
                 print("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
                 #self.tiago.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
                 self.notify_status_of_other_objects()
 
                 return
+            # This condition ensures that as soon as none of the objects match the provided attributes, it stops disambiguation.
             elif len(indices_for_attribute_match) == 0:
                 # Code run if diambiguation couldn't find a unique object to suit the descriptions
                 self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
@@ -446,8 +446,6 @@ class ObjectDisambiguation(State):
         self.notify_status_of_other_objects()
 
 
-    # PUT TEXT AND SPEECH BOTH IN TIAGO.PY
-
     def find_closest_object_in_bounding_box_to_user(self):
         ## TO DO
         self.person_head_world_coordinate
@@ -455,13 +453,8 @@ class ObjectDisambiguation(State):
         for current_object in self.objects_within_pointing_bounding_box:
             current_object_world_coordinate = current_object.get('world_coordinate')
             # print current_object_world_coordinate
-            # # Storing only the x and y dimentions as the height does not matter here for distance
-            # current_object_world_coordinate_2d = [current_object_world_coordinate[0],current_object_world_coordinate[1]]
             array_of_world_coordinates.append(current_object_world_coordinate)
         
-        # # Finds the arg of the point closest to the person. Storing only the x and y dimentions as the height does not matter here for distance
-        # person_head_world_coordinate_2d = [self.person_head_world_coordinate[0],self.person_head_world_coordinate[1]]
-
         # Making sure both are arrays with equal number of columns:
         person_head_world_coordinate = np.array(self.person_head_world_coordinate).reshape(1, -1)
         array_of_world_coordinates = np.array(array_of_world_coordinates)
@@ -482,10 +475,17 @@ class ObjectDisambiguation(State):
         print closest_object.get('name')
         return closest_object
 
+    def get_key(self, val):
+        for key, list_of_val in self.list_of_attributes.items():
+            #print list_of_val
+            if val in list_of_val:
+                return key
+    
+        return "error"
 
-    def get_unique_features(self):
+    def get_objects_within_pointing_bounding_box_with_attributes(self):
 
-        self.objects_within_pointing_bounding_box_with_attributes = []
+        objects_within_pointing_bounding_box_with_attributes = []
         
         for current_object in self.objects_within_pointing_bounding_box:
             for object_id in range(len(self.objects_with_attributes)):
@@ -495,25 +495,14 @@ class ObjectDisambiguation(State):
                     for attribute in self.attributes:
                         current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
 
-                    self.objects_within_pointing_bounding_box_with_attributes.append(current_object_with_attributes)
+                    objects_within_pointing_bounding_box_with_attributes.append(current_object_with_attributes)
                 #else:
                     ## TO DO IF OBJECT ATTRIBUTES ARE NOT AVAILABLE
+        return objects_within_pointing_bounding_box_with_attributes
 
-        #unique_features = list(set().union(self.objects_within_pointing_bounding_box_with_attributes))
 
-
-        # # Combining all elements from the list of lists into one list:
-        # merged_objects_within_pointing_bounding_box_with_attributes = []
-
-        # for item in self.objects_within_pointing_bounding_box_with_attributes:
-        #     merged_objects_within_pointing_bounding_box_with_attributes += item
-        
-        # # Finding only unique values in these lists:
-
-        # # insert the list to the set
-        # list_set = set(merged_objects_within_pointing_bounding_box_with_attributes)
-        # # convert the set to the list
-        # unique_features = (list(list_set))
+    def get_unique_features(self):
+        self.objects_within_pointing_bounding_box_with_attributes = self.get_objects_within_pointing_bounding_box_with_attributes()
 
         # These functions count the number of times an attribute is repeated in objects found within pointing bounding box and if it is not repeated it is a unique feature
         counts = Counter(chain.from_iterable(self.objects_within_pointing_bounding_box_with_attributes))
@@ -524,9 +513,29 @@ class ObjectDisambiguation(State):
             if element in unique_features:
                 unique_features.remove(element)
         
+        unique_features_attributes = []
+        if len(unique_features) > 0:
+            for unique_feature in unique_features:
+                unique_features_attributes.append(self.get_key(unique_feature))
+        
         print ("The unique features are: ")
         print unique_features
+        print ("The attributes for the unique features are: ")
+        print unique_features_attributes
 
+        counts = collections.Counter(unique_features_attributes)
+        # First ordering in terms of max frequency of attribute
+        reordered_attributes = sorted(unique_features_attributes, key=counts.get, reverse=True)
+        # Removing duplicate values
+        reordered_attributes = list(set(reordered_attributes))
+        for attribute in self.attributes:
+            if not attribute in reordered_attributes:
+                reordered_attributes.append(attribute)
+        self.attributes = reordered_attributes
+        print self.attributes
+        
+        # Done again as the order of attributes has now changed due to intent of maximising information gain
+        self.objects_within_pointing_bounding_box_with_attributes = self.get_objects_within_pointing_bounding_box_with_attributes()
 
         return unique_features
 
