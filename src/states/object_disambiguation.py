@@ -39,7 +39,7 @@ class ObjectDisambiguation(State):
         # Stores the possible directions in terms of compass coordinates to use as part of disambiguating objects
         self.compass_directions = ["north", "east", "south", "west", "north", "centre"]
         # Stores the possible directions to use as part of disambiguating objects
-        self.standard_directions = ["front", "right", "behind", "left", "front", "centre"]
+        self.standard_directions = ["behind", "right", "front", "left", "behind", "centre"]
         # Number of directions that can be referenced will be stored here, if the reference object is closest to the person, then only 2 (right or left) 
         # directions make sense, the default value is 4
         self.directions = 4
@@ -48,7 +48,7 @@ class ObjectDisambiguation(State):
         self.list_of_attributes = self.util.list_of_attributes
 
     def convert_standard_directions_to_compass_directions(self, direction_of_current_object):
-        #Converting north, south, east, west TO front, behind , right , left
+        #Converting north, south, east, west TO behind, front , right , left
         if direction_of_current_object.lower() in self.standard_directions:
             index = self.standard_directions.index(direction_of_current_object.lower())
             return self.compass_directions[index]
@@ -67,7 +67,7 @@ class ObjectDisambiguation(State):
         distance_between_points = math.hypot(deltaX, deltaY)
 
         # Test it out if this distance of 0.02 is useful or if i should change it back to 0
-        if distance_between_points < 0:
+        if distance_between_points < 0.001:
             compass_direction = self.compass_directions[5]
             return compass_direction
 
@@ -145,7 +145,7 @@ class ObjectDisambiguation(State):
         rp = np.matmul(rtw, wp)
         point_of_interest_transformed = [rp[0],rp[1]]
         
-        print point_of_interest_transformed
+        #print point_of_interest_transformed
 
 
         return point_of_interest_transformed
@@ -174,7 +174,7 @@ class ObjectDisambiguation(State):
 
         else:
             reference_object = self.closest_object
-            # only right or left directions as all of them will essentially be behind the nearest object
+            # only right or left directions as all of them will essentially be front the nearest object
             self.directions = 2
         
         return reference_object
@@ -299,7 +299,7 @@ class ObjectDisambiguation(State):
                 # return user_response
         
 
-        user_response = self.tiago.get_data_from_user("speech", valid_responses, attribute) # request_type, valid_responses, type_of_data
+        user_response = self.tiago.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
     
     def is_not_duplicate(self, features):
@@ -349,15 +349,17 @@ class ObjectDisambiguation(State):
             
 
             ## Updating the indices of objects in bounding box where a match is found:
-            indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
-            # This is done to remove extra brackets around each element of the list
-            indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
-            # print indices_for_attribute_match
+            if np.amax(self.total_matches) >= 1:
+                indices_for_attribute_match = np.argwhere(self.total_matches == np.amax(self.total_matches))
+                # This is done to remove extra brackets around each element of the list
+                indices_for_attribute_match = [val for sublist in indices_for_attribute_match for val in sublist]
+            
+            #print indices_for_attribute_match
             
             return indices_for_attribute_match, compared_objects
         
         else:
-            return
+            return indices_for_attribute_match, compared_objects
     
     def notify_status_of_other_objects(self):
 
@@ -389,15 +391,20 @@ class ObjectDisambiguation(State):
                     if not key is 'name': # TO AVOID MATCHES FOR ATTRIBUTE NAMES
                         if current_object[key] in self.unique_features:
                             unique_feature = current_object[key]
+                            attribute = key
 
 
         if not len(unique_feature) == 0:
-            print("Unique feature of this object is: " + str(unique_feature))
-            self.tiago.talk("The unique feature of this object is that it is " + str(unique_feature))
+            print("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
+            self.tiago.talk("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
         else:
             print("The object found has no unique attributes!")
             self.tiago.talk("The object found has no unique attributes!")
 
+    
+    def round_coordinate(self,world_coordinate_of_identified_object):
+        world_coordinate_of_identified_object = np.around(np.array(world_coordinate_of_identified_object),2)
+        return world_coordinate_of_identified_object
 
 
     def disambiguate_until_object_identified(self):
@@ -416,15 +423,21 @@ class ObjectDisambiguation(State):
 
                 ## Responding with disambiguation results
 
-                identified_object = compared_objects[indices_for_attribute_match[0]].get('name')
-                print identified_object
-                self.tiago.talk("The identified object is a " + str(identified_object))
-                self.find_unique_feature_of_identified_object(identified_object)
+                identified_object = compared_objects[indices_for_attribute_match[0]]
+                #print identified_object.get('name')
+                self.tiago.talk("The identified object is a " + str(identified_object.get('name')))
+                self.find_unique_feature_of_identified_object(identified_object.get('name'))
                 world_coordinate_of_identified_object = identified_object.get("world_coordinate")
+                world_coordinate_of_identified_object = self.round_coordinate(world_coordinate_of_identified_object)
                 print("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
-                self.tiago.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
+                #self.tiago.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
                 self.notify_status_of_other_objects()
 
+                return
+            elif len(indices_for_attribute_match) == 0:
+                # Code run if diambiguation couldn't find a unique object to suit the descriptions
+                self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+                self.notify_status_of_other_objects()
                 return
 
         
