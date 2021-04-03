@@ -491,7 +491,8 @@ class ObjectDisambiguation(State):
             for object_id in range(len(self.objects_with_attributes)):
                 if self.objects_with_attributes[object_id].get('name') == current_object.get('name'):
                     # This buffer list created so that the objects_within_pointing_bounding_box_with_attributes is not a dict and is just a list with all the attributes for the object
-                    current_object_with_attributes = [self.objects_with_attributes[object_id].get('name')]
+                    current_object_with_attributes = []
+                    #current_object_with_attributes = [self.objects_with_attributes[object_id].get('name')]
                     for attribute in self.attributes:
                         current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
 
@@ -508,10 +509,10 @@ class ObjectDisambiguation(State):
         counts = Counter(chain.from_iterable(self.objects_within_pointing_bounding_box_with_attributes))
         unique_features = [k for k, c in counts.items() if c == 1]
 
-        # Removing all elements that are object names as these are unique objects found, but not features:
-        for element in self.util.list_of_objects_capable_of_disambiguation:
-            if element in unique_features:
-                unique_features.remove(element)
+        # # Removing all elements that are object names as these are unique objects found, but not features:
+        # for element in self.util.list_of_objects_capable_of_disambiguation:
+        #     if element in unique_features:
+        #         unique_features.remove(element)
         
         unique_features_attributes = []
         if len(unique_features) > 0:
@@ -523,7 +524,7 @@ class ObjectDisambiguation(State):
         print ("The attributes for the unique features are: ")
         print unique_features_attributes
 
-        counts = collections.Counter(unique_features_attributes)
+        counts = Counter(unique_features_attributes)
         # First ordering in terms of max frequency of attribute
         reordered_attributes = sorted(unique_features_attributes, key=counts.get, reverse=True)
         # Removing duplicate values
