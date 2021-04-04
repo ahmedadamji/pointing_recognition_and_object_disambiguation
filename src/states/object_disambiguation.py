@@ -56,7 +56,7 @@ class ObjectDisambiguation(State):
             return direction_of_current_object
 
 
-    def calculate_compass_direction_between_two_points(self, point_of_interest, reference_point = [0,0]):
+    def calculate_compass_direction_between_two_points(self, point_of_interest, view_point_transformed, reference_point = [0,0]):
         ## REFERENCE: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
 
         # point_of_interest = self.util.convert_from_image_to_cartesian_coordinate_system(point_of_interest)
@@ -78,12 +78,22 @@ class ObjectDisambiguation(State):
         else:
             angle_between_points = angle_between_points
 
+        direction_index = 0
         if self.directions == 4:
             max_angle = 90
             direction_index = (int(round(angle_between_points / max_angle)))
-        elif self.directions ==2:
-            max_angle = 180
-            direction_index = 2*(int(round(angle_between_points / max_angle)))
+            #print direction_index
+        elif self.directions == 2:
+            # https://math.stackexchange.com/questions/274712/calculate-on-which-side-of-a-straight-line-is-a-given-point-located
+            if (((float(point_of_interest[0]) - float(0))*(float(view_point_transformed[1]) - float(0))) - ((float(point_of_interest[1]) - float(0))*(float(view_point_transformed[0]) - float(0)))) > 0.0:
+                direction_index = 3
+            elif (((float(point_of_interest[0]) - float(0))*(float(view_point_transformed[1]) - float(0))) - ((float(point_of_interest[1]) - float(0))*(float(view_point_transformed[0]) - float(0)))) < 0.0:
+                direction_index = 1
+            elif (((float(point_of_interest[0]) - float(0))*(float(view_point_transformed[1]) - float(0))) - ((float(point_of_interest[1]) - float(0))*(float(view_point_transformed[0]) - float(0)))) == 0.0:
+                direction_index = 5
+            #print direction_index
+
+        
         compass_direction = self.compass_directions[direction_index]
 
         return compass_direction
@@ -142,13 +152,20 @@ class ObjectDisambiguation(State):
         wp = [point_of_interest[0],point_of_interest[1],1]
         wp = np.array(wp).reshape(3,1)
 
+        # Transfering frame for the view point as well.
+        wv = [view_point[0],view_point[1],1]
+        wv = np.array(wv).reshape(3,1)
+
         rp = np.matmul(rtw, wp)
         point_of_interest_transformed = [rp[0],rp[1]]
+
+        rv = np.matmul(rtw, wv)
+        view_point_transformed = [rv[0],rv[1]]
         
         #print point_of_interest_transformed
 
 
-        return point_of_interest_transformed
+        return point_of_interest_transformed, view_point_transformed
 
     def select_reference_object(self):
 
@@ -198,12 +215,12 @@ class ObjectDisambiguation(State):
         # Finds the reference object that has a unique attribute compared to the rest and transfers the coordinate frame from the world frame
         # to a reference frame centred around this reference object and aligned with the line of sight of the person answering questions
         reference_object_world_coordinate = self.reference_object.get('world_coordinate')
-        current_object_world_coordinate_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, reference_object_world_coordinate, self.person_head_world_coordinate)        
+        current_object_world_coordinate_transformed, view_point_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, reference_object_world_coordinate, self.person_head_world_coordinate)        
 
         # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
         # centre_point_of_bounding_box = rospy.get_param("/camera_point_after_object_detection_2d")
 
-        compass_direction = self.calculate_compass_direction_between_two_points(current_object_world_coordinate_transformed)
+        compass_direction = self.calculate_compass_direction_between_two_points(current_object_world_coordinate_transformed, view_point_transformed)
         return compass_direction
 
     def get_attribute_of_current_object(self, attribute, current_object, current_object_attributes):
@@ -499,6 +516,7 @@ class ObjectDisambiguation(State):
                     objects_within_pointing_bounding_box_with_attributes.append(current_object_with_attributes)
                 #else:
                     ## TO DO IF OBJECT ATTRIBUTES ARE NOT AVAILABLE
+                    
         return objects_within_pointing_bounding_box_with_attributes
 
 
