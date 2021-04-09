@@ -462,7 +462,6 @@ class ObjectDisambiguation(State):
         self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
         self.notify_status_of_other_objects()
 
-
     def find_closest_object_in_bounding_box_to_user(self):
         ## TO DO
         self.person_head_world_coordinate
@@ -518,7 +517,6 @@ class ObjectDisambiguation(State):
                     ## TO DO IF OBJECT ATTRIBUTES ARE NOT AVAILABLE
                     
         return objects_within_pointing_bounding_box_with_attributes
-
 
     def get_unique_features(self):
         self.objects_within_pointing_bounding_box_with_attributes = self.get_objects_within_pointing_bounding_box_with_attributes()

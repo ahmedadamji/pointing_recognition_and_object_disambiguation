@@ -340,7 +340,8 @@ class PointingLocationDetection(State):
 
         intersection_point_world = self.util.transform_from_camera_frame_to_world_frame(intersection_point_3d)
         intersection_point_world = [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()]
-        #print intersection_point_world
+        print ("INTERSECTION POINT IN WORLD COORDINATES:")
+        print intersection_point_world
         rospy.set_param('/intersection_point_world', intersection_point_world)
 
         #rospy.set_param('/start_point_3d', [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
@@ -385,7 +386,7 @@ class PointingLocationDetection(State):
     def execute(self, userdata):
         rospy.loginfo('PointingLocationDetection state executing')
 
-        self.tiago.talk("I am now going to look towards the person and determine weather he / she is pointing, and at which location" )
+        self.tiago.talk("I am now going to determine if the person is pointing, and at which location" )
 
 
         img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
