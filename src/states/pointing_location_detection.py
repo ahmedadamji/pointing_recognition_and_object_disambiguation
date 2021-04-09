@@ -342,6 +342,18 @@ class PointingLocationDetection(State):
         intersection_point_world = [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()]
         print ("INTERSECTION POINT IN WORLD COORDINATES:")
         print intersection_point_world
+        # To automatically add all values at end of the test run
+        # Open the file in append & read mode ('a+')
+        with open("intersection_points.txt", "a+") as file_object:
+            # Move read cursor to the start of file.
+            file_object.seek(0)
+            # If file is not empty then append '\n'
+            data = file_object.read(100)
+            if len(data) > 0 :
+                file_object.write("\n")
+            # Append text at the end of file
+            file_object.write(intersection_point_world)
+
         rospy.set_param('/intersection_point_world', intersection_point_world)
 
         #rospy.set_param('/start_point_3d', [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
@@ -364,7 +376,7 @@ class PointingLocationDetection(State):
         head = np.array(self.pose_keypoints.head)
 
         start_point_3d, end_point_3d, start_point_2d, end_point_2d  = self.get_pointing_line(hand_tip, head, open_pose_output_image)
-        radius_of_pointing = 0.18
+        radius_of_pointing = 0.23349
         maxDistance = 5
         skipFactor = 0.05
 

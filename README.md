@@ -123,7 +123,7 @@ DESCRIPTION
 
 ## Installation
 
-For users part of the University of Leeds, please request access to the [LASR](https://web.yammer.com/main/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNjA0NDI1NyJ9/all) Yammer page first, and then follow [this](https://gitlab.com/el17ana/pointing_recognition/install_tiago_container) guide to install the Tiago container, which consists of most of the required software and libraries pre installed, including Ubuntu 16.04, ROS Kinetic, OpenCV, etc.
+For users part of the University of Leeds, please request access to the [LASR](https://web.yammer.com/main/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNjA0NDI1NyJ9/all) Yammer page first, and then follow [this](https://gitlab.com/el17ana/pointing_recognition/-/blob/master/install_tiago_container.pdf) guide to install the Tiago container, which consists of most of the required software and libraries pre installed, including Ubuntu 16.04, ROS Kinetic, OpenCV, etc.
 
 For users outside the University of Leeds, these packages need to be installed sperately. These will have to be installed seperately. After you install ROS you can then proceed to install TIAGo simulation using [this](http://wiki.ros.org/Robots/TIAGo/Tutorials/Installation/TiagoSimulation) guide, following the instructions for ROS Kinetic which shold contain most of the required packages for this project to run.
 
