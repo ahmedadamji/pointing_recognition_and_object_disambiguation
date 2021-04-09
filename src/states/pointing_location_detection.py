@@ -16,6 +16,9 @@ import math
 import numpy as np
 import ros_numpy
 
+import os
+
+
 # import sympy
 # from sympy import Point2D, Point3D
 # from sympy.abc import L
@@ -344,7 +347,8 @@ class PointingLocationDetection(State):
         print intersection_point_world
         # To automatically add all values at end of the test run
         # Open the file in append & read mode ('a+')
-        with open("intersection_points.txt", "a+") as file_object:
+        path = os.path.join('/tiago_ws/src/pointing_recognition/src/tests','intersection_points.txt')
+        with open(path, "a+") as file_object:
             # Move read cursor to the start of file.
             file_object.seek(0)
             # If file is not empty then append '\n'
@@ -352,7 +356,8 @@ class PointingLocationDetection(State):
             if len(data) > 0 :
                 file_object.write("\n")
             # Append text at the end of file
-            file_object.write(intersection_point_world)
+
+            file_object.write('[' + str(intersection_point_world[0]) + ', ' + str(intersection_point_world[1]) + ', ' + str(intersection_point_world[2]) + ']')
 
         rospy.set_param('/intersection_point_world', intersection_point_world)
 

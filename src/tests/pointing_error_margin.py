@@ -3,6 +3,7 @@
 """ 
 REFERENCES:
 https://stackoverflow.com/questions/42512346/python-average-distance-between-a-bunch-of-points-in-the-x-y-plane
+https://towardsdatascience.com/histograms-and-density-plots-in-python-f6bda88f5ac0
 
 """
 
@@ -23,29 +24,63 @@ def distance_x_y_z(p1, p2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2)
 
 def main():
-    x = [-2.32290,-2.15592,-2.07648,-2.31255,-2.06637,-2.23019,-2.03105,-2.01570,-2.15701,-2.16206]
-    y = [-9.15861,-9.14866,-9.12283,-9.12515,-9.10469,-9.12836,-9.06095,-9.11084,-9.08172,-9.13098]
-    z = [1.06970,1.07227,1.06468,1.03473,1.03800,1.04088,1.04317,1.03529,1.03178,1.04414]
+    pointing_locations = [[-2.3228980690177763, -9.158608686018814, 1.0697022870690867],
+                        [-2.155922755231462, -9.148659477671654, 1.0722689651610946],
+                        [-2.0764846761287026, -9.122833199425695, 1.064680117667932],
+                        [-2.3125476042519337, -9.125153569602453, 1.0347300487150841],
+                        [-2.0663700714870035, -9.10469442604205, 1.0379960052693367],
+                        [-2.2301920504647983, -9.12835994375536, 1.0408819125567874],
+                        [-2.031052405262054, -9.06095447215161, 1.0431676426474836],
+                        [-2.0156985381871713, -9.110844191941329, 1.0352854279225965],
+                        [-2.157012439441496, -9.081716649215778, 1.0317787758315053],
+                        [-2.162063709948788, -9.130983395109995, 1.0441414156100453],
+                        [-2.1355684681662703, -9.078018473628228, 1.0691449782118088],
+                        [-2.2331857429590944, -9.088984312391744, 1.0612285644039081],
+                        [-2.0342894619742253, -9.09750990989405, 1.0723688350947478],
+                        [-2.012752762324877, -9.100652119724398, 1.0381782103936037],
+                        [-1.948920037633393, -9.096733765286471, 1.0257795178231612],
+                        [-2.292827822225496, -9.128820688337271, 1.0393278991407888],
+                        [-2.056995777081922, -9.060466430426814, 1.068145302250472],
+                        [-2.0070143924264814, -9.147401182760552, 1.0374064549889404],
+                        [-1.9771102738388882, -9.118050895944734, 1.0663259865702628],
+                        [-2.066505336820594, -9.148391051468094, 1.0457923371828364],
+                        [-1.97339265988, -9.06895183975, 1.03517302158]]
+
+    x = [item[0] for item in pointing_locations]
+    y = [item[1] for item in pointing_locations]
+    z = [item[2] for item in pointing_locations]
 
     points_xy = list(zip(x,y))
     points_xyz = list(zip(x,y,z))
     distances_x_y = [distance_x_y(p1, p2) for p1, p2 in combinations(points_xy, 2)]
     distances_x_y_z = [distance_x_y_z(p1, p2) for p1, p2 in combinations(points_xyz, 2)]
 
+    log_distances_x_y = np.log(distances_x_y)
+    log_distances_x_y_z = np.log(distances_x_y_z)
+
     # print len(distances_x_y)
     # print len(distances_x_y_z)
 
     average_x_y = sum(distances_x_y) / len(distances_x_y)
     average_x_y_z = sum(distances_x_y_z) / len(distances_x_y_z)
+    log_average_x_y = sum(log_distances_x_y) / len(log_distances_x_y)
+    log_average_x_y_z = sum(log_distances_x_y_z) / len(log_distances_x_y_z)
+
 
     max_x_y = np.amax(np.array(distances_x_y))
     max_x_y_z = np.amax(np.array(distances_x_y_z))
+    log_max_x_y = np.amax(np.array(log_distances_x_y))
+    log_max_x_y_z = np.amax(np.array(log_distances_x_y_z))
 
     min_x_y = np.amin(np.array(distances_x_y))
     min_x_y_z = np.amin(np.array(distances_x_y_z))
+    log_min_x_y = np.amin(np.array(log_distances_x_y))
+    log_min_x_y_z = np.amin(np.array(log_distances_x_y_z))
 
     std_x_y = np.std(distances_x_y)
     std_x_y_z = np.std(distances_x_y_z)
+    log_std_x_y = np.std(log_distances_x_y)
+    log_std_x_y_z = np.std(log_distances_x_y_z)
 
     print ("\n=========================================================================================\n")
 
@@ -63,6 +98,19 @@ def main():
 
     print ("\n=========================================================================================\n")
 
+    print("The logarithmically transformed average distance between all points in x-y is: " + str(log_average_x_y))
+    print("The logarithmically transformed maximum distance between all points in x-y is: " + str(log_max_x_y))
+    print("The logarithmically transformed minimum distance between all points in x-y is: " + str(log_min_x_y))
+    print("The logarithmically transformed standard deviation in x-y is: " + str(log_std_x_y))
+
+    print ("\n=========================================================================================\n")
+
+    print("The logarithmically transformed average distance between all points in x-y-z is: " + str(log_average_x_y_z))
+    print("The logarithmically transformed maximum distance between all points in x-y-z is: " + str(log_max_x_y_z))
+    print("The logarithmically transformed minimum distance between all points in x-y-z is: " + str(log_min_x_y_z))
+    print("The logarithmically transformed standard deviation in x-y-z is: " + str(log_std_x_y_z))
+
+    print ("\n=========================================================================================\n")
 
         
 
@@ -84,6 +132,28 @@ def main():
     # Title and labels
     plt.title('Histogram with distances in (x,y,z)')
     plt.xlabel('distances_x_y_z')
+    plt.ylabel('Frequency')
+
+    plt.tight_layout()
+    plt.show()
+
+    # Draw the plot
+    plt.hist(log_distances_x_y, color = 'blue', edgecolor = 'black')
+    
+    # Title and labels
+    plt.title('Histogram with logarithmic distances in (x,y)')
+    plt.xlabel('log_distances_x_y_z')
+    plt.ylabel('Frequency')
+
+    plt.tight_layout()
+    plt.show()
+
+    # Draw the plot
+    plt.hist(log_distances_x_y_z, color = 'blue', edgecolor = 'black')
+    
+    # Title and labels
+    plt.title('Histogram with logarithmic distances in (x,y,z)')
+    plt.xlabel('log_distances_x_y_z')
     plt.ylabel('Frequency')
 
     plt.tight_layout()
