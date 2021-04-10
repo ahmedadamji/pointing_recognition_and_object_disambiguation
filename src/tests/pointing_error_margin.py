@@ -109,6 +109,10 @@ def main():
     print("The logarithmically transformed maximum distance between all points in x-y-z is: " + str(log_max_x_y_z))
     print("The logarithmically transformed minimum distance between all points in x-y-z is: " + str(log_min_x_y_z))
     print("The logarithmically transformed standard deviation in x-y-z is: " + str(log_std_x_y_z))
+    upper = log_average_x_y_z + (2*log_std_x_y_z)
+    lower = log_average_x_y_z - (2*log_std_x_y_z)
+    print(upper)
+    print(lower)
 
     print ("\n=========================================================================================\n")
 

@@ -381,7 +381,7 @@ class PointingLocationDetection(State):
         head = np.array(self.pose_keypoints.head)
 
         start_point_3d, end_point_3d, start_point_2d, end_point_2d  = self.get_pointing_line(hand_tip, head, open_pose_output_image)
-        radius_of_pointing = 0.23349
+        radius_of_pointing = 0.326
         maxDistance = 5
         skipFactor = 0.05
 
