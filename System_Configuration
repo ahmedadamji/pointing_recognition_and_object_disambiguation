@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-04-10T15:51:30.760Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36" etag="GwzFx5R1ZLcD4OQeQ-nu" version="14.5.10" type="gitlab">
+<mxfile host="app.diagrams.net" modified="2021-04-10T16:11:40.934Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36" etag="nLeIujVHApe6ps0onJSo" version="14.5.10" type="gitlab">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="1350" dy="774" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -138,6 +138,30 @@
         </mxCell>
         <mxCell id="LT_zS39E6JsBShUX3QqS-37" value="&lt;b&gt;&lt;font style=&quot;font-size: 12px ; line-height: 100%&quot;&gt;Knowledge base&lt;/font&gt;&lt;/b&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fontFamily=Ariel;fontSize=20;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="320.5" y="210" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-44" value="States" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontFamily=Ariel;fontSize=15;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="160" y="620" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-45" value="Approach person&#xa;Pointing location detection&#xa;Approach pointed location&#xa;Detect objects&#xa;Disambiguate objects" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="LT_zS39E6JsBShUX3QqS-44">
+          <mxGeometry y="26" width="150" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-48" value="Servers" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontFamily=Ariel;fontSize=15;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="254" y="770" width="160" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-49" value="Pose and gesture detection" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="LT_zS39E6JsBShUX3QqS-48">
+          <mxGeometry y="26" width="160" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-52" value="Utilities" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fontFamily=Ariel;fontSize=15;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="330" y="625" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-53" value="Move Base&#xa;Fetch and transform data&#xa;Get data from user&#xa;Perform physical actions" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="LT_zS39E6JsBShUX3QqS-52">
+          <mxGeometry y="26" width="150" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-57" value="" style="shape=doubleArrow;whiteSpace=wrap;html=1;fontFamily=Ariel;fontSize=15;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="260" y="490" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="LT_zS39E6JsBShUX3QqS-58" value="Process" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontFamily=Ariel;fontSize=15;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="530" y="730" width="280" height="130" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
