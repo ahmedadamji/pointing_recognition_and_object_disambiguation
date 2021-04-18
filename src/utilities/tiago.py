@@ -198,7 +198,26 @@ class Tiago:
                 for item in valid_responses:
                     self.talk(item)
                 self.talk("Please try again!")
+
+    def get_start_command(self, request_type):
+
+        response_valid = False
+        while not response_valid:
         
+            # dict to save the user response
+            user_response = {
+                "success": False,
+                "error": None,
+                "transcription": None
+            }
+
+            if request_type == "speech":
+                user_response = self.get_data_from_speech(user_response)
+            elif request_type == "text":
+                user_response = self.get_data_from_text(user_response)
+
+            return user_response['transcription']
+
 
 
 

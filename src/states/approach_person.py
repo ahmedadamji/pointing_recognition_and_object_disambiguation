@@ -10,7 +10,7 @@ import math
 
 
 class ApproachPerson(State):
-    def __init__(self, classify_objects, tiago, util, move):
+    def __init__(self, classify_objects, tiago, util, move, Table):
         rospy.loginfo('ApproachPerson state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
@@ -23,6 +23,8 @@ class ApproachPerson(State):
         self.util = util
         #creates an instance of move class to move robot across the map
         self.move = move
+        #Stores the name of the table requested to be approached for poinitng
+        self.table = Table
 
 
     def get_table(self):
@@ -47,8 +49,10 @@ class ApproachPerson(State):
 
         for index in range(len(yolo_detections)):
             if (yolo_detections[index].name.lower() == 'person'):
-                print('A person was found in frame')
-                return True
+                x,y,w,h = yolo_detections[index].xywh
+                if not ((x < 0) or ((x+w) < 0)):
+                    print('A person was found in frame')
+                    return True
         print('No person was found in frame')
         return False
 
@@ -58,7 +62,7 @@ class ApproachPerson(State):
 
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
-        self.move.rotate_around_base(-35)
+        self.move.rotate_around_base(-30)
         if movebase == True:
             self.tiago.talk("I have now reached the goal location" )
         else:
@@ -68,7 +72,7 @@ class ApproachPerson(State):
 
     def check_person_around_table(self):
         degrees = 0
-        while (degrees <= 70):
+        while (degrees <= 60):
 
 
             # Sending Move class the angle to rotate about, and stores result in rotate, and also returns the final movebase location
@@ -86,7 +90,7 @@ class ApproachPerson(State):
                 # rospy.set_param('/pointing_person_approach', location)
 
                 return True
-            degrees += 35
+            degrees += 10
 
                 
         print('No Person was found at this table')
