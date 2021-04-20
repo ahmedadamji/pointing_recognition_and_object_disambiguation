@@ -48,7 +48,7 @@ class Tiago:
         pm_goal = PlayMotionGoal('back_to_default', True, 0)
 
         test_goal = PlayMotionGoal()
-        print test_goal.priority
+        #print test_goal.priority
 
         # Sending play motion goal
         self.play_motion.send_goal(pm_goal)
@@ -70,7 +70,7 @@ class Tiago:
         pm_goal = PlayMotionGoal('check_table', True, 0)
 
         test_goal = PlayMotionGoal()
-        print test_goal.priority
+        #print test_goal.priority
 
         # Sending play motion goal
         self.play_motion.send_goal(pm_goal)
@@ -91,7 +91,7 @@ class Tiago:
         pm_goal = PlayMotionGoal('look_at_person', True, 0)
 
         test_goal = PlayMotionGoal()
-        print test_goal.priority
+        #print test_goal.priority
 
         # Sending play motion goal
         self.play_motion.send_goal(pm_goal)
@@ -136,7 +136,7 @@ class Tiago:
                 # adjusts the recognizer sensitivity to ambient noise
                 recognizer.adjust_for_ambient_noise(source)
                 # records audio from the microphone
-                audio = recognizer.record(source, duration=4)
+                audio = recognizer.record(source, duration=7)
             
             try:
                 # Recognizes speech recorded
@@ -178,26 +178,27 @@ class Tiago:
                 user_response = self.get_data_from_speech(user_response)
             elif request_type == "text":
                 user_response = self.get_data_from_text(user_response)
+            
+            words = user_response['transcription'].lower().split()
+            for item in valid_responses:
+                if (item in words[0:]):
+                    response_valid = True
+                    return user_response['transcription']
+                
+                else:
+                    # if user response does not match the valid responses, error prompt to enter responses from possible options again
+                    print("Invalid entry")
+                    print("I am sorry, but " + user_response['transcription'] + " is not a valid entry for " + type_of_data)
+                    print("The valid responses for " + type_of_data + " are: ")
+                    print(valid_responses)
+                    print("\033[1;31;40m Please try again!  \n")
 
-            if user_response['transcription'].lower() in valid_responses :
-                response_valid = True
-
-                return user_response['transcription']
-
-            else:
-                # if user response does not match the valid responses, error prompt to enter responses from possible options again
-                print("Invalid entry")
-                print("I am sorry, but " + user_response['transcription'] + " is not a valid entry for " + type_of_data)
-                print("The valid responses for " + type_of_data + " are: ")
-                print(valid_responses)
-                print("\033[1;31;40m Please try again!  \n")
-
-                # Reinforces to the user, the attribute collected
-                self.talk("I am sorry, but " + user_response['transcription'] + " is not a valid entry for " + type_of_data)
-                self.talk("The valid responses for " + type_of_data + " are: ")
-                for item in valid_responses:
-                    self.talk(item)
-                self.talk("Please try again!")
+                    # Reinforces to the user, the attribute collected
+                    self.talk("I am sorry, but " + user_response['transcription'] + " is not a valid entry for " + type_of_data)
+                    self.talk("The valid responses for " + type_of_data + " are: ")
+                    for item in valid_responses:
+                        self.talk(item)
+                    self.talk("Please try again!")
 
     def get_start_command(self, request_type):
 

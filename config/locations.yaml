@@ -3,7 +3,7 @@
 # For table one it is assuming it is a square top with 1 m sides
 
 tables:
-  - name: 'table0'
+  - name: 'dining table'
     approach_location:
       position: { x: -2.1598, y: -7.8729, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
@@ -15,7 +15,7 @@ tables:
       min_xyz: [ -2.61, -9.42, 0.00 ]
     status: 'not checked'
 
-  - name: 'table1'
+  - name: 'kitchen table'
     approach_location:
       position: { x: 0.11683, y: -9.8525, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
@@ -27,7 +27,7 @@ tables:
       min_xyz: [ -0.55, -11.53, 0.00 ]
     status: 'not checked'
       
-  - name: 'table2'
+  - name: 'lounge table'
     approach_location:
       position: { x: 2.4824, y: -7.5183, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
@@ -39,7 +39,7 @@ tables:
       min_xyz: [ 2.04, -8.99, 0.00 ]
     status: 'not checked'
       
-  - name: 'table3'
+  - name: 'study table'
     approach_location:
       position: { x: 3.0824, y: -4.4662, z: 3 }
       orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }

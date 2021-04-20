@@ -10,7 +10,7 @@ import math
 
 
 class ApproachPerson(State):
-    def __init__(self, classify_objects, tiago, util, move, Table):
+    def __init__(self, classify_objects, tiago, util, move, table):
         rospy.loginfo('ApproachPerson state initialized')
         
         State.__init__(self, outcomes=['outcome1','outcome2'])
@@ -24,7 +24,7 @@ class ApproachPerson(State):
         #creates an instance of move class to move robot across the map
         self.move = move
         #Stores the name of the table requested to be approached for poinitng
-        self.table = Table
+        self.table = table
 
 
     def get_table(self):
@@ -32,12 +32,13 @@ class ApproachPerson(State):
             status = self.tables[table_id].get('status')
             if status == 'not checked':
                 table_name = self.tables[table_id].get('name')
-                print table_name + ' is the current table to be approached'
-                rospy.set_param('/current_table', self.tables[table_id])
-                self.tables[table_id]["status"] = "checked"
-                return
-        print("All tables have been checked")
-        return 'all_tables_checked'
+                if table_name == self.table:
+                    print table_name + ' is the target location.'
+                    rospy.set_param('/current_table', self.tables[table_id])
+                    self.tables[table_id]["status"] = "checked"
+                    return
+        print("This table has already been checked")
+        return 'table_checked'
 
     def detect_person(self):
         self.classify_objects.subscribe_to_vision_messages()
@@ -105,7 +106,7 @@ class ApproachPerson(State):
         self.tables = self.util.tables
 
         # CHANGE TABLE NAME HERE:
-        self.tiago.talk("I am now going to lift my torso, and then approach the person at table 0" )
+        self.tiago.talk("I am now going to approach the person at the " +  self.table + ", to help them identify an object")
 
         # create the action client:
         self.movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
@@ -118,14 +119,14 @@ class ApproachPerson(State):
         # self.move_to_table(current_table)
 
         person_found = False
-        all_tables_checked = False
+        table_checked = False
 
-        while (person_found == False) and (all_tables_checked == False):
+        while (person_found == False) and (table_checked == False):
 
             # Moving to the next table
             status = self.get_table()
-            if status == 'all_tables_checked':
-                all_tables_checked = True
+            if status == 'table_checked':
+                table_checked = True
             current_table = rospy.get_param('/current_table')
             self.move_to_table(current_table)
 
@@ -136,6 +137,7 @@ class ApproachPerson(State):
             if person_found:
                 return 'outcome1'
         
-        print('Person wasnt found at any table')
+        print('The person wasnt found at this table')
+        self.tiago.talk("Sorry, but I couldnt find a person at the " + self.table + " to help" )
         
         return 'outcome2'

@@ -8,29 +8,7 @@ from utilities import ClassifyObjects, Tiago, Util, Move#, ClassifyHands
 #from utilities import GetPoseBeforeGazebo
 from states import ApproachPerson, PointingLocationDetection, ApproachPointedObject, PointedObjectDetection, ObjectDisambiguation, LookAtPersonForInteraction
 
-# import sys
-# sys.path.append('/tiago_ws/src/openpose/build/python')
-# from openpose import pyopenpose as op
 
-# def set_params():
-#     rospy.loginfo('Setting OpenPose default parameters')
-#     params = dict()
-#     params["body"] = 1
-#     params["number_people_max"] = 1
-#     params['model_folder'] = '/tiago_ws/src/openpose/models/'
-#     params['model_pose'] = 'COCO'
-#     # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
-#     # will use the fairly accurate 320x240
-#     params['net_resolution'] = '320x240' # 368x368 (multiples of 16)
-#     # params['face_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-#     # params['hand_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-#     # params['flir_camera'] = True # Used when using Flir camera
-#     # params['frame_undistort'] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
-#     params['hand'] = True
-#     params['face'] = False
-#     # params["3d"] = True
-#     # params['3d_views'] = 2
-#     return params
 
 def wait_for_command(tiago):
     tiago.talk("I am at your service, please give me a command." )
@@ -39,35 +17,29 @@ def wait_for_command(tiago):
     while success == False:
         user_response = tiago.get_start_command("speech") # request_type, valid_responses, type_of_data
         words = user_response.lower().split()
-        if 'table' in words[1:]:
-            table_type = words[words.index('table')-1]
-            if table_type in table_types:
-                Table  = table_type + " table"
-                print (table_type + " table")
-                success = True
+        if ('table' in words[0:]):
+            if (('what' in words[0:])or('name' in words[0:]))and(('this' in words[0:])or('that' in words[0:])):
+                table_type = words[words.index('table')-1]
+                if table_type in table_types:
+                    table  = table_type + " table"
+                    print (table_type + " table")
+                    success = True
+                else:
+                    tiago.talk("Sorry, I didn't quite get that, could you please repeat that." )
+                    success = False
             else:
-                tiago.talk("Sorry, I didn't quite get that, could you please repeat that." )
+                tiago.talk("Sorry, I am not able to perform that request. Please let me know if I can help you with anything else." )
                 success = False
         else:
             tiago.talk("Sorry, I didn't quite get that, could you please repeat that." )
             success = False
 
-    return Table
+    return table
 
 
 # main
 def main():
     rospy.init_node('state_machine')
-
-    # params = set_params()
-    
-    # opWrapper = op.WrapperPython()
-    # opWrapper.configure(params)
-    # opWrapper.start()
-
-    # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
-    #actions = GetPoseBeforeGazebo()
-    #actions.execute()
 
     # default dataset for yolo3 is coco unless change needed for more accurate detection from a particular dataset, which is passed here.
     # openimages can be used which offers almost all common objects for detection
@@ -81,8 +53,7 @@ def main():
     #creates an instance of move class to move robot across the map
     move = Move()
 
-    Table = wait_for_command(tiago) ## ADD CODE FOR THIS, COMMAND CAN BE CAN YOU PLEASE FIND THE PERSON AND HELP IDENTIFY THE OBJECT BEING POINTED AT.
-    ## NEED TO MAKE THE SPEECH RECOGNITION NON BUGGY FOR THIS
+    table = wait_for_command(tiago) ## ADD CODE FOR THIS, COMMAND CAN BE CAN YOU PLEASE FIND THE PERSON AND HELP IDENTIFY THE OBJECT BEING POINTED AT.
 
 
     ## REMOVE FOLLOWING CODE WHEN RUNNING POSE DETECTION AS THESE ARE DEFAULT VALUES TO USE FOR TESTING
@@ -104,7 +75,7 @@ def main():
 
     with sm:
         # Add states to the container
-        StateMachine.add('approach_person', ApproachPerson(classify_objects, tiago, util, move, Table), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
+        StateMachine.add('approach_person', ApproachPerson(classify_objects, tiago, util, move, table), transitions={'outcome1':'detect_pointing_location', 'outcome2': 'detect_pointing_location'})
         StateMachine.add('detect_pointing_location', PointingLocationDetection(tiago, util), transitions={'outcome1':'approach_object', 'outcome2': 'end'})
         StateMachine.add('approach_object', ApproachPointedObject(tiago, util, move), transitions={'outcome1':'detect_pointed_object', 'outcome2': 'end'})
         StateMachine.add('detect_pointed_object', PointedObjectDetection(classify_objects, tiago, util), transitions={'outcome1':'look_at_person_for_interaction', 'outcome2': 'end'})
