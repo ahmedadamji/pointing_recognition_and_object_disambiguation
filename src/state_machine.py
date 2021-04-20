@@ -3,7 +3,7 @@ import rospy
 import cv2
 from smach import State, StateMachine
 
-from utilities import ClassifyObjects, Tiago, Util, Move#, ClassifyHands
+from utilities import ClassifyObjects, Tiago, Util, Move
 # Tried doing this so that gazebo dooesnt eat up all the ram needed for openpose
 #from utilities import GetPoseBeforeGazebo
 from states import ApproachPerson, PointingLocationDetection, ApproachPointedObject, PointedObjectDetection, ObjectDisambiguation, LookAtPersonForInteraction
@@ -18,7 +18,7 @@ def wait_for_command(tiago):
         user_response = tiago.get_start_command("speech") # request_type, valid_responses, type_of_data
         words = user_response.lower().split()
         if ('table' in words[0:]):
-            if (('what' in words[0:])or('name' in words[0:]))and(('this' in words[0:])or('that' in words[0:])):
+            if (('what' in words[0:])or('name' in words[0:]))and(('this' in words[0:])or('the' in words[0:])or('that' in words[0:])):
                 table_type = words[words.index('table')-1]
                 if table_type in table_types:
                     table  = table_type + " table"
@@ -53,7 +53,7 @@ def main():
     #creates an instance of move class to move robot across the map
     move = Move()
 
-    table = wait_for_command(tiago) ## ADD CODE FOR THIS, COMMAND CAN BE CAN YOU PLEASE FIND THE PERSON AND HELP IDENTIFY THE OBJECT BEING POINTED AT.
+    table = wait_for_command(tiago)
 
 
     ## REMOVE FOLLOWING CODE WHEN RUNNING POSE DETECTION AS THESE ARE DEFAULT VALUES TO USE FOR TESTING

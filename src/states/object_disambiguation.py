@@ -4,6 +4,9 @@ import rospy
 import actionlib
 from smach import State
 
+
+from pointing_recognition.srv import HandClassification
+
 import cv2
 import numpy as np
 import math
@@ -315,7 +318,39 @@ class ObjectDisambiguation(State):
                 self.tiago.talk("Please use your palm to answer this question, if the object you are pointing at, is on the right side, show your right palm, else show your left palm!")
                 # user_response = self.util.classify_each_hand()
                 # return user_response
-        
+
+                try:
+                    rospy.loginfo('waiting for classify_hands service')
+                    rospy.wait_for_service('/classify_hands')
+                    rospy.loginfo('connected to classify_hands service')
+
+                    # running openpose detection
+                    try:
+                        hand_classification = rospy.ServiceProxy('/classify_hands', HandClassification)
+                        self.response = hand_classification()
+
+                    except rospy.ServiceException as e:
+                        print('Hand detection failed')
+                        rospy.logwarn(e)
+
+                    user_response = self.response.hand
+
+
+                    print user_response
+                    self.tiago.talk("I see that you have shown your " + user_response + " hand")
+                    return user_response
+
+
+                except rospy.ROSInterruptException:
+                    pass
+                except rospy.ServiceException as ex:
+                    rospy.logwarn('service call classify_hands failed')
+                    rospy.logwarn(ex)
+                except rospy.ROSException as ex:
+                    rospy.logwarn('timed out waiting for classify_hands service')
+                    rospy.logwarn(ex)
+
+
         user_response = self.tiago.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python3.6
 
+import rospy
 # Done this because python had problems importing the correct cv2
 import sys
 ros_path = '/opt/ros/kinetic/lib/python2.7/dist-packages'
@@ -13,15 +14,22 @@ import mediapipe as mp
 
 import numpy as np
 
+from pointing_recognition.srv import HandClassification, HandClassificationResponse
+
 ## SOURCE CODE MODIFIED
 ## FROM: https://google.github.io/mediapipe/solutions/hands
 ## HAND CLASSIFICATION CODE: https://github.com/JuliaPoo/MultiHand-Tracking/blob/master/src/multi_hand_tracker.py
 
-class ClassifyHands:
+class classify_hands_server:
     def __init__(self):
+        rospy.init_node('classify_hands')
 
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands
+
+        serv = rospy.Service('classify_hands', HandClassification, self.classify_each_hand)
+        rospy.loginfo('classify_hands service initialised')
+        rospy.spin()
 
     def get_hand_landmarks(self,hand_landmarks,keypoint):
         if keypoint == 0:
@@ -113,7 +121,7 @@ class ClassifyHands:
         
         return False
 
-    def classify_each_hand(self):
+    def classify_each_hand(self, req):
         self.right_hand_counter = 0
         self.left_hand_counter = 0
 
@@ -156,9 +164,12 @@ class ClassifyHands:
 
                 cv2.imshow('MediaPipe Hands', image)
                 if self.right_hand_counter>30:
-                    return 'right'
+                    return HandClassificationResponse('right')
                 elif self.left_hand_counter>30:
-                    return 'left'
+                    return HandClassificationResponse('left')
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
         cap.release()
+
+if __name__ == '__main__':
+    classify_hands_server()

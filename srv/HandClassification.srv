@@ -1,0 +1,4 @@
+# No image data to pass as webcam used for simulation purposes
+---
+# Output data from the hands classification server
+string hand

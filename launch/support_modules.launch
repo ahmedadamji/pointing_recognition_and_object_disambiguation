@@ -8,6 +8,7 @@
 
     <!-- Launching servers part of the pointing_recognition package as nodes -->
     <node pkg="pointing_recognition" type="openpose_server.py" name="openpose_server" respawn="true" output="screen"/>
+    <node pkg="pointing_recognition" type="classify_hands_server.py" name="classify_hands_server" respawn="true" output="screen"/>
 
     <!-- Launching packages used alongside pointing_recognition -->
     <!-- <node pkg="lasr_pcl" type="transform_cloud_server" name="transform_cloud_server" respawn="true" output="screen"/> -->

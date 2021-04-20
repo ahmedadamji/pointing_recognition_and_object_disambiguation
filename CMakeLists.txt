@@ -52,14 +52,14 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  IntersectionData.msg
-)
+# add_message_files(
+#   FILES
+# )
 
 add_service_files(
   FILES
   PoseKeypoints.srv
+  HandClassification.srv
 )
 
 ## Generate actions in the 'action' folder

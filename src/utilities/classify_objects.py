@@ -5,7 +5,7 @@ import cv2
 import tf
 import numpy as np
 from lasr_object_detection_yolo.srv import YoloDetection
-from jeff_segment_objects.srv import SegmentObjects, SegmentObjectsRequest
+#from jeff_segment_objects.srv import SegmentObjects, SegmentObjectsRequest
 from sensor_msgs.msg import Image, PointCloud2, RegionOfInterest
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 from cv_bridge import CvBridge, CvBridgeError
@@ -15,7 +15,7 @@ class ClassifyObjects:
         # Defauts to coco dataset unless another trained model package is needed
         self.dataset = dataset
         self.yolo_detection = rospy.ServiceProxy('/yolo_detection', YoloDetection)
-        self.segment_objects_srv = rospy.ServiceProxy('/segment_objects', SegmentObjects)
+        #self.segment_objects_srv = rospy.ServiceProxy('/segment_objects', SegmentObjects)
         self.bridge = CvBridge()
 
     def subscribe_to_vision_messages(self):

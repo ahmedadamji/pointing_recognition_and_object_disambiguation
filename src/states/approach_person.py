@@ -51,7 +51,7 @@ class ApproachPerson(State):
         for index in range(len(yolo_detections)):
             if (yolo_detections[index].name.lower() == 'person'):
                 x,y,w,h = yolo_detections[index].xywh
-                if not ((x < 0) or ((x+w) < 0)):
+                if ((w*h) > 100000):
                     print('A person was found in frame')
                     return True
         print('No person was found in frame')
@@ -91,7 +91,7 @@ class ApproachPerson(State):
                 # rospy.set_param('/pointing_person_approach', location)
 
                 return True
-            degrees += 10
+            degrees += 15
 
                 
         print('No Person was found at this table')

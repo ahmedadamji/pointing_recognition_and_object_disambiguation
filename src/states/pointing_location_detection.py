@@ -4,7 +4,6 @@ from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image, PointCloud2, CameraInfo
 
-from pointing_recognition.msg import IntersectionData
 
 
 from smach import State
@@ -33,8 +32,6 @@ class PointingLocationDetection(State):
         rospy.loginfo('PointingLocationDetection state initialized')
         State.__init__(self, outcomes=['outcome1','outcome2'])
         
-        self.intersection_point_pub = rospy.Publisher('/intersection_point', IntersectionData)
-        self.msg_to_send = IntersectionData()
         
         self.bridge = CvBridge()
         
