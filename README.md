@@ -4,19 +4,9 @@
 
 [**Pointing Recognition**](https://gitlab.com/el17ana/pointing_recognition) is a project focused on **recognising objects being pointied at.**
 
-It is authored by [**Ahmed Adamjee**](https://www.linkedin.com/in/ahmedadamjee/).
-
-**This project would not be possible without the [**Leeds Autonomous Service Robots Team**](https://gitlab.com/sensible-robots). I would also like to thank [**Dr Matteo Leonetti**](https://eps.leeds.ac.uk/computing/staff/771/dr-matteo-leonetti).
-
-  
-  
-  
-  
-  
-
-<p  align="center">
-
-<img  src=".github/media/pose_face_hands.gif",  width="480">
+It is authored by [**Ahmed Adamjee**](https://www.linkedin.com/in/ahmedadamjee/) and is licensed under the [MIT License](https://gitlab.com/el17ana/pointing_recognition/-/blob/master/LICENSE).
+Please contact the author via the E-Mail IDs provided below regarding any requests relating to the topic:
+Email: [el17ana@leeds.ac.uk](mailto:el17ana@leeds.ac.uk); [adamjiahmed@gmail.com](mailto:adamjiahmed@gmail.com)
 
 <br>
 
@@ -30,17 +20,39 @@ It is authored by [**Ahmed Adamjee**](https://www.linkedin.com/in/ahmedadamjee/)
 
 ## Contents
 
-1.  [Results](#results)
+1.  [Features](#features)
 
-2.  [Features](#features)
+2.  [Testing Videos](#testing videos)
 
-3.  [Installation](#installation)
+3.  [Results](#results)
 
-4.  [Quick Start](#quick-start)
+4.  [Installation](#installation)
 
-  
-  
-  
+5.  [Quick Start](#quick-start)
+
+
+
+## Features
+
+-  **Main Functionality**:
+
+-  **ABCD**:
+
+- ABCD.
+
+-  **Input**:
+
+-  **Output**:
+
+-  **OS**:
+
+-  **Hardware compatibility**:
+
+
+## Testing Videos
+
+Please visit [YouTube](linkhere)
+
 
 ## Results
 
@@ -98,32 +110,10 @@ DESCRIPTION
 
 </p>
 
-  
-  
-  
-
-## Features
-
--  **Main Functionality**:
-
--  **ABCD**:
-
-- ABCD.
-
--  **Input**:
-
--  **Output**:
-
--  **OS**:
-
--  **Hardware compatibility**:
-
-  
-  
 
 ## Installation
 
-For users part of the University of Leeds, please request access to the [LASR](https://web.yammer.com/main/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNjA0NDI1NyJ9/all) Yammer page first, and then follow [this](https://gitlab.com/el17ana/pointing_recognition/-/blob/master/install_tiago_container.pdf) guide to install the Tiago container, which consists of most of the required software and libraries pre installed, including Ubuntu 16.04, ROS Kinetic, OpenCV, etc.
+For users part of the University of Leeds, please request access to the [LASR](https://web.yammer.com/main/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNjA0NDI1NyJ9/all) Yammer page first, and then follow [this](https://gitlab.com/el17ana/pointing_recognition/install_tiago_container) guide to install the Tiago container, which consists of most of the required software and libraries pre installed, including Ubuntu 16.04, ROS Kinetic, OpenCV, etc.
 
 For users outside the University of Leeds, these packages need to be installed sperately. These will have to be installed seperately. After you install ROS you can then proceed to install TIAGo simulation using [this](http://wiki.ros.org/Robots/TIAGo/Tutorials/Installation/TiagoSimulation) guide, following the instructions for ROS Kinetic which shold contain most of the required packages for this project to run.
 
