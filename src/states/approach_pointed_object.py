@@ -15,15 +15,15 @@ from sensor_msgs.msg import PointCloud2
 
 
 class ApproachPointedObject(State):
-    def __init__(self, tiago, util, move):
-        rospy.loginfo("ApproachPointedObject state initialized")
+    def __init__(self, interaction, util, move):
+        #rospy.loginfo("ApproachPointedObject state initialized")
         State.__init__(self, outcomes=["outcome1","outcome2"])
 
-        #creates an instance of tiago class to interact with the user and perform physical actions
-        self.tiago = tiago
+        #creates an instance of interaction class to interact with the user
+        self.interaction = interaction
         #creates an instance of util class to transform point frames
         self.util = util
-        #creates an instance of move class to move robot across the map
+        #creates an instance of move class to move robot across the map and perform physical actions
         self.move = move
 
 
@@ -47,20 +47,20 @@ class ApproachPointedObject(State):
 
     def approach_table(self, table, wait=True):
 
-        rospy.loginfo("Approaching selected table")
+        print("Approaching selected table")
 
         location = table.get("approach_location")
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
         if movebase == True:
-            self.tiago.talk("I have now reached the goal location" )
+            self.interaction.talk("I have now reached the goal location" )
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
-            self.tiago.talk("I have not been able to reach the goal location" )
+            self.interaction.talk("I have not been able to reach the goal location" )
             return False
 
         # Sets robot pose to check table
-        self.tiago.check_table(True)
+        self.move.check_table(True)
         return True
         
 
@@ -85,7 +85,7 @@ class ApproachPointedObject(State):
         table = self.get_table(intersection_point_world)
         # saving selected table name to use its location while looking at person gesturing 
         rospy.set_param("/current_table", table)
-        self.tiago.talk("I will now approach the " + str(table.get("name"))+ " to identify the object")
+        self.interaction.talk("I will now approach the " + str(table.get("name"))+ " to identify the object")
         if not self.approach_table(table, wait):
             return "outcome2"
         

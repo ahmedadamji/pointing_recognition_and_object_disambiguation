@@ -21,12 +21,12 @@ from itertools import chain
 
 
 class ObjectDisambiguation(State):
-    def __init__(self, tiago, util):
-        rospy.loginfo("ObjectDisambiguation state initialized")
+    def __init__(self, interaction, util):
+        #rospy.loginfo("ObjectDisambiguation state initialized")
         State.__init__(self, outcomes=["outcome1","outcome2"])
 
-        #creates an instance of tiago class to interact with the user
-        self.tiago = tiago
+        #creates an instance of interaction class to interact with the user
+        self.interaction = interaction
         #creates an instance of util class to use features such as extract attributes of objects from yaml file and transform point frames
         self.util = util
 
@@ -287,7 +287,7 @@ class ObjectDisambiguation(State):
         eliminated_objects_indices = []
         if all([ v == 0 for v in self.total_matches]):
             print "None of the objects found match with the provided attribute"
-            #self.tiago.talk("None of the objects found match with the provided attribute")
+            #self.interaction.talk("None of the objects found match with the provided attribute")
         # Index of each object remaining in the bounding box
         index = 0
         for match in self.total_matches:
@@ -308,14 +308,14 @@ class ObjectDisambiguation(State):
         valid_responses = self.list_of_attributes.get(attribute)
 
         if not attribute == "position":
-            self.tiago.talk("Could you please tell me the " + attribute + " of the object you are pointing at?" )
+            self.interaction.talk("Could you please tell me the " + attribute + " of the object you are pointing at?" )
         else:
             self.reference_object = self.select_reference_object()
             if self.reference_object.get("unique_feature") is not "distance":
-                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get("unique_feature")) + " object?")
+                self.interaction.talk("Could you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get("unique_feature")) + " object?")
             else:
-                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?, Which I understand, is a " + str(self.reference_object.get("name")))
-                self.tiago.talk("Please use your palm to answer this question, if the object you are pointing at, is on the right side, show your right palm, else show your left palm!")
+                self.interaction.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?, Which I understand, is a " + str(self.reference_object.get("name")))
+                self.interaction.talk("Please use your palm to answer this question, if the object you are pointing at, is on the right side, show your right palm, else show your left palm!")
                 # user_response = self.util.classify_each_hand()
                 # return user_response
 
@@ -337,7 +337,7 @@ class ObjectDisambiguation(State):
 
 
                     print user_response
-                    self.tiago.talk("I see that you have shown your " + user_response + " hand")
+                    self.interaction.talk("I see that you have shown your " + user_response + " hand")
                     return user_response
 
 
@@ -351,7 +351,7 @@ class ObjectDisambiguation(State):
                     rospy.logwarn(ex)
 
 
-        user_response = self.tiago.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
+        user_response = self.interaction.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
 
     
@@ -436,10 +436,10 @@ class ObjectDisambiguation(State):
 
         if not len(unique_feature) == 0:
             print("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
-            self.tiago.talk("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
+            self.interaction.talk("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
         else:
             print("The object found has no unique attributes!")
-            self.tiago.talk("The object found has no unique attributes!")
+            self.interaction.talk("The object found has no unique attributes!")
     
     def notify_status_of_other_objects(self):
 
@@ -447,21 +447,21 @@ class ObjectDisambiguation(State):
         if len(self.eliminated_objects) is not 0:
             print "The eliminated objects are: "
             print self.eliminated_objects
-            self.tiago.talk("The eliminated objects, in order of elimination, are: ")
+            self.interaction.talk("The eliminated objects, in order of elimination, are: ")
             for objects in self.eliminated_objects:
-                self.tiago.talk(objects)
+                self.interaction.talk(objects)
 
         # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
         if len(self.objects_inside_bounding_box_not_compared) is not 0:
-            self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
+            self.interaction.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
             for objects in self.objects_inside_bounding_box_not_compared:
-                self.tiago.talk(objects.get("name"))
+                self.interaction.talk(objects.get("name"))
 
 
 
     def disambiguate_until_object_identified(self):
 
-        self.tiago.talk("Please only refer to the objects that were notified to you earlier, as objects found close to the location of pointing, while answering these questions")
+        self.interaction.talk("Please only refer to the objects that were notified to you earlier, as objects found close to the location of pointing, while answering these questions")
 
         for attribute in self.attributes:
             try:
@@ -477,24 +477,24 @@ class ObjectDisambiguation(State):
 
                 identified_object = compared_objects[indices_for_attribute_match[0]]
                 #print identified_object.get("name")
-                self.tiago.talk("The identified object is a " + str(identified_object.get("name")))
+                self.interaction.talk("The identified object is a " + str(identified_object.get("name")))
                 self.find_unique_feature_of_identified_object(identified_object.get("name"))
                 world_coordinate_of_identified_object =  np.around(np.array(identified_object.get("world_coordinate")),2) # World coordinate in 2dp
                 print("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
-                #self.tiago.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
+                #self.interaction.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
                 self.notify_status_of_other_objects()
 
                 return
             # This condition ensures that as soon as none of the objects match the provided attributes, it stops disambiguation.
             elif len(indices_for_attribute_match) == 0:
                 # Code run if diambiguation couldn't find a unique object to suit the descriptions
-                self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+                self.interaction.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
                 self.notify_status_of_other_objects()
                 return
 
         
         # Code run if diambiguation couldn't find a unique object to suit the descriptions
-        self.tiago.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+        self.interaction.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
         self.notify_status_of_other_objects()
 
     def find_closest_object_in_bounding_box_to_user(self):
@@ -596,7 +596,7 @@ class ObjectDisambiguation(State):
     def execute(self, userdata):
         rospy.loginfo("ObjectDisambiguation state executing")
 
-        #self.tiago.talk("My name is Ahmed and I am the robo maker")
+        #self.interaction.talk("My name is Ahmed and I am the robo maker")
         self.objects_within_pointing_bounding_box = rospy.get_param("/objects_within_pointing_bounding_box")
         self.person_head_world_coordinate = rospy.get_param("/person_head_world_coordinate")
         self.current_table = rospy.get_param("/current_table")

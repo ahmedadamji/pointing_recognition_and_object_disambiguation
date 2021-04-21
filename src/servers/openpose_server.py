@@ -39,7 +39,7 @@ class openpose_server():
 
 
     def print_body_parameters(self, datum):
-        rospy.loginfo("Printing Body Parameters")
+        print("Printing Body Parameters")
         body_keypoints = str(datum.poseKeypoints.astype(float))
         print("Body keypoints: \n" + body_keypoints)
         #print("Face keypoints: \n" + str(np.around(datum.faceKeypoints).fillna(0.0).astype(int)))
@@ -54,7 +54,7 @@ class openpose_server():
     #     return parser.parse_known_args()
 
     def set_params(self):
-        rospy.loginfo("Setting OpenPose default parameters")
+        print("Setting OpenPose default parameters")
         params = dict()
         params["body"] = 1
         params["number_people_max"] = 1
@@ -93,7 +93,7 @@ class openpose_server():
 
 
     def get_body_points_3d(self, human, pos, xyz_array):
-        #rospy.loginfo("Requesting body keypoints")
+        #print("Requesting body keypoints")
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/02_output.md
         if pos == "Head":
             pnt_index = 0
@@ -130,7 +130,7 @@ class openpose_server():
         return self.get_depth(pnt, xyz_array)
 
     def get_hand_points_3d(self, hand, pos, xyz_array):
-        #rospy.loginfo("Requesting hand keypoints")
+        #print("Requesting hand keypoints")
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/02_output.md
 
         if pos == "first_finger_tip":
@@ -156,7 +156,7 @@ class openpose_server():
         return self.get_depth(pnt, xyz_array)
 
     def get_depth(self, pnt, xyz_array):
-        #rospy.loginfo("Requesting depth data at requested pixel")
+        #print("Requesting depth data at requested pixel")
         # Gets the z distance from tiago to the object at pixel x,y in the camera image.
         # x and y are in pixels
 

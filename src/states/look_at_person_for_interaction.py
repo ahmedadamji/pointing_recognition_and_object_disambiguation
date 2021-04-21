@@ -10,23 +10,23 @@ from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, Po
 
 
 class LookAtPersonForInteraction(State):
-    def __init__(self, tiago, move):
-        rospy.loginfo("LookAtPersonForInteraction state initialized")
+    def __init__(self, interaction, move):
+        #rospy.loginfo("LookAtPersonForInteraction state initialized")
         
         State.__init__(self, outcomes=["outcome1","outcome2"])
         
-        #creates an instance of tiago class to interact with the user and perform physical actions
-        self.tiago = tiago
-        #creates an instance of move class to move robot across the map
+        #creates an instance of interaction class to interact with the user
+        self.interaction = interaction
+        #creates an instance of move class to move robot across the map and perform physical actions
         self.move = move
 
     def execute(self, userdata, wait=True):
         rospy.loginfo("LookAtPersonForInteraction state executing")
 
-        self.tiago.talk("I will now look towards the person to recognise hand gestures, to gather responses for disambiguation." )
+        self.interaction.talk("I will now look towards the person to recognise hand gestures, to gather responses for disambiguation." )
         
         # Lift tiago's torso and set head to default
-        self.tiago.look_at_person(True)
+        self.move.look_at_person(True)
 
 
         #location = rospy.get_param("/hand_gesture_approach")
@@ -45,10 +45,10 @@ class LookAtPersonForInteraction(State):
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
         if movebase == True:
-            self.tiago.talk("I am now looking at the person pointing, to gather responses" )
+            self.interaction.talk("I am now looking at the person pointing, to gather responses" )
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
-            self.tiago.talk("I have not been able to reach the goal location" )
+            self.interaction.talk("I have not been able to reach the goal location" )
 
         
         return "outcome1"

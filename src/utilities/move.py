@@ -23,6 +23,18 @@ class Move:
 
         # wait until the action server has started up and started listening for goals
         self.movebase_client.wait_for_server()
+        rospy.loginfo("The move_base action server is up")
+
+        # cancel previously sent goal before shutting down rospy
+        self.play_motion_goal_sent = False
+        # shutting down rospy
+        rospy.on_shutdown(self.shutdown)
+
+
+        # Starting playmotion action server:
+        self.play_motion = actionlib.SimpleActionClient("/play_motion", PlayMotionAction)
+        self.play_motion.wait_for_server(rospy.Duration(5))
+        rospy.loginfo("The play_motion action server is up")
 
     def move_base(self, location):
         # Creating Target Pose Header:
@@ -108,6 +120,78 @@ class Move:
         else:
             rospy.logwarn("Couldn't reach the goal!")
             return False, location
+
+
+    def lift_torso_head_default(self, wait=False):
+        # lift torso height and head to default
+        self.play_motion_goal_sent = True
+
+        # Uncomment this if sending torso goal errors out again:
+        # torso_goal = FollowJointTrajectoryGoal()
+
+        # retrieveing play motion goal from motions.yaml
+        pm_goal = PlayMotionGoal("back_to_default", True, 0)
+
+        test_goal = PlayMotionGoal()
+        #print test_goal.priority
+
+        # Sending play motion goal
+        self.play_motion.send_goal(pm_goal)
+        
+        if wait:
+            self.play_motion.wait_for_result()
+
+        print("play motion: back_to_default completed")
+
+
+    def check_table(self, wait=False):
+        # lift torso height and head look down
+        self.play_motion_goal_sent = True
+
+        # Uncomment this if sending torso goal errors out again:
+        # torso_goal = FollowJointTrajectoryGoal()
+
+        # retrieveing play motion goal from motions.yaml
+        pm_goal = PlayMotionGoal("check_table", True, 0)
+
+        test_goal = PlayMotionGoal()
+        #print test_goal.priority
+
+        # Sending play motion goal
+        self.play_motion.send_goal(pm_goal)
+
+        if wait:
+            self.play_motion.wait_for_result()
+
+        print("play motion: check_table completed")
+
+    def look_at_person(self, wait=False):
+        # lift torso height and head to default
+        self.play_motion_goal_sent = True
+
+        # Uncomment this if sending torso goal errors out again:
+        # torso_goal = FollowJointTrajectoryGoal()
+
+        # retrieveing play motion goal from motions.yaml
+        pm_goal = PlayMotionGoal("look_at_person", True, 0)
+
+        test_goal = PlayMotionGoal()
+        #print test_goal.priority
+
+        # Sending play motion goal
+        self.play_motion.send_goal(pm_goal)
+        
+        if wait:
+            self.play_motion.wait_for_result()
+
+
+
+    def shutdown(self):
+
+        if self.play_motion_goal_sent:
+            self.play_motion.cancel_goal()
+            rospy.loginfo("Stop Robot")
+            rospy.sleep(1)
 
 
 

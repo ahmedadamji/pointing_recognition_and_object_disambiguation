@@ -20,7 +20,7 @@ class ClassifyObjects:
 
     def subscribe_to_vision_messages(self):
 
-        rospy.loginfo("subscrbing to image messages")
+        print("subscrbing to image messages")
         self.image_raw = rospy.wait_for_message("/xtion/rgb/image_raw", Image)
         self.points = rospy.wait_for_message("/xtion/depth_registered/points", PointCloud2)
     
@@ -90,8 +90,8 @@ class ClassifyObjects:
 
     #         width = self.points.width
 
-    #         rospy.loginfo("No of clusters found from segment objects : ")
-    #         rospy.loginfo(len(segmentation_result.clusters))
+    #         print("No of clusters found from segment objects : ")
+    #         print(len(segmentation_result.clusters))
 
     #         bounding_boxes = []
     #         for cluster in segmentation_result.clusters:

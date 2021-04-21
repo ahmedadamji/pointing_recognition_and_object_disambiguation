@@ -16,16 +16,16 @@ import math
 
 # Refered catering_erl for yolo_object_recognition
 class PointedObjectDetection(State):
-    def __init__(self, classify_objects, tiago, util):
-        rospy.loginfo("PointedObjectDetection state initialized")
+    def __init__(self, classify_objects, interaction, util):
+        #rospy.loginfo("PointedObjectDetection state initialized")
         
         State.__init__(self, outcomes=["outcome1","outcome2"])
 
         self.classify_objects = classify_objects
         self.bridge = CvBridge()
 
-        #creates an instance of tiago class to interact with the user
-        self.tiago = tiago
+        #creates an instance of interaction class to interact with the user
+        self.interaction = interaction
         #creates an instance of util class to transform point frames
         self.util = util
     
@@ -202,37 +202,37 @@ class PointedObjectDetection(State):
         self.intersection_point_world = rospy.get_param("/intersection_point_world")
         self.current_table = rospy.get_param("/current_table")
 
-        self.tiago.talk("The objects I found close to the location of pointing are displayed within the circle in the image shown to you now" )
+        self.interaction.talk("The objects I found close to the location of pointing are displayed within the circle in the image shown to you now" )
         self.draw_bounding_box_around_intersection_point()
 
         yolo_detections = self.detect_objects()
         if not self.get_objects_within_pointing_bounding_box(yolo_detections):
             #print "Objects found are not capable of disambiguation"
-            self.tiago.talk("Sorry but the objects I found are not yet programmed to be disambiguated")
+            self.interaction.talk("Sorry but the objects I found are not yet programmed to be disambiguated")
 
             return "outcome2"
 
         if self.total_objects_within_pointing_bounding_box == 0:
             #print "No objects were found within pointing bounding box"
-            self.tiago.talk("Sorry but I couldn't find any objects within pointing bounding box")
+            self.interaction.talk("Sorry but I couldn't find any objects within pointing bounding box")
 
             return "outcome2"
 
         elif self.total_objects_within_pointing_bounding_box == 1:
             #print "This is the only object being pointed at:"
-            self.tiago.talk("I could only detect one object close to the location of pointing, this was: ")
+            self.interaction.talk("I could only detect one object close to the location of pointing, this was: ")
             #print yolo_detections[self.objects_within_pointing_bounding_box_indices[0]]
             for detected_object in self.objects_within_pointing_bounding_box:
-                self.tiago.talk(detected_object.get("name"))
+                self.interaction.talk(detected_object.get("name"))
 
             return "outcome2"
 
         else:
             #print"Further diasambiguation needed"
-            self.tiago.talk("I found " + str(self.total_objects_within_pointing_bounding_box) + " objects around the location of pointing, which were: ")
+            self.interaction.talk("I found " + str(self.total_objects_within_pointing_bounding_box) + " objects around the location of pointing, which were: ")
             for detected_object in self.objects_within_pointing_bounding_box:
-                self.tiago.talk(detected_object.get("name"))
-            self.tiago.talk("Therefore further disambiguation is needed")
+                self.interaction.talk(detected_object.get("name"))
+            self.interaction.talk("Therefore further disambiguation is needed")
         
         #rospy.set_param("/objects_on_table", objects_on_table)
         rospy.set_param("/objects_within_pointing_bounding_box", self.objects_within_pointing_bounding_box)  # CHECK IF THE FOLLOWING IS NEEDED.

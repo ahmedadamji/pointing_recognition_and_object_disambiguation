@@ -10,15 +10,15 @@ import math
 
 
 class ApproachPerson(State):
-    def __init__(self, classify_objects, tiago, util, move, table):
-        rospy.loginfo("ApproachPerson state initialized")
+    def __init__(self, classify_objects, interaction, util, move, table):
+        #rospy.loginfo("ApproachPerson state initialized")
         
         State.__init__(self, outcomes=["outcome1","outcome2"])
         
         # creates an instance of classify_objects class to classify yolo detections
         self.classify_objects = classify_objects
-        #creates an instance of tiago class to interact with the user and perform physical actions
-        self.tiago = tiago
+        #creates an instance of interaction class to interact with the user and perform physical actions
+        self.interaction = interaction
         #creates an instance of util class to transform point frames
         self.util = util
         #creates an instance of move class to move robot across the map
@@ -65,10 +65,10 @@ class ApproachPerson(State):
         movebase = self.move.move_base(location)
         self.move.rotate_around_base(-30)
         if movebase == True:
-            self.tiago.talk("I have now reached the goal location" )
+            self.interaction.talk("I have now reached the goal location" )
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
-            self.tiago.talk("I have not been able to reach the goal location" )
+            self.interaction.talk("I have not been able to reach the goal location" )
 
 
     def check_person_around_table(self):
@@ -106,7 +106,7 @@ class ApproachPerson(State):
         self.tables = self.util.tables
 
         # CHANGE TABLE NAME HERE:
-        self.tiago.talk("I am now going to approach the person at the " +  self.table + ", to help them identify an object")
+        self.interaction.talk("I am now going to approach the person at the " +  self.table + ", to help them identify an object")
 
         # create the action client:
         self.movebase_client = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
@@ -130,7 +130,7 @@ class ApproachPerson(State):
             current_table = rospy.get_param("/current_table")
             self.move_to_table(current_table)
 
-            self.tiago.talk("I am now going to look around to see if i can find a person" )
+            self.interaction.talk("I am now going to look around to see if i can find a person" )
 
             person_found = self.check_person_around_table()
             print person_found
@@ -138,6 +138,6 @@ class ApproachPerson(State):
                 return "outcome1"
         
         print("The person wasnt found at this table")
-        self.tiago.talk("Sorry, but I couldnt find a person at the " + self.table + " to help" )
+        self.interaction.talk("Sorry, but I couldnt find a person at the " + self.table + " to help" )
         
         return "outcome2"

@@ -1,4 +1,4 @@
-from tiago import Tiago
+from interaction import Interaction
 from classify_objects import ClassifyObjects
 from util import Util
 from move import Move

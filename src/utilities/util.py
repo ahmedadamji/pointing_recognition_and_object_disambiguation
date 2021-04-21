@@ -58,7 +58,7 @@ class Util:
         return depth_point
 
     def get_2d_camera_point_from_3d_depth_point(self, point_3d):
-        rospy.loginfo("projecting depth array to 2d image pixels")
+        print("projecting depth array to 2d image pixels")
         camera_info = rospy.wait_for_message("/xtion/rgb/camera_info", CameraInfo)
         depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
         uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
@@ -145,9 +145,3 @@ class Util:
             for table in tables_param
         ]
 
-    def shutdown(self):
-
-        if self.play_motion_goal_sent:
-            self.play_motion.cancel_goal()
-            rospy.loginfo("Stop Robot")
-            rospy.sleep(1)
