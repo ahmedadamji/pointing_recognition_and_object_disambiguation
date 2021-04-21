@@ -22,8 +22,8 @@ from itertools import chain
 
 class ObjectDisambiguation(State):
     def __init__(self, tiago, util):
-        rospy.loginfo('ObjectDisambiguation state initialized')
-        State.__init__(self, outcomes=['outcome1','outcome2'])
+        rospy.loginfo("ObjectDisambiguation state initialized")
+        State.__init__(self, outcomes=["outcome1","outcome2"])
 
         #creates an instance of tiago class to interact with the user
         self.tiago = tiago
@@ -38,7 +38,7 @@ class ObjectDisambiguation(State):
         self.total_matches = np.array([])
 
         # Stores the types of attributes in order of use for disambiguation
-        self.attributes = 'position', 'colour', 'texture', 'type', 'size', 'shape'
+        self.attributes = "position", "colour", "texture", "type", "size", "shape"
         # Stores the possible directions in terms of compass coordinates to use as part of disambiguating objects
         self.compass_directions = ["north", "east", "south", "west", "north", "centre"]
         # Stores the possible directions to use as part of disambiguating objects
@@ -114,15 +114,15 @@ class ObjectDisambiguation(State):
         # reference_point = intersection_point_world
 
         # # Using the centre of the current table as the reference for directions between objects from viewpoint of person
-        # cuboid = self.current_table.get('cuboid')
-        # cuboid_max = Point3D(cuboid['max_xyz'])
-        # cuboid_min = Point3D(cuboid['min_xyz'])
+        # cuboid = self.current_table.get("cuboid")
+        # cuboid_max = Point3D(cuboid["max_xyz"])
+        # cuboid_min = Point3D(cuboid["min_xyz"])
         # # cuboid_midpoint = Point3D((cuboid_max.x+cuboid_min.x)/2, (cuboid_max.y+cuboid_min.y)/2, (cuboid_max.z+cuboid_min.z)/2)
         # cuboid_midpoint = cuboid_max.midpoint(cuboid_min)
         # reference_point = [cuboid_midpoint.x, cuboid_midpoint.y]
 
 
-        #reference_point = self.reference_object.get('world_coordinate')
+        #reference_point = self.reference_object.get("world_coordinate")
 
         #Get distance between two points:
         reference_vector = np.array([reference_point[0],reference_point[1]])
@@ -183,8 +183,8 @@ class ObjectDisambiguation(State):
                 if unique_feature in current_object:
                     object_with_unique_feature = current_object[0]
             for current_object in self.objects_within_pointing_bounding_box:
-                if current_object.get('name') == object_with_unique_feature:
-                    world_coordinate_of_object_with_unique_feature = current_object.get('world_coordinate')
+                if current_object.get("name") == object_with_unique_feature:
+                    world_coordinate_of_object_with_unique_feature = current_object.get("world_coordinate")
             reference_object = {
                 "name": object_with_unique_feature,
                 "unique_feature": unique_feature,
@@ -217,7 +217,7 @@ class ObjectDisambiguation(State):
 
         # Finds the reference object that has a unique attribute compared to the rest and transfers the coordinate frame from the world frame
         # to a reference frame centred around this reference object and aligned with the line of sight of the person answering questions
-        reference_object_world_coordinate = self.reference_object.get('world_coordinate')
+        reference_object_world_coordinate = self.reference_object.get("world_coordinate")
         current_object_world_coordinate_transformed, view_point_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, reference_object_world_coordinate, self.person_head_world_coordinate)        
 
         # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
@@ -229,18 +229,18 @@ class ObjectDisambiguation(State):
     def get_attribute_of_current_object(self, attribute, current_object, current_object_attributes):
         #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
         # Can add here more conditions for example if attribute needs to be extracted by means of opencv / other means in the future.
-        if not(attribute == 'position'):
+        if not(attribute == "position"):
             attribute_of_current_object = current_object_attributes.get(attribute)
-        elif (attribute == 'position'):
+        elif (attribute == "position"):
             compass_direction = self.get_compass_direction(current_object)
 
             # This block of code if just for printing the direction found of the objects in the bounding box and are not essential to the functionality
             index = self.compass_directions.index(compass_direction)
             standard_direction = self.standard_directions[index]
-            if compass_direction is not 'centre':
-                print (current_object.get('name') + " was found in the: " + compass_direction + " / " + standard_direction)
+            if compass_direction is not "centre":
+                print (current_object.get("name") + " was found in the: " + compass_direction + " / " + standard_direction)
             else:
-                print (current_object.get('name') + " was found in the: " + compass_direction)
+                print (current_object.get("name") + " was found in the: " + compass_direction)
             
             attribute_of_current_object = [compass_direction, standard_direction]
             
@@ -257,7 +257,7 @@ class ObjectDisambiguation(State):
             print attribute + " attribute matches"
         else:
             match = 0
-            # self.eliminated_objects.append(current_object_attributes.get('name'))
+            # self.eliminated_objects.append(current_object_attributes.get("name"))
             print attribute + " attribute does not match"
         
         return match
@@ -266,8 +266,8 @@ class ObjectDisambiguation(State):
     def compare_current_object_using_attributes_from_database(self, attribute, current_object, compared_objects, current_attribute_from_user):
 
         for object_id in range(len(self.objects_with_attributes)):
-            if self.objects_with_attributes[object_id].get('name') == current_object.get('name'):
-                print "Current object being compared: " + self.objects_with_attributes[object_id].get('name')
+            if self.objects_with_attributes[object_id].get("name") == current_object.get("name"):
+                print "Current object being compared: " + self.objects_with_attributes[object_id].get("name")
                 compared_objects.append(current_object)
 
                 match = self.compare_current_object_with_chosen_attribute(current_object, self.objects_with_attributes[object_id], attribute, current_attribute_from_user)
@@ -300,7 +300,7 @@ class ObjectDisambiguation(State):
         eliminated_objects_indices.reverse()
         for elemination_index in eliminated_objects_indices:
             eliminated_object = self.objects_within_pointing_bounding_box.pop(elemination_index)
-            self.eliminated_objects.append(eliminated_object.get('name'))
+            self.eliminated_objects.append(eliminated_object.get("name"))
 
         
     def gather_user_response(self, attribute):
@@ -311,26 +311,26 @@ class ObjectDisambiguation(State):
             self.tiago.talk("Could you please tell me the " + attribute + " of the object you are pointing at?" )
         else:
             self.reference_object = self.select_reference_object()
-            if self.reference_object.get('unique_feature') is not "distance":
-                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get('unique_feature')) + " object?")
+            if self.reference_object.get("unique_feature") is not "distance":
+                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get("unique_feature")) + " object?")
             else:
-                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?, Which I understand, is a " + str(self.reference_object.get('name')))
+                self.tiago.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?, Which I understand, is a " + str(self.reference_object.get("name")))
                 self.tiago.talk("Please use your palm to answer this question, if the object you are pointing at, is on the right side, show your right palm, else show your left palm!")
                 # user_response = self.util.classify_each_hand()
                 # return user_response
 
                 try:
-                    rospy.loginfo('waiting for classify_hands service')
-                    rospy.wait_for_service('/classify_hands')
-                    rospy.loginfo('connected to classify_hands service')
+                    rospy.loginfo("waiting for classify_hands service")
+                    rospy.wait_for_service("/classify_hands")
+                    rospy.loginfo("connected to classify_hands service")
 
                     # running openpose detection
                     try:
-                        hand_classification = rospy.ServiceProxy('/classify_hands', HandClassification)
+                        hand_classification = rospy.ServiceProxy("/classify_hands", HandClassification)
                         self.response = hand_classification()
 
                     except rospy.ServiceException as e:
-                        print('Hand detection failed')
+                        print("Hand detection failed")
                         rospy.logwarn(e)
 
                     user_response = self.response.hand
@@ -344,10 +344,10 @@ class ObjectDisambiguation(State):
                 except rospy.ROSInterruptException:
                     pass
                 except rospy.ServiceException as ex:
-                    rospy.logwarn('service call classify_hands failed')
+                    rospy.logwarn("service call classify_hands failed")
                     rospy.logwarn(ex)
                 except rospy.ROSException as ex:
-                    rospy.logwarn('timed out waiting for classify_hands service')
+                    rospy.logwarn("timed out waiting for classify_hands service")
                     rospy.logwarn(ex)
 
 
@@ -383,15 +383,15 @@ class ObjectDisambiguation(State):
         #print attribute
         #print(features)
         # print self.is_not_duplicate(features)
-        #print (attribute == 'position')
+        #print (attribute == "position")
 
-        if self.is_not_duplicate(features) or (attribute == 'position'):
+        if self.is_not_duplicate(features) or (attribute == "position"):
             current_attribute_from_user = self.gather_user_response(attribute)
 
             index = 0
             while index < len(self.objects_within_pointing_bounding_box):
                 # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
-                if self.objects_within_pointing_bounding_box[index].get('name') in self.util.list_of_objects_capable_of_disambiguation:
+                if self.objects_within_pointing_bounding_box[index].get("name") in self.util.list_of_objects_capable_of_disambiguation:
                     current_object = self.objects_within_pointing_bounding_box[index]
                     compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
                     index +=1
@@ -426,9 +426,9 @@ class ObjectDisambiguation(State):
         ## IT ALSO DOES ONLY FINDS ITS UNIQUE FEATURE IN RELATION TO OTHER OBJECTS THAT ARE CAPABLE OF DISAMBIGUATION AND DOES NOT FIND COMPARISONS TO OTHER OBJECTS
         ## TO DO SO COMPUTER VISION METHODS MUST BE USED TO FIND ATTRIBUTES SUCH AS SHAPE AND COLOUR!!!
         for current_object in self.objects_with_attributes:
-            if current_object.get('name') == identified_object:
+            if current_object.get("name") == identified_object:
                 for key in current_object:
-                    if not key is 'name': # TO AVOID MATCHES FOR ATTRIBUTE NAMES
+                    if not key is "name": # TO AVOID MATCHES FOR ATTRIBUTE NAMES
                         if current_object[key] in self.unique_features:
                             unique_feature = current_object[key]
                             attribute = key
@@ -445,7 +445,7 @@ class ObjectDisambiguation(State):
 
         # Called if there were any objects eliminated during disambiguation
         if len(self.eliminated_objects) is not 0:
-            print 'The eliminated objects are: '
+            print "The eliminated objects are: "
             print self.eliminated_objects
             self.tiago.talk("The eliminated objects, in order of elimination, are: ")
             for objects in self.eliminated_objects:
@@ -455,7 +455,7 @@ class ObjectDisambiguation(State):
         if len(self.objects_inside_bounding_box_not_compared) is not 0:
             self.tiago.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
             for objects in self.objects_inside_bounding_box_not_compared:
-                self.tiago.talk(objects.get('name'))
+                self.tiago.talk(objects.get("name"))
 
 
 
@@ -476,9 +476,9 @@ class ObjectDisambiguation(State):
                 ## Responding with disambiguation results
 
                 identified_object = compared_objects[indices_for_attribute_match[0]]
-                #print identified_object.get('name')
-                self.tiago.talk("The identified object is a " + str(identified_object.get('name')))
-                self.find_unique_feature_of_identified_object(identified_object.get('name'))
+                #print identified_object.get("name")
+                self.tiago.talk("The identified object is a " + str(identified_object.get("name")))
+                self.find_unique_feature_of_identified_object(identified_object.get("name"))
                 world_coordinate_of_identified_object =  np.around(np.array(identified_object.get("world_coordinate")),2) # World coordinate in 2dp
                 print("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
                 #self.tiago.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
@@ -502,7 +502,7 @@ class ObjectDisambiguation(State):
         self.person_head_world_coordinate
         array_of_world_coordinates = []
         for current_object in self.objects_within_pointing_bounding_box:
-            current_object_world_coordinate = current_object.get('world_coordinate')
+            current_object_world_coordinate = current_object.get("world_coordinate")
             # print current_object_world_coordinate
             array_of_world_coordinates.append(current_object_world_coordinate)
         
@@ -514,16 +514,16 @@ class ObjectDisambiguation(State):
         # print array_of_world_coordinates
 
         # Finds the closest object to the person
-        closest_index = distance.cdist(array_of_world_coordinates, person_head_world_coordinate, 'euclidean').argmin()
+        closest_index = distance.cdist(array_of_world_coordinates, person_head_world_coordinate, "euclidean").argmin()
 
         # Saving the details in reference_object
         closest_object = {
-            "name": self.objects_within_pointing_bounding_box[closest_index].get('name'),
+            "name": self.objects_within_pointing_bounding_box[closest_index].get("name"),
             "unique_feature": "distance",
-            "world_coordinate": self.objects_within_pointing_bounding_box[closest_index].get('world_coordinate')
+            "world_coordinate": self.objects_within_pointing_bounding_box[closest_index].get("world_coordinate")
         }
         print ("The closest object to the person is: ")
-        print closest_object.get('name')
+        print closest_object.get("name")
         return closest_object
 
     def get_key(self, val):
@@ -540,10 +540,10 @@ class ObjectDisambiguation(State):
         
         for current_object in self.objects_within_pointing_bounding_box:
             for object_id in range(len(self.objects_with_attributes)):
-                if self.objects_with_attributes[object_id].get('name') == current_object.get('name'):
+                if self.objects_with_attributes[object_id].get("name") == current_object.get("name"):
                     # This buffer list created so that the objects_within_pointing_bounding_box_with_attributes is not a dict and is just a list with all the attributes for the object
                     current_object_with_attributes = []
-                    #current_object_with_attributes = [self.objects_with_attributes[object_id].get('name')]
+                    #current_object_with_attributes = [self.objects_with_attributes[object_id].get("name")]
                     for attribute in self.attributes:
                         current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
 
@@ -594,26 +594,26 @@ class ObjectDisambiguation(State):
 
 
     def execute(self, userdata):
-        rospy.loginfo('ObjectDisambiguation state executing')
+        rospy.loginfo("ObjectDisambiguation state executing")
 
         #self.tiago.talk("My name is Ahmed and I am the robo maker")
-        self.objects_within_pointing_bounding_box = rospy.get_param('/objects_within_pointing_bounding_box')
-        self.person_head_world_coordinate = rospy.get_param('/person_head_world_coordinate')
+        self.objects_within_pointing_bounding_box = rospy.get_param("/objects_within_pointing_bounding_box")
+        self.person_head_world_coordinate = rospy.get_param("/person_head_world_coordinate")
         self.current_table = rospy.get_param("/current_table")
         self.unique_features = self.get_unique_features()
         self.closest_object = self.find_closest_object_in_bounding_box_to_user()
 
         # print objects_within_pointing_bounding_box
-        # print objects_within_pointing_bounding_box[0].get('name')
+        # print objects_within_pointing_bounding_box[0].get("name")
 
         self.attributes_from_user = []
 
         # self.dummy_attributes_from_user = {
-        #         'colour':  'yellow',
-        #         'type':    'fresh',
-        #         'texture': 'smooth',
-        #         'size':    'long',
-        #         'shape':   'curved'
+        #         "colour":  "yellow",
+        #         "type":    "fresh",
+        #         "texture": "smooth",
+        #         "size":    "long",
+        #         "shape":   "curved"
         #     }
         
 
@@ -634,5 +634,5 @@ class ObjectDisambiguation(State):
         # To destroy cv2 window at the end of state
         cv2.destroyAllWindows()
 
-        return 'outcome1'
+        return "outcome1"
 

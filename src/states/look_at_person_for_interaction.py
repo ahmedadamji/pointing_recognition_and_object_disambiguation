@@ -11,9 +11,9 @@ from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, Po
 
 class LookAtPersonForInteraction(State):
     def __init__(self, tiago, move):
-        rospy.loginfo('LookAtPersonForInteraction state initialized')
+        rospy.loginfo("LookAtPersonForInteraction state initialized")
         
-        State.__init__(self, outcomes=['outcome1','outcome2'])
+        State.__init__(self, outcomes=["outcome1","outcome2"])
         
         #creates an instance of tiago class to interact with the user and perform physical actions
         self.tiago = tiago
@@ -21,7 +21,7 @@ class LookAtPersonForInteraction(State):
         self.move = move
 
     def execute(self, userdata, wait=True):
-        rospy.loginfo('LookAtPersonForInteraction state executing')
+        rospy.loginfo("LookAtPersonForInteraction state executing")
 
         self.tiago.talk("I will now look towards the person to recognise hand gestures, to gather responses for disambiguation." )
         
@@ -29,17 +29,17 @@ class LookAtPersonForInteraction(State):
         self.tiago.look_at_person(True)
 
 
-        #location = rospy.get_param('/hand_gesture_approach')
+        #location = rospy.get_param("/hand_gesture_approach")
         # getting approach point for person to use the same orientation to turn towards person.
-        pointing_person_approach_orientation = rospy.get_param('/pointing_person_approach_orientation')
-        pointing_person_approach_orientation = { 'x': pointing_person_approach_orientation[0], 'y': pointing_person_approach_orientation[1], 'z': pointing_person_approach_orientation[2], 'w': pointing_person_approach_orientation[3] }
+        pointing_person_approach_orientation = rospy.get_param("/pointing_person_approach_orientation")
+        pointing_person_approach_orientation = { "x": pointing_person_approach_orientation[0], "y": pointing_person_approach_orientation[1], "z": pointing_person_approach_orientation[2], "w": pointing_person_approach_orientation[3] }
         # getting approach point for current table to use the same position and not move the robot base as it is already next to the table.
-        table = rospy.get_param('/current_table')
-        table_approach_location = table.get('approach_location')
+        table = rospy.get_param("/current_table")
+        table_approach_location = table.get("approach_location")
 
         location = {
-            'position': table_approach_location['position'],
-            'orientation': pointing_person_approach_orientation
+            "position": table_approach_location["position"],
+            "orientation": pointing_person_approach_orientation
         }
 
         # Sending Move class the location to move to, and stores result in movebase
@@ -51,4 +51,4 @@ class LookAtPersonForInteraction(State):
             self.tiago.talk("I have not been able to reach the goal location" )
 
         
-        return 'outcome1'
+        return "outcome1"

@@ -17,9 +17,9 @@ import math
 # Refered catering_erl for yolo_object_recognition
 class PointedObjectDetection(State):
     def __init__(self, classify_objects, tiago, util):
-        rospy.loginfo('PointedObjectDetection state initialized')
+        rospy.loginfo("PointedObjectDetection state initialized")
         
-        State.__init__(self, outcomes=['outcome1','outcome2'])
+        State.__init__(self, outcomes=["outcome1","outcome2"])
 
         self.classify_objects = classify_objects
         self.bridge = CvBridge()
@@ -62,10 +62,10 @@ class PointedObjectDetection(State):
         self.define_bounding_box_around_intersection_point()
         #print self.intersection_point_2d
 
-        image_raw = rospy.wait_for_message('/xtion/rgb/image_raw', Image)
+        image_raw = rospy.wait_for_message("/xtion/rgb/image_raw", Image)
         try:
-            frame = self.bridge.imgmsg_to_cv2(image_raw, 'bgr8')
-            # cv2.imshow('frame', frame)
+            frame = self.bridge.imgmsg_to_cv2(image_raw, "bgr8")
+            # cv2.imshow("frame", frame)
         except CvBridgeError as ex:
             rospy.logwarn(ex)
             return
@@ -118,9 +118,9 @@ class PointedObjectDetection(State):
 
             # Using the world location of the current table being pointed at to check which objects lie within this region
             self.current_table
-            cuboid = self.current_table.get('cuboid')
-            cuboid_max = np.array(cuboid['max_xyz'])
-            cuboid_min = np.array(cuboid['min_xyz'])
+            cuboid = self.current_table.get("cuboid")
+            cuboid_max = np.array(cuboid["max_xyz"])
+            cuboid_min = np.array(cuboid["min_xyz"])
 
 
             # xywh = yolo_detections[i].xywh
@@ -184,7 +184,7 @@ class PointedObjectDetection(State):
             count = 0
             for current_object in self.objects_within_pointing_bounding_box:
                 # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
-                if current_object.get('name') in self.util.list_of_objects_capable_of_disambiguation:
+                if current_object.get("name") in self.util.list_of_objects_capable_of_disambiguation:
                     count +=1
             if count == 0:
                 return False
@@ -197,7 +197,7 @@ class PointedObjectDetection(State):
 
 
     def execute(self, userdata):
-        rospy.loginfo('PointedObjectDetection state executing')
+        rospy.loginfo("PointedObjectDetection state executing")
 
         self.intersection_point_world = rospy.get_param("/intersection_point_world")
         self.current_table = rospy.get_param("/current_table")
@@ -210,13 +210,13 @@ class PointedObjectDetection(State):
             #print "Objects found are not capable of disambiguation"
             self.tiago.talk("Sorry but the objects I found are not yet programmed to be disambiguated")
 
-            return 'outcome2'
+            return "outcome2"
 
         if self.total_objects_within_pointing_bounding_box == 0:
             #print "No objects were found within pointing bounding box"
             self.tiago.talk("Sorry but I couldn't find any objects within pointing bounding box")
 
-            return 'outcome2'
+            return "outcome2"
 
         elif self.total_objects_within_pointing_bounding_box == 1:
             #print "This is the only object being pointed at:"
@@ -225,7 +225,7 @@ class PointedObjectDetection(State):
             for detected_object in self.objects_within_pointing_bounding_box:
                 self.tiago.talk(detected_object.get("name"))
 
-            return 'outcome2'
+            return "outcome2"
 
         else:
             #print"Further diasambiguation needed"
@@ -234,13 +234,13 @@ class PointedObjectDetection(State):
                 self.tiago.talk(detected_object.get("name"))
             self.tiago.talk("Therefore further disambiguation is needed")
         
-        #rospy.set_param('/objects_on_table', objects_on_table)
-        rospy.set_param('/objects_within_pointing_bounding_box', self.objects_within_pointing_bounding_box)  # CHECK IF THE FOLLOWING IS NEEDED.
-        rospy.set_param('/camera_point_after_object_detection_2d', [self.intersection_point_2d[0], self.intersection_point_2d[1]])
+        #rospy.set_param("/objects_on_table", objects_on_table)
+        rospy.set_param("/objects_within_pointing_bounding_box", self.objects_within_pointing_bounding_box)  # CHECK IF THE FOLLOWING IS NEEDED.
+        rospy.set_param("/camera_point_after_object_detection_2d", [self.intersection_point_2d[0], self.intersection_point_2d[1]])
 
 
 
         # To destroy cv2 window at the end of state
         #cv2.destroyAllWindows()
         
-        return 'outcome1'
+        return "outcome1"

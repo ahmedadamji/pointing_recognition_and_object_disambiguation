@@ -29,8 +29,8 @@ import os
 
 class PointingLocationDetection(State):
     def __init__(self, tiago, util):
-        rospy.loginfo('PointingLocationDetection state initialized')
-        State.__init__(self, outcomes=['outcome1','outcome2'])
+        rospy.loginfo("PointingLocationDetection state initialized")
+        State.__init__(self, outcomes=["outcome1","outcome2"])
         
         
         self.bridge = CvBridge()
@@ -42,7 +42,7 @@ class PointingLocationDetection(State):
 
 
     def angle_between_points( self, a, b, c ):
-        rospy.loginfo('Calculating angle between points')
+        rospy.loginfo("Calculating angle between points")
         ba = np.array(a) - np.array(b)
         bc = np.array(c) - np.array(b)
 
@@ -54,34 +54,34 @@ class PointingLocationDetection(State):
 
     def get_elbow_angle(self, shoulder,elbow,wrist, hand):
         #To correctly calculate the angles, this must be done using the 3D points found at these keypoints and therefore this function needs to move to yje pointing_location_detection.py file
-        rospy.loginfo('Calculating elbow angle')
+        rospy.loginfo("Calculating elbow angle")
         angle = 0
         angle = self.angle_between_points(shoulder, elbow, wrist)
-        rospy.loginfo('%s angle:%f'%(hand,angle))
+        rospy.loginfo("%s angle:%f"%(hand,angle))
         return angle
 
     def get_wrist_chest_delta(self, wrist, spine_chest, hand):
         # After testing, change hand tip delta as a test parameter for is pointing or not to height difference between hand and chest
-        rospy.loginfo('Calculating hand tip and chest delta')
+        rospy.loginfo("Calculating hand tip and chest delta")
         ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
         #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
         # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
         wrist_chest_delta = -(wrist[1] - spine_chest[1])
         print("The wrist_chest_delta for the "+ str(hand) + " hand is " + str(wrist_chest_delta) + " meters")
-        #rospy.loginfo('%s wrist_chest_delta:%f'%(hand, wrist_chest_delta))
+        #rospy.loginfo("%s wrist_chest_delta:%f"%(hand, wrist_chest_delta))
         return wrist_chest_delta
 
     def get_wrist_shoulder_delta(self, wrist, shoulder, hand):
         # This parameter is needed to make the classifications for pointing invalid if a person is pointing above a certain height of the shoulder,
         # as the application does not require pointing up towards a wall, standing objects or the ceiling
         
-        rospy.loginfo('Calculating hand tip and shoulder delta')
+        rospy.loginfo("Calculating hand tip and shoulder delta")
         ## IN THE REPORT PUT A DIAGRAM OF THE CORDINATE FRAME OF THE DEPTH CAMERA OF TIAGO AND JUSTIFY THIS POINT
         #comparing the height of chest and hand tip, and as the person will be standing up in the y axis of the camera frame, this will give the height diffrence between the two points
         # Because the coordinate frames for y for the camera are positive downward, the heigh diffrence is calculated as the negative value
         wrist_shoulder_delta = -(wrist[1] - shoulder[1])
         print("The wrist_shoulder_delta for the "+ str(hand) + " hand is " + str(wrist_shoulder_delta) + " meters")
-        #rospy.loginfo('%s wrist_shoulder_delta:%f'%(hand, wrist_shoulder_delta))
+        #rospy.loginfo("%s wrist_shoulder_delta:%f"%(hand, wrist_shoulder_delta))
         return wrist_shoulder_delta
 
     def check_finger_tip(self, hand_tip, hand):
@@ -102,14 +102,14 @@ class PointingLocationDetection(State):
         left_wrist = np.array(self.pose_keypoints.left_wrist)
         right_wrist = np.array(self.pose_keypoints.right_wrist)
 
-        print right_shoulder,right_elbow,right_wrist,'right'
-        print left_shoulder,left_elbow,left_wrist,'left'
-        left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_wrist,'left')
-        right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_wrist,'right')
-        left_wrist_chest_delta = self.get_wrist_chest_delta(left_wrist,spine_chest,'left')
-        right_wrist_chest_delta = self.get_wrist_chest_delta(right_wrist,spine_chest,'right')
-        left_wrist_shoulder_delta = self.get_wrist_shoulder_delta(left_wrist,left_shoulder,'left')
-        right_wrist_shoulder_delta = self.get_wrist_shoulder_delta(right_wrist,right_shoulder,'right')
+        print right_shoulder,right_elbow,right_wrist,"right"
+        print left_shoulder,left_elbow,left_wrist,"left"
+        left_elbow_angle = self.get_elbow_angle(left_shoulder,left_elbow,left_wrist,"left")
+        right_elbow_angle = self.get_elbow_angle(right_shoulder,right_elbow,right_wrist,"right")
+        left_wrist_chest_delta = self.get_wrist_chest_delta(left_wrist,spine_chest,"left")
+        right_wrist_chest_delta = self.get_wrist_chest_delta(right_wrist,spine_chest,"right")
+        left_wrist_shoulder_delta = self.get_wrist_shoulder_delta(left_wrist,left_shoulder,"left")
+        right_wrist_shoulder_delta = self.get_wrist_shoulder_delta(right_wrist,right_shoulder,"right")
 
 
         # Parameters that need to be satisfied in case hand is pointing based on observed data points
@@ -121,10 +121,10 @@ class PointingLocationDetection(State):
         # An additional parameter is used here for wrist_shoulder_delta, which ensures person pointing above a certain height is not considered.
 
         if ((left_elbow_angle > 120)and(left_wrist_chest_delta>-0.40)and(left_wrist_shoulder_delta<0)):
-            print('left hand has been raised in pointing position')
+            print("left hand has been raised in pointing position")
             self.tiago.talk("I can see that the person's left hand has been raised in pointing position")
 
-            hand = 'left'
+            hand = "left"
 
             if(self.check_finger_tip(left_hand_tip, hand) == "isnan"):
                 return
@@ -133,10 +133,10 @@ class PointingLocationDetection(State):
 
             
         elif ((right_elbow_angle > 120)and(right_wrist_chest_delta>-0.40)and(right_wrist_shoulder_delta<0)):
-            print('right hand has been raised in pointing position')
+            print("right hand has been raised in pointing position")
             self.tiago.talk("I can see that the person's right hand has been raised in pointing position")
 
-            hand = 'right'
+            hand = "right"
 
             if(self.check_finger_tip(right_hand_tip, hand) == "isnan"):
                 return
@@ -145,19 +145,19 @@ class PointingLocationDetection(State):
 
 
         else:
-            print('hand not pointing')
-            hand = 'none_pointing'
+            print("hand not pointing")
+            hand = "none_pointing"
 
             return hand, [0,0,0]
 
 
     def normalize(self, array):
-        #rospy.loginfo('normalizing recieved array')
+        #rospy.loginfo("normalizing recieved array")
         normalized = array/np.linalg.norm(array, axis = 0)
         return normalized
 
     def get_pointing_line(self, hand_tip, head, open_pose_output_image):
-        rospy.loginfo('calucating the line of pointing')
+        rospy.loginfo("calucating the line of pointing")
         
         # https://github.com/mikedh/trimesh/blob/master/examples/ray.py
         # https://github.com/mikedh/trimesh/issues/211
@@ -189,7 +189,7 @@ class PointingLocationDetection(State):
 
         # print(start_point_3d, start_point_2d, end_point_3d, end_point_2d)
 
-        # rospy.loginfo('displaying pointing line')
+        # rospy.loginfo("displaying pointing line")
         # cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (end_point_2d[0],end_point_2d[1]), (0,0,255), 2)
         # cv2.imshow("Pointing Line Results", open_pose_output_image)
         # cv2.waitKey(5000)
@@ -202,8 +202,8 @@ class PointingLocationDetection(State):
 
     # Move this function to util
     def project_depth_array_to_2d_image_pixels(self, point_3d):
-        #rospy.loginfo('projecting depth array to 2d image pixels')
-        camera_info = rospy.wait_for_message('/xtion/rgb/camera_info', CameraInfo)
+        #rospy.loginfo("projecting depth array to 2d image pixels")
+        camera_info = rospy.wait_for_message("/xtion/rgb/camera_info", CameraInfo)
         depth_array = np.array([point_3d[0], point_3d[1], point_3d[2], 1])
         uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
         x = int(uvw[0] / uvw[2])
@@ -288,12 +288,12 @@ class PointingLocationDetection(State):
     #     x = int (math.round(depthSpacePoint.x))
     #     y = int (math.round(depthSpacePoint.y))
     #     if ((x < 0) or (x >= depth_points.width) or (y < 0) or (y >= depth_points.height)):
-    #         return float('NaN')
+    #         return float("NaN")
 
     #     byteOffset = int ((y * depth_points.stride) + (x * 2))
     #     depth = int(depth_points.ReadBytes(2, byteOffset))
     #     if (depth == 0):
-    #         return float('NaN')
+    #         return float("NaN")
 
     #     return float (depth / 1000)
 
@@ -310,7 +310,7 @@ class PointingLocationDetection(State):
 
 
     def display_pointing_line(self, open_pose_output_image,start_point_2d, intersection_point_2d):
-        rospy.loginfo('displaying extended pointing line towards mesh')
+        rospy.loginfo("displaying extended pointing line towards mesh")
         self.tiago.talk("I have computed the line of pointing and I am now going to display it to you" )
         # Stores extended line upto mesh
         cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (intersection_point_2d[0],intersection_point_2d[1]), (255,255,0), 1)
@@ -332,23 +332,23 @@ class PointingLocationDetection(State):
 
         intersection_point_2d = [intersection_point_2d[0].item(), intersection_point_2d[1].item()]
         #print intersection_point_2d
-        rospy.set_param('/intersection_point_2d', intersection_point_2d)
+        rospy.set_param("/intersection_point_2d", intersection_point_2d)
 
         intersection_point_3d = [intersection_point_3d[0].item(), intersection_point_3d[1].item(), intersection_point_3d[2].item()]
         #print intersection_point_3d
-        rospy.set_param('/intersection_point_3d', intersection_point_3d)
+        rospy.set_param("/intersection_point_3d", intersection_point_3d)
 
         intersection_point_world = self.util.transform_from_camera_frame_to_world_frame(intersection_point_3d)
         intersection_point_world = [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()]
         print ("INTERSECTION POINT IN WORLD COORDINATES:")
         print intersection_point_world
         # To automatically add all values at end of the test run
-        # Open the file in append & read mode ('a+')
-        path = os.path.join('/tiago_ws/src/pointing_recognition/src/tests','intersection_points.txt')
+        # Open the file in append & read mode ("a+")
+        path = os.path.join("/tiago_ws/src/pointing_recognition/src/tests","intersection_points.txt")
         with open(path, "a+") as file_object:
             # Move read cursor to the start of file.
             file_object.seek(0)
-            # If file is not empty then append '\n'
+            # If file is not empty then append "\n"
             data = file_object.read(100)
             if len(data) > 0 :
                 file_object.write("\n")
@@ -356,19 +356,19 @@ class PointingLocationDetection(State):
 
             file_object.write('[' + str(intersection_point_world[0]) + ', ' + str(intersection_point_world[1]) + ', ' + str(intersection_point_world[2]) + ']')
 
-        rospy.set_param('/intersection_point_world', intersection_point_world)
+        rospy.set_param("/intersection_point_world", intersection_point_world)
 
-        #rospy.set_param('/start_point_3d', [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
+        #rospy.set_param("/start_point_3d", [start_point_3d[0].item(), start_point_3d[1].item(), start_point_3d[2].item()])
 
 
         # Saving world coordinate for head for use during disambiguation in reference to user location
         person_head_world_coordinate = self.util.transform_from_camera_frame_to_world_frame(head)
         person_head_world_coordinate = [person_head_world_coordinate[0].item(), person_head_world_coordinate[1].item(), person_head_world_coordinate[2].item()]
         #print person_head_world_coordinate
-        rospy.set_param('/person_head_world_coordinate', person_head_world_coordinate)
+        rospy.set_param("/person_head_world_coordinate", person_head_world_coordinate)
 
         #print radius_of_pointing
-        rospy.set_param('/radius_of_pointing', radius_of_pointing)
+        rospy.set_param("/radius_of_pointing", radius_of_pointing)
 
 
         #print("=================================================================================")
@@ -392,57 +392,57 @@ class PointingLocationDetection(State):
             return True
 
         except Exception as e:
-            print('Couldnt detect pointing location')
+            print("Couldnt detect pointing location")
             rospy.logwarn(e)
             return False
 
 
     def execute(self, userdata):
-        rospy.loginfo('PointingLocationDetection state executing')
+        rospy.loginfo("PointingLocationDetection state executing")
 
         self.tiago.talk("I am now going to determine if the person is pointing, and at which location" )
 
 
-        img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
+        img_msg = rospy.wait_for_message("/xtion/rgb/image_raw",Image)
         
         # To save the depth coordinates once so that I don't have to call it again and doesnt slow everything
         ## MAKE XYZ_ARRAY A GLOBAL VARIABLE
-        depth_points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
+        depth_points = rospy.wait_for_message("/xtion/depth_registered/points",PointCloud2)
         self.xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(depth_points, remove_nans=False)
         self.xyz_array = np.transpose(self.xyz_array, (1, 0, 2))
 
         try:
-            rospy.loginfo('waiting for openpose_detection service')
-            rospy.wait_for_service('/openpose_detection')
-            rospy.loginfo('connected to openpose_detection service')
+            rospy.loginfo("waiting for openpose_detection service")
+            rospy.wait_for_service("/openpose_detection")
+            rospy.loginfo("connected to openpose_detection service")
 
             # running openpose detection
             try:
-                openpose_detection = rospy.ServiceProxy('/openpose_detection', PoseKeypoints)
+                openpose_detection = rospy.ServiceProxy("/openpose_detection", PoseKeypoints)
                 self.pose_keypoints = openpose_detection(img_msg, depth_points)
 
             except rospy.ServiceException as e:
-                print('Pointing detection failed')
+                print("Pointing detection failed")
                 rospy.logwarn(e)
-                return 'outcome2'
+                return "outcome2"
 
             try:
                 hand, hand_tip = self.is_pointing()
             except Exception as e:
-                print('Couldnt detect pointing location')
+                print("Couldnt detect pointing location")
                 rospy.logwarn(e)
-                return 'outcome2'
+                return "outcome2"
 
-            if hand == 'none_pointing':
+            if hand == "none_pointing":
                 self.tiago.talk("I can see that the person is not pointing at any table")
-                return 'outcome2'
+                return "outcome2"
 
             self.tiago.talk("I see that the person is pointing with their " + str(hand) + " hand at a table")
 
             result = self.detect_pointing_location(hand_tip)
 
             if result == False:
-                return 'outcome2'
+                return "outcome2"
 
                     
             # To destroy cv2 window at the end of state
@@ -450,15 +450,15 @@ class PointingLocationDetection(State):
 
             #self.opWrapper.stop()
             
-            return 'outcome1'
+            return "outcome1"
 
         except rospy.ROSInterruptException:
             pass
         except rospy.ServiceException as ex:
-            rospy.logwarn('service call openpose_detection failed')
+            rospy.logwarn("service call openpose_detection failed")
             rospy.logwarn(ex)
         except rospy.ROSException as ex:
-            rospy.logwarn('timed out waiting for openpose_detection service')
+            rospy.logwarn("timed out waiting for openpose_detection service")
             rospy.logwarn(ex)
 
 

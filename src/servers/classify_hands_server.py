@@ -3,11 +3,11 @@
 import rospy
 # Done this because python had problems importing the correct cv2
 import sys
-ros_path = '/opt/ros/kinetic/lib/python2.7/dist-packages'
+ros_path = "/opt/ros/kinetic/lib/python2.7/dist-packages"
 if ros_path in sys.path:
     sys.path.remove(ros_path)
 import cv2
-sys.path.append('/opt/ros/kinetic/lib/python2.7/dist-packages')
+sys.path.append("/opt/ros/kinetic/lib/python2.7/dist-packages")
 
 #importing mediapipe
 import mediapipe as mp
@@ -22,13 +22,13 @@ from pointing_recognition.srv import HandClassification, HandClassificationRespo
 
 class classify_hands_server:
     def __init__(self):
-        rospy.init_node('classify_hands')
+        rospy.init_node("classify_hands")
 
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands
 
-        serv = rospy.Service('classify_hands', HandClassification, self.classify_each_hand)
-        rospy.loginfo('classify_hands service initialised')
+        serv = rospy.Service("classify_hands", HandClassification, self.classify_each_hand)
+        rospy.loginfo("classify_hands service initialised")
         rospy.spin()
 
     def get_hand_landmarks(self,hand_landmarks,keypoint):
@@ -134,7 +134,7 @@ class classify_hands_server:
                 success, image = cap.read()
                 if not success:
                     print("Ignoring empty camera frame.")
-                    # If loading a video, use 'break' instead of 'continue'.
+                    # If loading a video, use "break" instead of "continue".
                     continue
 
                 # Flip the image horizontally for a later selfie-view display, and convert
@@ -162,14 +162,14 @@ class classify_hands_server:
                         elif classification == True:
                             self.left_hand_counter += 1
 
-                cv2.imshow('MediaPipe Hands', image)
+                cv2.imshow("MediaPipe Hands", image)
                 if self.right_hand_counter>30:
-                    return HandClassificationResponse('right')
+                    return HandClassificationResponse("right")
                 elif self.left_hand_counter>30:
-                    return HandClassificationResponse('left')
+                    return HandClassificationResponse("left")
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
         cap.release()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     classify_hands_server()

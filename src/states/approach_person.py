@@ -11,9 +11,9 @@ import math
 
 class ApproachPerson(State):
     def __init__(self, classify_objects, tiago, util, move, table):
-        rospy.loginfo('ApproachPerson state initialized')
+        rospy.loginfo("ApproachPerson state initialized")
         
-        State.__init__(self, outcomes=['outcome1','outcome2'])
+        State.__init__(self, outcomes=["outcome1","outcome2"])
         
         # creates an instance of classify_objects class to classify yolo detections
         self.classify_objects = classify_objects
@@ -29,16 +29,16 @@ class ApproachPerson(State):
 
     def get_table(self):
         for table_id in range(0, len(self.tables)):
-            status = self.tables[table_id].get('status')
-            if status == 'not checked':
-                table_name = self.tables[table_id].get('name')
+            status = self.tables[table_id].get("status")
+            if status == "not checked":
+                table_name = self.tables[table_id].get("name")
                 if table_name == self.table:
-                    print table_name + ' is the target location.'
-                    rospy.set_param('/current_table', self.tables[table_id])
+                    print table_name + " is the target location."
+                    rospy.set_param("/current_table", self.tables[table_id])
                     self.tables[table_id]["status"] = "checked"
                     return
         print("This table has already been checked")
-        return 'table_checked'
+        return "table_checked"
 
     def detect_person(self):
         self.classify_objects.subscribe_to_vision_messages()
@@ -49,17 +49,17 @@ class ApproachPerson(State):
         #self.classify_objects.yolo_get_object_coordinates()
 
         for index in range(len(yolo_detections)):
-            if (yolo_detections[index].name.lower() == 'person'):
+            if (yolo_detections[index].name.lower() == "person"):
                 x,y,w,h = yolo_detections[index].xywh
                 if ((w*h) > 100000):
-                    print('A person was found in frame')
+                    print("A person was found in frame")
                     return True
-        print('No person was found in frame')
+        print("No person was found in frame")
         return False
 
     def move_to_table(self,current_table):
-        #location = rospy.get_param('/pointing_person_approach')
-        location = current_table.get('person_check_location')
+        #location = rospy.get_param("/pointing_person_approach")
+        location = current_table.get("person_check_location")
 
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
@@ -85,22 +85,22 @@ class ApproachPerson(State):
                 print("The robot has not been able to rotate around it's base")
 
             if self.detect_person():
-                print('Person was found at this table')
+                print("Person was found at this table")
                 # Saves the location where the pwerson was found to rosparm to use this later while looking back at person for gathering responses
-                rospy.set_param('/pointing_person_approach_orientation', [location.get('orientation')[0].item(), location.get('orientation')[1].item(), location.get('orientation')[2].item(), location.get('orientation')[3].item()])
-                # rospy.set_param('/pointing_person_approach', location)
+                rospy.set_param("/pointing_person_approach_orientation", [location.get("orientation")[0].item(), location.get("orientation")[1].item(), location.get("orientation")[2].item(), location.get("orientation")[3].item()])
+                # rospy.set_param("/pointing_person_approach", location)
 
                 return True
             degrees += 15
 
                 
-        print('No Person was found at this table')
+        print("No Person was found at this table")
         return False
 
 
 
     def execute(self, userdata, wait=True):
-        rospy.loginfo('ApproachPerson state executing')
+        rospy.loginfo("ApproachPerson state executing")
 
         # Collects the details of tables in the environment from the util class and saves in self.tables
         self.tables = self.util.tables
@@ -109,13 +109,13 @@ class ApproachPerson(State):
         self.tiago.talk("I am now going to approach the person at the " +  self.table + ", to help them identify an object")
 
         # create the action client:
-        self.movebase_client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
+        self.movebase_client = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
 
         # wait until the action server has started up and started listening for goals
         self.movebase_client.wait_for_server()
 
         # self.get_table()
-        # current_table = rospy.get_param('/current_table')
+        # current_table = rospy.get_param("/current_table")
         # self.move_to_table(current_table)
 
         person_found = False
@@ -125,9 +125,9 @@ class ApproachPerson(State):
 
             # Moving to the next table
             status = self.get_table()
-            if status == 'table_checked':
+            if status == "table_checked":
                 table_checked = True
-            current_table = rospy.get_param('/current_table')
+            current_table = rospy.get_param("/current_table")
             self.move_to_table(current_table)
 
             self.tiago.talk("I am now going to look around to see if i can find a person" )
@@ -135,9 +135,9 @@ class ApproachPerson(State):
             person_found = self.check_person_around_table()
             print person_found
             if person_found:
-                return 'outcome1'
+                return "outcome1"
         
-        print('The person wasnt found at this table')
+        print("The person wasnt found at this table")
         self.tiago.talk("Sorry, but I couldnt find a person at the " + self.table + " to help" )
         
-        return 'outcome2'
+        return "outcome2"

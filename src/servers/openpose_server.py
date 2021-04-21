@@ -16,14 +16,14 @@ from sensor_msgs.srv import SetCameraInfo
 import sensor_msgs.point_cloud2 as pc2
 
 import sys
-sys.path.append('/tiago_ws/src/openpose/build/python')
+sys.path.append("/tiago_ws/src/openpose/build/python")
 from openpose import pyopenpose as op
 
 
 class openpose_server():
 
     def __init__(self):
-        rospy.init_node('openpose_detection')
+        rospy.init_node("openpose_detection")
 
         self.bridge = CvBridge()
                 
@@ -33,13 +33,13 @@ class openpose_server():
         self.opWrapper.start()
 
 
-        serv = rospy.Service('openpose_detection', PoseKeypoints, self.compute_pointing)
-        rospy.loginfo('openpose_detection service initialised')
+        serv = rospy.Service("openpose_detection", PoseKeypoints, self.compute_pointing)
+        rospy.loginfo("openpose_detection service initialised")
         rospy.spin()
 
 
     def print_body_parameters(self, datum):
-        rospy.loginfo('Printing Body Parameters')
+        rospy.loginfo("Printing Body Parameters")
         body_keypoints = str(datum.poseKeypoints.astype(float))
         print("Body keypoints: \n" + body_keypoints)
         #print("Face keypoints: \n" + str(np.around(datum.faceKeypoints).fillna(0.0).astype(int)))
@@ -54,23 +54,23 @@ class openpose_server():
     #     return parser.parse_known_args()
 
     def set_params(self):
-        rospy.loginfo('Setting OpenPose default parameters')
+        rospy.loginfo("Setting OpenPose default parameters")
         params = dict()
         params["body"] = 1
         params["number_people_max"] = 1
-        params['model_folder'] = '/tiago_ws/src/openpose/models/'
-        params['model_pose'] = 'COCO'
+        params["model_folder"] = "/tiago_ws/src/openpose/models/"
+        params["model_pose"] = "COCO"
         # Even tough 320x320 is dangerously accurate, it is too slow and therefore I
         # will use the fairly accurate 320x240
-        params['net_resolution'] = '320x240' # 368x368 (multiples of 16)
-        # params['face_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-        # params['hand_net_resolution'] = '160x80' # 368x368 (multiples of 16)
-        # params['flir_camera'] = True # Used when using Flir camera
-        # params['frame_undistort'] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
-        params['hand'] = True
-        params['face'] = False
+        params["net_resolution"] = "320x240" # 368x368 (multiples of 16)
+        # params["face_net_resolution"] = "160x80" # 368x368 (multiples of 16)
+        # params["hand_net_resolution"] = "160x80" # 368x368 (multiples of 16)
+        # params["flir_camera"] = True # Used when using Flir camera
+        # params["frame_undistort"] = True # Used when simultaneously using FLIR cameras and the 3-D reconstruction module so their camera parameters are read.
+        params["hand"] = True
+        params["face"] = False
         # params["3d"] = True
-        # params['3d_views'] = 2
+        # params["3d_views"] = 2
         return params
 
     def get_mid_hip_3d(self, left_hip, right_hip):
@@ -93,30 +93,30 @@ class openpose_server():
 
 
     def get_body_points_3d(self, human, pos, xyz_array):
-        #rospy.loginfo('Requesting body keypoints')
+        #rospy.loginfo("Requesting body keypoints")
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/02_output.md
-        if pos == 'Head':
+        if pos == "Head":
             pnt_index = 0
-        elif pos == 'Neck':
+        elif pos == "Neck":
             pnt_index = 1
-        elif pos == 'RShoulder':
+        elif pos == "RShoulder":
             pnt_index = 2
-        elif pos == 'RElbow':
+        elif pos == "RElbow":
             pnt_index = 3
-        elif pos == 'RWrist':
+        elif pos == "RWrist":
             pnt_index = 4
-        elif pos == 'LShoulder':
+        elif pos == "LShoulder":
             pnt_index = 5
-        elif pos == 'LElbow':
+        elif pos == "LElbow":
             pnt_index = 6
-        elif pos == 'LWrist':
+        elif pos == "LWrist":
             pnt_index = 7
-        elif pos == 'RHip':
+        elif pos == "RHip":
             pnt_index = 8
-        elif pos == 'LHip':
+        elif pos == "LHip":
             pnt_index = 11
         else:
-            rospy.logerr('Unknown  [%s]', pos)
+            rospy.logerr("Unknown  [%s]", pos)
             return None
         
         # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (nan,nan,nan) to eliminate erronous calculations
@@ -130,19 +130,19 @@ class openpose_server():
         return self.get_depth(pnt, xyz_array)
 
     def get_hand_points_3d(self, hand, pos, xyz_array):
-        #rospy.loginfo('Requesting hand keypoints')
+        #rospy.loginfo("Requesting hand keypoints")
         # Link to openpose output data format: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/02_output.md
 
-        if pos == 'first_finger_tip':
+        if pos == "first_finger_tip":
             pnt_index = 8
-        elif pos == 'first_finger_dip_joint':
+        elif pos == "first_finger_dip_joint":
             pnt_index = 7
-        elif pos == 'first_finger_pip_joint':
+        elif pos == "first_finger_pip_joint":
             pnt_index = 6
-        elif pos == 'first_finger_mcp_joint':
+        elif pos == "first_finger_mcp_joint":
             pnt_index = 5
         else:
-            rospy.logerr('Unknown  [%s]', pos)
+            rospy.logerr("Unknown  [%s]", pos)
             return None
 
         # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (nan,nan,nan) to eliminate erronous calculations
@@ -156,7 +156,7 @@ class openpose_server():
         return self.get_depth(pnt, xyz_array)
 
     def get_depth(self, pnt, xyz_array):
-        #rospy.loginfo('Requesting depth data at requested pixel')
+        #rospy.loginfo("Requesting depth data at requested pixel")
         # Gets the z distance from tiago to the object at pixel x,y in the camera image.
         # x and y are in pixels
 
@@ -196,17 +196,17 @@ class openpose_server():
         # # Set Params
         # params = self.set_params()
 
-        # img_msg = rospy.wait_for_message('/xtion/rgb/image_raw',Image)
+        # img_msg = rospy.wait_for_message("/xtion/rgb/image_raw",Image)
         
-        # To save the depth coordinates once so that I don't have to call it again and doesnt slow everything
+        # To save the depth coordinates once so that I don"t have to call it again and doesnt slow everything
         ## MAKE XYZ_ARRAY A GLOBAL VARIABLE
-        # depth_points = rospy.wait_for_message('/xtion/depth_registered/points',PointCloud2)
+        # depth_points = rospy.wait_for_message("/xtion/depth_registered/points",PointCloud2)
         xyz_array = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(depth_points, remove_nans=False)
         xyz_array = np.transpose(xyz_array, (1, 0, 2))
 
 
 
-        #img_msg2 = rospy.wait_for_message('/xtion/depth_registered/image_raw',Image)
+        #img_msg2 = rospy.wait_for_message("/xtion/depth_registered/image_raw",Image)
         #print(img_msg.height, img_msg.width)
         #print(img_msg2.height, img_msg2.width)
 
@@ -231,36 +231,36 @@ class openpose_server():
 
             # Display Image And Print Body Keypoints
             human_count = len(datum.poseKeypoints)
-            print('Number of humans in frame: {}'.format(human_count))
+            print("Number of humans in frame: {}".format(human_count))
             self.print_body_parameters(datum)
             open_pose_output_image  = datum.cvOutputData
             cv2.imshow("OpenPose Results", open_pose_output_image)
             cv2.waitKey(5000)
 
             for i in range(human_count):
-                print('=================================')
-                #get_body_angle(datum.poseKeypoints[i], 'waist')
-                #angle = get_body_angle(datum.poseKeypoints[i], 'left_elbow')
+                print("=================================")
+                #get_body_angle(datum.poseKeypoints[i], "waist")
+                #angle = get_body_angle(datum.poseKeypoints[i], "left_elbow")
 
                 poseKeypoints = datum.poseKeypoints[i]
                 handKeypointsL = datum.handKeypoints[0][i]
                 handKeypointsR = datum.handKeypoints[1][i]
 
 
-                head = self.get_body_points_3d(poseKeypoints, 'Head', xyz_array)
-                neck = self.get_body_points_3d(poseKeypoints, 'Neck', xyz_array)
-                right_shoulder = self.get_body_points_3d(poseKeypoints, 'RShoulder', xyz_array)
-                left_shoulder = self.get_body_points_3d(poseKeypoints, 'LShoulder', xyz_array)
-                left_elbow = self.get_body_points_3d(poseKeypoints, 'LElbow', xyz_array)
-                right_elbow = self.get_body_points_3d(poseKeypoints, 'RElbow', xyz_array)
-                left_wrist = self.get_body_points_3d(poseKeypoints, 'LWrist', xyz_array)
-                right_wrist = self.get_body_points_3d(poseKeypoints, 'RWrist', xyz_array)
-                left_hip = self.get_body_points_3d(poseKeypoints, 'LHip', xyz_array)
-                right_hip = self.get_body_points_3d(poseKeypoints, 'RHip', xyz_array)
+                head = self.get_body_points_3d(poseKeypoints, "Head", xyz_array)
+                neck = self.get_body_points_3d(poseKeypoints, "Neck", xyz_array)
+                right_shoulder = self.get_body_points_3d(poseKeypoints, "RShoulder", xyz_array)
+                left_shoulder = self.get_body_points_3d(poseKeypoints, "LShoulder", xyz_array)
+                left_elbow = self.get_body_points_3d(poseKeypoints, "LElbow", xyz_array)
+                right_elbow = self.get_body_points_3d(poseKeypoints, "RElbow", xyz_array)
+                left_wrist = self.get_body_points_3d(poseKeypoints, "LWrist", xyz_array)
+                right_wrist = self.get_body_points_3d(poseKeypoints, "RWrist", xyz_array)
+                left_hip = self.get_body_points_3d(poseKeypoints, "LHip", xyz_array)
+                right_hip = self.get_body_points_3d(poseKeypoints, "RHip", xyz_array)
                 mid_hip = self.get_mid_hip_3d(left_hip, right_hip)
                 spine_chest = self.get_spine_chest_3d(neck, mid_hip)
-                left_hand_tip = self.get_hand_points_3d(handKeypointsL, 'first_finger_tip', xyz_array)
-                right_hand_tip = self.get_hand_points_3d(handKeypointsR, 'first_finger_tip', xyz_array)
+                left_hand_tip = self.get_hand_points_3d(handKeypointsL, "first_finger_tip", xyz_array)
+                right_hand_tip = self.get_hand_points_3d(handKeypointsR, "first_finger_tip", xyz_array)
 
                 open_pose_output_image_msg = self.bridge.cv2_to_imgmsg(open_pose_output_image, encoding="bgr8")
 
@@ -278,5 +278,5 @@ class openpose_server():
             sys.exit(-1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     openpose_server()
