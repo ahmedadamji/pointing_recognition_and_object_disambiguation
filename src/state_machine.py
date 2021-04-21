@@ -65,7 +65,7 @@ def main():
     rospy.set_param("/intersection_point_world", intersection_point_world)
     person_head_world_coordinate = [-1.402642251022807, -8.916499175910454, 1.792557797900345]
     rospy.set_param("/person_head_world_coordinate", person_head_world_coordinate)
-    radius_of_pointing = 0.18
+    radius_of_pointing = 0.326
     rospy.set_param("/radius_of_pointing", radius_of_pointing)
     
 

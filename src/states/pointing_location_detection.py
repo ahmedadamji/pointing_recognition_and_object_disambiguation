@@ -211,7 +211,7 @@ class PointingLocationDetection(State):
 
         return x,y
 
-    def intersect_line_with_depth_mesh(self, start_point, end_point, radius_of_pointing = 0.18, maxDistance = 5, skipFactor = 0.05):
+    def intersect_line_with_depth_mesh(self, start_point, end_point, maxDistance = 5, skipFactor = 0.05):
         # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
         delta = skipFactor * self.normalize(end_point - start_point)
         maxSteps = int(maxDistance / (np.linalg.norm(delta)))
@@ -241,7 +241,7 @@ class PointingLocationDetection(State):
             # or i can just check if the point is inside the box selected
             # ADD ANOTHER CONDITION OF hypothesis_point_3d[2]- meshDistance SHOULD BE LESS THAN A CERTAIN AMOUNT
             mesh_to_hypothesis_point_gap = abs(meshDistance - hypothesis_point_3d[2])
-            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2]) and (mesh_to_hypothesis_point_gap < radius_of_pointing)):
+            if (not(math.isnan(meshDistance)) and (meshDistance < hypothesis_point_3d[2]) and (mesh_to_hypothesis_point_gap < self.radius_of_pointing)):
                 hypothesis_point_3d = [hypothesis_point_3d[0], hypothesis_point_3d[1], hypothesis_point_3d[2]]
 
                 print "The location of pointing is identified at:"
@@ -307,22 +307,48 @@ class PointingLocationDetection(State):
     #     tmp = tmp.TransformBy(this.transform)
     #     return Point2D(tmp.x, tmp.y)
 
+    def define_bounding_box_around_intersection_point(self):
+        centre = np.array([self.intersection_point_world[0],self.intersection_point_world[1],self.intersection_point_world[2]])
 
+        # sides = np.array([0.30,0.30,0.30])  # 30cm sides # Need to change this to a reasonable number
+        # min_xyz = centre-(sides/2)
+        # max_xyz = centre+(sides/2)
+
+        # self.box_start_point_3d = min_xyz
+        # self.box_end_point_3d = max_xyz
+
+
+        # For visualisaition purposes on top of 2d image
+
+        # TO FIND THE RADIUS IN PIXELS TO PLOT
+        distance = np.array(self.util.get_2d_pixel_coordinate_from_world_coordinate(self.radius_of_pointing + np.array(centre))) -  np.array(self.intersection_point_2d)
+        self.radius_of_pointing_2d = int(math.hypot(distance[0], distance[0]))
+
+        # self.box_start_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(min_xyz)
+        # self.box_end_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(max_xyz)
 
     def display_pointing_line(self, open_pose_output_image,start_point_2d, intersection_point_2d):
         print("displaying an extended pointing vector upto the depth mesh")
         # Stores extended line upto mesh
         cv2.line(open_pose_output_image, (start_point_2d[0],start_point_2d[1]), (intersection_point_2d[0],intersection_point_2d[1]), (255,255,0), 1)
+        self.define_bounding_box_around_intersection_point()
         # Stores box around overlapping point
-        box_start_point = (intersection_point_2d[0]-25),(intersection_point_2d[1]-25)
-        box_end_point = intersection_point_2d[0]+25,intersection_point_2d[1]+25
-        cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
+
+        # Plotting the bounding box
+        colour = (0,0,255)
+        thickness = 1
+        #cv2.rectangle(frame, self.box_start_point_2d, self.box_end_point_2d, (0,0,255), 1)
+        cv2.circle(frame, intersection_point_2d, self.radius_of_pointing_2d, colour, thickness)
+
+        # box_start_point = (intersection_point_2d[0]-25),(intersection_point_2d[1]-25)
+        # box_end_point = intersection_point_2d[0]+25,intersection_point_2d[1]+25
+        # cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
         self.interaction.talk("You can visualise the vector of pointing in the 2d image displayed on the screen now")
         cv2.waitKey(5000)
 
-    def set_params(self, intersection_point_2d, intersection_point_3d, head, radius_of_pointing):
+    def set_params(self, intersection_point_2d, intersection_point_3d, head):
         
         # self.msg_to_send.intersection_point_2d = intersection_point_2d
         # self.msg_to_send.intersection_point_3d = intersection_point_3d
@@ -342,6 +368,7 @@ class PointingLocationDetection(State):
         intersection_point_world = [intersection_point_world[0].item(), intersection_point_world[1].item(), intersection_point_world[2].item()]
         print ("INTERSECTION POINT IN WORLD COORDINATES:")
         print intersection_point_world
+        self.intersection_point_world = intersection_point_world
         # To automatically add all values at end of the test run
         # Open the file in append & read mode ("a+")
         path = os.path.join("/tiago_ws/src/pointing_recognition/src/tests","intersection_points.txt")
@@ -368,7 +395,7 @@ class PointingLocationDetection(State):
         rospy.set_param("/person_head_world_coordinate", person_head_world_coordinate)
 
         #print radius_of_pointing
-        rospy.set_param("/radius_of_pointing", radius_of_pointing)
+        rospy.set_param("/radius_of_pointing", self.radius_of_pointing)
 
 
         #print("=================================================================================")
@@ -378,16 +405,16 @@ class PointingLocationDetection(State):
         head = np.array(self.pose_keypoints.head)
 
         start_point_3d, end_point_3d, start_point_2d, end_point_2d  = self.get_pointing_line(hand_tip, head, open_pose_output_image)
-        radius_of_pointing = 0.326
+        self.radius_of_pointing = 0.326
         maxDistance = 5
         skipFactor = 0.05
 
         try:
-            intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(start_point_3d, end_point_3d, radius_of_pointing, maxDistance, skipFactor)
+            intersection_point_3d, intersection_point_2d = self.intersect_line_with_depth_mesh(start_point_3d, end_point_3d, maxDistance, skipFactor)
 
             self.display_pointing_line(open_pose_output_image,start_point_2d, intersection_point_2d)
 
-            self.set_params(intersection_point_2d, intersection_point_3d, head, radius_of_pointing)
+            self.set_params(intersection_point_2d, intersection_point_3d, head)
 
             return True
 
