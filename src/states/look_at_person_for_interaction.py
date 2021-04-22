@@ -23,7 +23,7 @@ class LookAtPersonForInteraction(State):
     def execute(self, userdata, wait=True):
         rospy.loginfo("LookAtPersonForInteraction state executing")
 
-        self.interaction.talk("I will now look towards the person to recognise hand gestures, to gather responses for disambiguation." )
+        self.interaction.talk("I will now turn towards you to ask questions" )
         
         # Lift tiago's torso and set head to default
         self.move.look_at_person(True)
@@ -45,10 +45,10 @@ class LookAtPersonForInteraction(State):
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
         if movebase == True:
-            self.interaction.talk("I am now looking at the person pointing, to gather responses" )
+            #self.interaction.talk("I am now looking at the person pointing, to gather responses" )
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
-            self.interaction.talk("I have not been able to reach the goal location" )
+            self.interaction.talk("I have not been able to look towards you" )
 
         
         return "outcome1"

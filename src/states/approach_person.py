@@ -130,7 +130,7 @@ class ApproachPerson(State):
             current_table = rospy.get_param("/current_table")
             self.move_to_table(current_table)
 
-            self.interaction.talk("I am now going to look around to see if i can find a person" )
+            self.interaction.talk("I am now going to look around until I can find you" )
 
             person_found = self.check_person_around_table()
             print person_found
@@ -138,6 +138,6 @@ class ApproachPerson(State):
                 return "outcome1"
         
         print("The person wasnt found at this table")
-        self.interaction.talk("Sorry, but I couldnt find a person at the " + self.table + " to help" )
+        self.interaction.talk("Sorry, but I couldnt find you" )
         
         return "outcome2"

@@ -53,10 +53,10 @@ class ApproachPointedObject(State):
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
         if movebase == True:
-            self.interaction.talk("I have now reached the goal location" )
+            #self.interaction.talk("I have now reached the goal location" )
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
-            self.interaction.talk("I have not been able to reach the goal location" )
+            self.interaction.talk("Sorry but I have not been able to reach close to the " + str(table.get("name")) )
             return False
 
         # Sets robot pose to check table
@@ -85,7 +85,7 @@ class ApproachPointedObject(State):
         table = self.get_table(intersection_point_world)
         # saving selected table name to use its location while looking at person gesturing 
         rospy.set_param("/current_table", table)
-        self.interaction.talk("I will now approach the " + str(table.get("name"))+ " to identify the object")
+        self.interaction.talk("I will now approach close to the " + str(table.get("name"))+ " to scan for objects")
         if not self.approach_table(table, wait):
             return "outcome2"
         

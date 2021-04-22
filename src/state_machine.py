@@ -78,8 +78,8 @@ def main():
         StateMachine.add("approach_person", ApproachPerson(classify_objects, interaction, util, move, table), transitions={"outcome1":"detect_pointing_location", "outcome2": "detect_pointing_location"})
         StateMachine.add("detect_pointing_location", PointingLocationDetection(interaction, util), transitions={"outcome1":"approach_object", "outcome2": "end"})
         StateMachine.add("approach_object", ApproachPointedObject(interaction, util, move), transitions={"outcome1":"detect_pointed_object", "outcome2": "end"})
-        StateMachine.add("detect_pointed_object", PointedObjectDetection(classify_objects, interaction, util), transitions={"outcome1":"look_at_person_for_interaction", "outcome2": "end"})
-        StateMachine.add("look_at_person_for_interaction", LookAtPersonForInteraction(interaction, move), transitions={"outcome1":"disambiguate_objects", "outcome2": "disambiguate_objects"})
+        StateMachine.add("detect_pointed_object", PointedObjectDetection(classify_objects, interaction, util), transitions={"outcome1":"disambiguate_objects", "outcome2": "end"})
+        #StateMachine.add("look_at_person_for_interaction", LookAtPersonForInteraction(interaction, move), transitions={"outcome1":"disambiguate_objects", "outcome2": "disambiguate_objects"})
         StateMachine.add("disambiguate_objects", ObjectDisambiguation(interaction, util), transitions={"outcome1":"end", "outcome2": "end"})
         sm.execute()
     

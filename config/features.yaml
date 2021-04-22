@@ -1,52 +1,40 @@
 object_attributes:
   - name: 'apple'
     colour: 'red'
-    type: 'fruit'
-    texture: 'smooth'
-    size: 'medium'
-    shape: 'round'
+    fruit: 'yes'
+    smooth: 'yes'
+    shape: ['round', 'conical', 'flat round', 'flat', 'long conical', 'round conical', 'round oblong', 'square oblong']
 
   - name: 'banana'
     colour: 'yellow'
-    type: 'fruit'
-    texture: 'smooth'
-    size: 'long'
-    shape: 'curved'
+    fruit: 'yes'
+    smooth: 'yes'
+    shape: ['curved','long','curvey','thick','thin', 'fat']
 
   - name: 'orange'
     colour: 'orange'
-    type: 'fruit'
-    texture: 'wrinkled'
-    size: 'medium'
-    shape: 'round'
+    fruit: 'yes'
+    smooth: 'no'
+    shape: ['round','sphere','oval']
 
   - name: 'lemon'
     colour: 'yellow'
-    type: 'fruit'
-    texture: 'wrinkled'
-    size: 'small'
-    shape: 'round'
+    fruit: 'yes'
+    smooth: 'no'
+    shape: ['round','sphere','tiny','oval', 'oblong', 'ellipsoid']
 
   - name: 'carrot'
     colour: 'orange'
-    type: 'vegetable'
-    texture: 'wrinkled'
-    size: 'long'
-    shape: 'straight'
+    fruit: 'no'
+    smooth: 'no'
+    shape: ['straight', 'long', 'short', 'fat', 'thin', 'irregular', 'thick']
 
-  - name: 'bowl'
-    colour: 'white'
-    type: 'utensil'
-    texture: 'smooth'
-    size: 'large'
-    shape: 'round'
 
 list_of_attributes:
-  - colour: ['red','orange','yellow',white]
-    type: ['fruit','utensil']
-    texture: ['smooth','wrinkled']
-    size: ['small','medium','long','large']
-    shape: ['round', 'curved','straight']
+  - colour: ['red','orange','yellow']
+    fruit: ['yes','no']
+    smooth: ['yes','no']
+    shape: ['round', 'conical', 'flat round', 'flat', 'long conical', 'round conical', 'round oblong', 'square oblong','curved','long','curvey','thick','thin', 'fat','sphere','tiny','oval', 'oblong', 'ellipsoid','short','straight','irregular']
     position: ["north", "front", "right", "east", "behind", "south", "left", "west", "centre"]
 
-list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange','lemon','carrot','bowl']
+list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange','lemon','carrot']

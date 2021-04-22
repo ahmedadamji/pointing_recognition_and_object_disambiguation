@@ -86,8 +86,9 @@ class PointingLocationDetection(State):
 
     def check_finger_tip(self, hand_tip, hand):
         if (math.isnan(hand_tip[0])) or (math.isnan(hand_tip[1])) or (math.isnan(hand_tip[2])):
-            print("Sorry, but I could not detect the exact location of the person's "+ hand + " finger tip to be used for pointing location detection")
-            self.interaction.talk("Sorry, but I could not detect the exact location of the person's "+ hand + " finger tip to be used for pointing location detection")
+            print("Could not detect the exact location of the person's "+ hand + " finger tip to be used for pointing location detection")
+            ## NO NEED TO RECORD THIS
+            self.interaction.talk("Sorry, but I couldn't complete your request as I had trouble with my sensor readings")
             return "isnan"
 
     def is_pointing(self):
@@ -121,8 +122,7 @@ class PointingLocationDetection(State):
         # An additional parameter is used here for wrist_shoulder_delta, which ensures person pointing above a certain height is not considered.
 
         if ((left_elbow_angle > 120)and(left_wrist_chest_delta>-0.40)and(left_wrist_shoulder_delta<0)):
-            print("left hand has been raised in pointing position")
-            self.interaction.talk("I can see that the person's left hand has been raised in pointing position")
+            #print("left hand has been raised in pointing position")
 
             hand = "left"
 
@@ -133,8 +133,7 @@ class PointingLocationDetection(State):
 
             
         elif ((right_elbow_angle > 120)and(right_wrist_chest_delta>-0.40)and(right_wrist_shoulder_delta<0)):
-            print("right hand has been raised in pointing position")
-            self.interaction.talk("I can see that the person's right hand has been raised in pointing position")
+            #print("right hand has been raised in pointing position")
 
             hand = "right"
 
@@ -211,7 +210,7 @@ class PointingLocationDetection(State):
 
         return x,y
 
-    def intersect_line_with_depth_mesh(self, start_point, end_point, maxDistance = 5, skipFactor = 0.05):
+    def intersect_line_with_depth_mesh(self, start_point, end_point, maxDistance = 20, skipFactor = 0.05):
         # SECOND ATTEMPT AT FINDING COLLISION WITH MESH -->
         delta = skipFactor * self.normalize(end_point - start_point)
         maxSteps = int(maxDistance / (np.linalg.norm(delta)))
@@ -228,7 +227,8 @@ class PointingLocationDetection(State):
             # Making sure the hypothesis point does not go outside the camera frame
             if (hypothesis_point_2d[0] >= 640) or (hypothesis_point_2d[1] >= 420) or (hypothesis_point_2d[0] <= 0) or (hypothesis_point_2d[1] <= 0):
                 print ("Couldn't find an intersection with the depth mesh within the camera frame")
-                self.interaction.talk("I couldn't find an intersection with the depth mesh within the camera frame")
+                ## VOICE OVER HERE SAYING NO INTERSECTION WITH THE DEPTH MESH FOUND IN CURRENT VIEW ANGLE OF THE ROBOT
+                self.interaction.talk("Sorry, but I couldn't find any object in the region where you are pointing")
                 # POTENTIAL FUTURE IMPROVEMENT --> Move the robot head along the pointing line so that it is not limited by the camera frame
                 return
             
@@ -257,7 +257,7 @@ class PointingLocationDetection(State):
                 ## BEFORE AND AFTER IN REPORT
 
         print ("I couldn't find an intersection with the depth mesh within the maximum distance for pointing")
-        self.interaction.talk("I couldn't find an intersection with the depth mesh within the maximum distance for pointing")
+        self.interaction.talk("Sorry, but I couldn't find any object within 20 meters of your position")
         return
         
 
@@ -345,7 +345,6 @@ class PointingLocationDetection(State):
         # cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
-        self.interaction.talk("You can visualise the vector of pointing in the 2d image displayed on the screen now")
         cv2.waitKey(5000)
 
     def set_params(self, intersection_point_2d, intersection_point_3d, head):
@@ -427,7 +426,7 @@ class PointingLocationDetection(State):
     def execute(self, userdata):
         rospy.loginfo("PointingLocationDetection state executing")
 
-        self.interaction.talk("I am now going to determine if the person is pointing, and at which location" )
+        self.interaction.talk("I will now have to scan you to check if and where your hand is pointing")
 
 
         img_msg = rospy.wait_for_message("/xtion/rgb/image_raw",Image)
@@ -461,10 +460,10 @@ class PointingLocationDetection(State):
                 return "outcome2"
 
             if hand == "none_pointing":
-                self.interaction.talk("I can see that the person is not pointing at any table")
+                self.interaction.talk("I can see that you are not pointing at any object, and therefore I cannot help you.")
                 return "outcome2"
 
-            self.interaction.talk("I see that the person is pointing with their " + str(hand) + " hand at a table")
+            self.interaction.talk("I see that you are pointing at something with your " + str(hand) + " hand")
 
             result = self.detect_pointing_location(hand_tip)
 

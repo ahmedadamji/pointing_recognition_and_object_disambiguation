@@ -194,7 +194,29 @@ class PointedObjectDetection(State):
             return True
 
 
+    def notify_all_objects(self):
+        self.interaction.talk("I found " + str(self.total_objects_within_pointing_bounding_box) + " objects close to where you were pointing, which were ")
 
+        previous_object_name = self.objects_within_pointing_bounding_box[0].get("name")
+        count = 1
+        for i in range(len(self.objects_within_pointing_bounding_box)-1):
+            object_name = self.objects_within_pointing_bounding_box[i+1].get("name")
+            if previous_object_name == object_name:
+                count += 1
+            previous_object_name = object_name
+            
+        if count == len(self.objects_within_pointing_bounding_box):
+            self.interaction.talk("All " + previous_object_name + "s.")
+            return False
+
+
+            
+
+        for i in range(len(self.objects_within_pointing_bounding_box)):
+            if i == (len(self.objects_within_pointing_bounding_box)-1):
+                self.interaction.talk("and")
+            object_name = self.objects_within_pointing_bounding_box[i].get("name")
+            self.interaction.talk(object_name)
 
     def execute(self, userdata):
         rospy.loginfo("PointedObjectDetection state executing")
@@ -202,37 +224,38 @@ class PointedObjectDetection(State):
         self.intersection_point_world = rospy.get_param("/intersection_point_world")
         self.current_table = rospy.get_param("/current_table")
 
-        self.interaction.talk("The objects I found close to the location of pointing are displayed within the circle in the image shown to you now" )
+        self.interaction.talk("The objects I found close to where you were pointing are displayed within a circle in the image shown to you now" )
         self.draw_bounding_box_around_intersection_point()
 
         yolo_detections = self.detect_objects()
-        if not self.get_objects_within_pointing_bounding_box(yolo_detections):
-            #print "Objects found are not capable of disambiguation"
-            self.interaction.talk("Sorry but the objects I found are not yet programmed to be disambiguated")
-
-            return "outcome2"
 
         if self.total_objects_within_pointing_bounding_box == 0:
             #print "No objects were found within pointing bounding box"
-            self.interaction.talk("Sorry but I couldn't find any objects within pointing bounding box")
+            self.interaction.talk("Sorry but I couldn't find any objects close to where you were pointing")
 
             return "outcome2"
 
         elif self.total_objects_within_pointing_bounding_box == 1:
             #print "This is the only object being pointed at:"
-            self.interaction.talk("I could only detect one object close to the location of pointing, this was: ")
+            self.interaction.talk("The object you asked me to identify was a ")
             #print yolo_detections[self.objects_within_pointing_bounding_box_indices[0]]
             for detected_object in self.objects_within_pointing_bounding_box:
                 self.interaction.talk(detected_object.get("name"))
 
             return "outcome2"
+        
+        elif not self.get_objects_within_pointing_bounding_box(yolo_detections):
+            #print "Objects found are not capable of disambiguation"
+            if not (self.notify_all_objects()):
+                self.interaction.talk("unfortunately, I am unable to determine exactly which one of these you were referring to.")
+
+            return "outcome2"
+
 
         else:
-            #print"Further diasambiguation needed"
-            self.interaction.talk("I found " + str(self.total_objects_within_pointing_bounding_box) + " objects around the location of pointing, which were: ")
-            for detected_object in self.objects_within_pointing_bounding_box:
-                self.interaction.talk(detected_object.get("name"))
-            self.interaction.talk("Therefore further disambiguation is needed")
+            if not (self.notify_all_objects()):
+                #print"Further diasambiguation needed"
+                self.interaction.talk("To help you identify the object you were referring to, I will now ask you some simple questions.")
         
         #rospy.set_param("/objects_on_table", objects_on_table)
         rospy.set_param("/objects_within_pointing_bounding_box", self.objects_within_pointing_bounding_box)  # CHECK IF THE FOLLOWING IS NEEDED.

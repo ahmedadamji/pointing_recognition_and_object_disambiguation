@@ -227,7 +227,7 @@ class ObjectDisambiguation(State):
         return compass_direction
 
     def get_attribute_of_current_object(self, attribute, current_object, current_object_attributes):
-        #current_attribute_from_user = self.dummy_attributes_from_user.get(attribute)
+        #user_response = self.dummy_attributes_from_user.get(attribute)
         # Can add here more conditions for example if attribute needs to be extracted by means of opencv / other means in the future.
         if not(attribute == "position"):
             attribute_of_current_object = current_object_attributes.get(attribute)
@@ -250,9 +250,9 @@ class ObjectDisambiguation(State):
         
 
 
-    def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, current_attribute_from_user):
+    def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, user_response):
 
-        if current_attribute_from_user.lower() in self.get_attribute_of_current_object(attribute, current_object, current_object_attributes):
+        if user_response.lower() in self.get_attribute_of_current_object(attribute, current_object, current_object_attributes):
             match = 1
             print attribute + " attribute matches"
         else:
@@ -263,14 +263,14 @@ class ObjectDisambiguation(State):
         return match
     
     
-    def compare_current_object_using_attributes_from_database(self, attribute, current_object, compared_objects, current_attribute_from_user):
+    def compare_current_object_using_attributes_from_database(self, attribute, current_object, compared_objects, user_response):
 
         for object_id in range(len(self.objects_with_attributes)):
             if self.objects_with_attributes[object_id].get("name") == current_object.get("name"):
                 print "Current object being compared: " + self.objects_with_attributes[object_id].get("name")
                 compared_objects.append(current_object)
 
-                match = self.compare_current_object_with_chosen_attribute(current_object, self.objects_with_attributes[object_id], attribute, current_attribute_from_user)
+                match = self.compare_current_object_with_chosen_attribute(current_object, self.objects_with_attributes[object_id], attribute, user_response)
 
                 self.total_matches = np.array(np.append(self.total_matches, [match], axis = 0))
                     
@@ -309,13 +309,17 @@ class ObjectDisambiguation(State):
 
         if not attribute == "position":
             self.interaction.talk("Could you please tell me the " + attribute + " of the object you are pointing at?" )
+        elif attribute == "fruit":
+            self.interaction.talk("Does the object look like a fruit?")
+        elif attribute == "smooth":
+            self.interaction.talk("Would you say that the texture of the object is silky smooth?")
         else:
             self.reference_object = self.select_reference_object()
             if self.reference_object.get("unique_feature") is not "distance":
-                self.interaction.talk("Could you please tell me the direction of the object you are pointing at, in relation to the " + str(self.reference_object.get("unique_feature")) + " object?")
+                self.interaction.talk("Could you please tell me the direction of the object you are pointing at, in relation to the. " + str(self.reference_object.get("unique_feature")) + " object?")
             else:
-                self.interaction.talk("Could you please tell me the direction of the object you are pointing at, in relation to the object closest to you?, Which I understand, is a " + str(self.reference_object.get("name")))
-                self.interaction.talk("Please use your palm to answer this question, if the object you are pointing at, is on the right side, show your right palm, else show your left palm!")
+                self.interaction.talk("In relation to the object that is the closest to you, from those displayed within the circle earlier, is the object you were referring to on the right or left")
+                self.interaction.talk("Please show your hand to answer this question. If your answer was right, show your right hand, else show your left hand!")
                 # user_response = self.util.classify_each_hand()
                 # return user_response
 
@@ -337,7 +341,7 @@ class ObjectDisambiguation(State):
 
 
                     print user_response
-                    self.interaction.talk("I see that you have shown your " + user_response + " hand")
+                    self.interaction.talk("I see that you have responded with your " + user_response + " hand")
                     return user_response
 
 
@@ -386,14 +390,14 @@ class ObjectDisambiguation(State):
         #print (attribute == "position")
 
         if self.is_not_duplicate(features) or (attribute == "position"):
-            current_attribute_from_user = self.gather_user_response(attribute)
+            user_response = self.gather_user_response(attribute)
 
             index = 0
             while index < len(self.objects_within_pointing_bounding_box):
                 # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
                 if self.objects_within_pointing_bounding_box[index].get("name") in self.util.list_of_objects_capable_of_disambiguation:
                     current_object = self.objects_within_pointing_bounding_box[index]
-                    compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, current_attribute_from_user)
+                    compared_objects = self.compare_current_object_using_attributes_from_database(attribute, current_object, compared_objects, user_response)
                     index +=1
                 else:
                     self.objects_inside_bounding_box_not_compared.append(self.objects_within_pointing_bounding_box.pop(index))
@@ -417,7 +421,7 @@ class ObjectDisambiguation(State):
         else:
             return indices_for_attribute_match, compared_objects
 
-
+    # TEST THIS
     def find_unique_feature_of_identified_object(self, identified_object):
         unique_feature = ""
         # Loop to identify unique feature of identified object
@@ -428,10 +432,16 @@ class ObjectDisambiguation(State):
         for current_object in self.objects_with_attributes:
             if current_object.get("name") == identified_object:
                 for key in current_object:
-                    if not key is "name": # TO AVOID MATCHES FOR ATTRIBUTE NAMES
+                    if (not key is "name") and (not key is "shape"): # TO AVOID MATCHES FOR ATTRIBUTE NAMES AND SHAPES
                         if current_object[key] in self.unique_features:
                             unique_feature = current_object[key]
                             attribute = key
+                            return
+                for shape in current_object['shape']:
+                    if shape in self.unique_features:
+                        unique_feature = shape
+                        attribute = 'shape'
+                        return
 
 
         if not len(unique_feature) == 0:
@@ -439,7 +449,7 @@ class ObjectDisambiguation(State):
             self.interaction.talk("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
         else:
             print("The object found has no unique attributes!")
-            self.interaction.talk("The object found has no unique attributes!")
+            self.interaction.talk("The object found has no unique attributes! I see why you were confused!")
     
     def notify_status_of_other_objects(self):
 
@@ -447,21 +457,16 @@ class ObjectDisambiguation(State):
         if len(self.eliminated_objects) is not 0:
             print "The eliminated objects are: "
             print self.eliminated_objects
-            self.interaction.talk("The eliminated objects, in order of elimination, are: ")
+            #self.interaction.talk("The eliminated objects, in order of elimination, are: ")
             for objects in self.eliminated_objects:
                 self.interaction.talk(objects)
 
-        # Called if some objects that are not programmed to be disambiguated are found within the bounding box.
-        if len(self.objects_inside_bounding_box_not_compared) is not 0:
-            self.interaction.talk("The objects that were detected close to the location of pointing, but the ones I am not yet programmed to disambiguate for you are: ")
-            for objects in self.objects_inside_bounding_box_not_compared:
-                self.interaction.talk(objects.get("name"))
 
 
 
     def disambiguate_until_object_identified(self):
 
-        self.interaction.talk("Please only refer to the objects that were notified to you earlier, as objects found close to the location of pointing, while answering these questions")
+        self.interaction.talk("While answering these questions, please only refer to the objects displayed to you previously within a circle.")
 
         for attribute in self.attributes:
             try:
@@ -477,7 +482,7 @@ class ObjectDisambiguation(State):
 
                 identified_object = compared_objects[indices_for_attribute_match[0]]
                 #print identified_object.get("name")
-                self.interaction.talk("The identified object is a " + str(identified_object.get("name")))
+                self.interaction.talk("The identified object is called " + str(identified_object.get("name")))
                 self.find_unique_feature_of_identified_object(identified_object.get("name"))
                 world_coordinate_of_identified_object =  np.around(np.array(identified_object.get("world_coordinate")),2) # World coordinate in 2dp
                 print("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
@@ -488,13 +493,20 @@ class ObjectDisambiguation(State):
             # This condition ensures that as soon as none of the objects match the provided attributes, it stops disambiguation.
             elif len(indices_for_attribute_match) == 0:
                 # Code run if diambiguation couldn't find a unique object to suit the descriptions
-                self.interaction.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+                self.interaction.talk("Sorry but none of the objects I could identify match this attribute")
                 self.notify_status_of_other_objects()
                 return
 
         
         # Code run if diambiguation couldn't find a unique object to suit the descriptions
         self.interaction.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+        # Notify of other objects that are not yet programmed to disambiguated
+        if len(self.objects_inside_bounding_box_not_compared) is not 0:
+            self.interaction.talk("The object you were pointing at might be a")
+            for objects in self.objects_inside_bounding_box_not_compared:
+                self.interaction.talk(objects.get("name"))
+            self.interaction.talk("But I am not programmed to help you with this yet.")
+
         self.notify_status_of_other_objects()
 
     def find_closest_object_in_bounding_box_to_user(self):
@@ -545,7 +557,12 @@ class ObjectDisambiguation(State):
                     current_object_with_attributes = []
                     #current_object_with_attributes = [self.objects_with_attributes[object_id].get("name")]
                     for attribute in self.attributes:
-                        current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
+                        ## NEED TO DO THIS BECAUSE THERE ARE MULTIPLE TYPES OF SHAPES
+                        if not attribute == "shape":
+                            current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
+                        else:
+                            for shape in self.objects_with_attributes[object_id].get(attribute):
+                                current_object_with_attributes.append(shape)
 
                     objects_within_pointing_bounding_box_with_attributes.append(current_object_with_attributes)
                 #else:
@@ -568,7 +585,9 @@ class ObjectDisambiguation(State):
         unique_features_attributes = []
         if len(unique_features) > 0:
             for unique_feature in unique_features:
-                unique_features_attributes.append(self.get_key(unique_feature))
+                if not self.get_key(unique_feature) == "shape":
+                    unique_features_attributes.append(self.get_key(unique_feature))
+                    
         
         print ("The unique features are: ")
         print unique_features
@@ -581,8 +600,10 @@ class ObjectDisambiguation(State):
         # Removing duplicate values
         reordered_attributes = list(set(reordered_attributes))
         for attribute in self.attributes:
-            if not attribute in reordered_attributes:
+            if (not attribute in reordered_attributes) and (not attribute == "shape"):
                 reordered_attributes.append(attribute)
+        ## Shape is added last because it has multiple options associated and with it automatically become first in the reordered list
+        reordered_attributes.append("shape")
         self.attributes = reordered_attributes
         print self.attributes
         
@@ -596,7 +617,6 @@ class ObjectDisambiguation(State):
     def execute(self, userdata):
         rospy.loginfo("ObjectDisambiguation state executing")
 
-        #self.interaction.talk("My name is Ahmed and I am the robo maker")
         self.objects_within_pointing_bounding_box = rospy.get_param("/objects_within_pointing_bounding_box")
         self.person_head_world_coordinate = rospy.get_param("/person_head_world_coordinate")
         self.current_table = rospy.get_param("/current_table")
