@@ -38,7 +38,7 @@ class ObjectDisambiguation(State):
         self.total_matches = np.array([])
 
         # Stores the types of attributes in order of use for disambiguation
-        self.attributes = "position", "colour", "texture", "type", "size", "shape"
+        self.attributes = "position", "colour", "smooth", "shape"
         # Stores the possible directions in terms of compass coordinates to use as part of disambiguating objects
         self.compass_directions = ["north", "east", "south", "west", "north", "centre"]
         # Stores the possible directions to use as part of disambiguating objects
@@ -309,8 +309,6 @@ class ObjectDisambiguation(State):
 
         if not attribute == "position":
             self.interaction.talk("Could you please tell me the " + attribute + " of the object you are pointing at?" )
-        elif attribute == "fruit":
-            self.interaction.talk("Does the object look like a fruit?")
         elif attribute == "smooth":
             self.interaction.talk("Would you say that the texture of the object is silky smooth?")
         else:
@@ -432,24 +430,23 @@ class ObjectDisambiguation(State):
         for current_object in self.objects_with_attributes:
             if current_object.get("name") == identified_object:
                 for key in current_object:
-                    if (not key is "name") and (not key is "shape"): # TO AVOID MATCHES FOR ATTRIBUTE NAMES AND SHAPES
+                    if (not key is "name") and (not key is "shape") and (not key is "shape"): # TO AVOID MATCHES FOR ATTRIBUTE NAMES AND SHAPES
                         if current_object[key] in self.unique_features:
                             unique_feature = current_object[key]
                             attribute = key
-                            return
+                            return unique_feature, attribute
+                for colour in current_object['colour']:
+                    if colour in self.unique_features:
+                        unique_feature = colour
+                        attribute = 'colour'
+                        return unique_feature, attribute
                 for shape in current_object['shape']:
                     if shape in self.unique_features:
                         unique_feature = shape
                         attribute = 'shape'
-                        return
+                        return unique_feature, attribute
 
 
-        if not len(unique_feature) == 0:
-            print("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
-            self.interaction.talk("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
-        else:
-            print("The object found has no unique attributes!")
-            self.interaction.talk("The object found has no unique attributes! I see why you were confused!")
     
     def notify_status_of_other_objects(self):
 
@@ -483,7 +480,16 @@ class ObjectDisambiguation(State):
                 identified_object = compared_objects[indices_for_attribute_match[0]]
                 #print identified_object.get("name")
                 self.interaction.talk("The identified object is called " + str(identified_object.get("name")))
-                self.find_unique_feature_of_identified_object(identified_object.get("name"))
+                unique_feature, attribute = self.find_unique_feature_of_identified_object(identified_object.get("name"))
+
+                if not len(unique_feature) == 0:
+                    print("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
+                    self.interaction.talk("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
+                else:
+                    print("The object found has no unique attributes!")
+                    self.interaction.talk("The object found has no unique attributes! I see why you were confused!")
+
+
                 world_coordinate_of_identified_object =  np.around(np.array(identified_object.get("world_coordinate")),2) # World coordinate in 2dp
                 print("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
                 #self.interaction.talk("The identified object can be found, relative to the world map, at " + str(world_coordinate_of_identified_object))
@@ -557,12 +563,15 @@ class ObjectDisambiguation(State):
                     current_object_with_attributes = []
                     #current_object_with_attributes = [self.objects_with_attributes[object_id].get("name")]
                     for attribute in self.attributes:
-                        ## NEED TO DO THIS BECAUSE THERE ARE MULTIPLE TYPES OF SHAPES
-                        if not attribute == "shape":
+                        ## NEED TO DO THIS BECAUSE THERE ARE MULTIPLE TYPES OF SHAPES AND COLOURS
+                        if (not attribute == "shape") and (not attribute == "colour"):
                             current_object_with_attributes.append(self.objects_with_attributes[object_id].get(attribute))
-                        else:
+                        elif (attribute == "shape"):
                             for shape in self.objects_with_attributes[object_id].get(attribute):
                                 current_object_with_attributes.append(shape)
+                        elif (attribute == "colour"):
+                            for colour in self.objects_with_attributes[object_id].get(attribute):
+                                current_object_with_attributes.append(colour)
 
                     objects_within_pointing_bounding_box_with_attributes.append(current_object_with_attributes)
                 #else:

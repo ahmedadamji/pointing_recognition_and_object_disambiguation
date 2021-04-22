@@ -1,40 +1,25 @@
 object_attributes:
   - name: 'apple'
-    colour: 'red'
-    fruit: 'yes'
+    colour: ['red','green']
     smooth: 'yes'
     shape: ['round', 'conical', 'flat round', 'flat', 'long conical', 'round conical', 'round oblong', 'square oblong']
 
   - name: 'banana'
-    colour: 'yellow'
-    fruit: 'yes'
+    colour: ['yellow','green']
     smooth: 'yes'
     shape: ['curved','long','curvey','thick','thin', 'fat']
 
   - name: 'orange'
-    colour: 'orange'
-    fruit: 'yes'
+    colour: ['orange','green']
     smooth: 'no'
     shape: ['round','sphere','oval']
 
-  - name: 'lemon'
-    colour: 'yellow'
-    fruit: 'yes'
-    smooth: 'no'
-    shape: ['round','sphere','tiny','oval', 'oblong', 'ellipsoid']
-
-  - name: 'carrot'
-    colour: 'orange'
-    fruit: 'no'
-    smooth: 'no'
-    shape: ['straight', 'long', 'short', 'fat', 'thin', 'irregular', 'thick']
 
 
 list_of_attributes:
-  - colour: ['red','orange','yellow']
-    fruit: ['yes','no']
+  - colour: ['red','orange','yellow','green']
     smooth: ['yes','no']
-    shape: ['round', 'conical', 'flat round', 'flat', 'long conical', 'round conical', 'round oblong', 'square oblong','curved','long','curvey','thick','thin', 'fat','sphere','tiny','oval', 'oblong', 'ellipsoid','short','straight','irregular']
+    shape: ['round', 'conical', 'flat round', 'flat', 'long conical', 'round conical', 'round oblong', 'square oblong','curved','long','curvey','thick','thin', 'fat','sphere','oval']
     position: ["north", "front", "right", "east", "behind", "south", "left", "west", "centre"]
 
-list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange','lemon','carrot']
+list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange']
