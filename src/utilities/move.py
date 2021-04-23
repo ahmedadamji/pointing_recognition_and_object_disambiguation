@@ -7,6 +7,7 @@ import actionlib
 from std_msgs.msg import Header
 from geometry_msgs.msg import Point, Pose, Quaternion, PointStamped, Vector3, PoseWithCovarianceStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from play_motion_msgs.msg import PlayMotionAction, PlayMotionGoal
 import tf
 import math
 
@@ -14,6 +15,7 @@ import math
 class Move:
 
     def __init__(self):
+        rospy.loginfo("Move Utility Initialised")
 
         # Creating the Transform Listner:
         self.transformer = tf.TransformListener()

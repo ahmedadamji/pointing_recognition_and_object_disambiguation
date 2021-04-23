@@ -5,15 +5,16 @@
 tables:
   - name: 'dining table'
     approach_location:
-      position: { x: -2.1598, y: -7.8729, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
+      position: { x: -2.1793, y: -7.7894, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.69781, w: 0.71628 }
     person_check_location:
-      position: { x: -2.456, y: -6.697, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.586, w: 0.810 }
+      position: { x: -2.2353, y: -5.8291, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.70919, w: 0.70502 }
     cuboid:
       max_xyz: [ -1.61, -8.42, 3.0 ]
       min_xyz: [ -2.61, -9.42, 0.00 ]
     status: 'not checked'
+
 
   - name: 'kitchen table'
     approach_location:

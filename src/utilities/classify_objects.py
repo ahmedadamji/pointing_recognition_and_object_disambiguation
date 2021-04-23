@@ -12,6 +12,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class ClassifyObjects:
     def __init__(self, dataset="coco"):
+        rospy.loginfo("ClassifyObjects Utility Initialised")
         # Defauts to coco dataset unless another trained model package is needed
         self.dataset = dataset
         self.yolo_detection = rospy.ServiceProxy("/yolo_detection", YoloDetection)
@@ -39,28 +40,32 @@ class ClassifyObjects:
             except rospy.ServiceException as e:
                 print("Object recognition failed")
                 rospy.logwarn(e)
-                return "outcome1"
+                return
 
 
             try:
                 frame = self.bridge.imgmsg_to_cv2(self.detection_result.image_bb, "bgr8")
             except CvBridgeError as ex:
                 rospy.logwarn(ex)
+                # To destroy cv2 window at the end of state
+                cv2.destroyAllWindows()
                 return
 
             # Plotting the bounding box
             colour = (0,0,255)
             thickness = 1
             #cv2.rectangle(frame, box_start_point, box_end_point, (0,0,255), 1)
-            cv2.circle(frame, camera_point_2d, radius_of_pointing_2d, colour, thickness)
+            #cv2.circle(frame, (camera_point_2d[0],camera_point_2d[1]), radius_of_pointing_2d, colour, thickness)
             # Plotting the centre point of the bounding box
-            cv2.circle(frame,(camera_point_2d[0],camera_point_2d[1]), 4, (0,150,150), 1)
+            cv2.circle(frame, (camera_point_2d[0],camera_point_2d[1]), radius_of_pointing_2d, colour, thickness)
 
 
             # Plots all figures on top of an opencv image of openpose keypoints
             cv2.imshow("YOLO Object Detection Results", frame)
             cv2.waitKey(5000)
 
+            # To destroy cv2 window at the end of state
+            cv2.destroyAllWindows()
             return self.detection_result.detected_objects
 
         except rospy.ROSInterruptException:

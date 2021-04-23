@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import rospy
 import actionlib
-from play_motion_msgs.msg import PlayMotionAction, PlayMotionGoal
 
 # Importing for speech recognition, interaction and replying to person
 # import speech_recognition as sr
@@ -12,79 +11,13 @@ import speech_recognition as sr
 
 class Interaction:
     def __init__(self):
-
-        # cancel previously sent goal before shutting down rospy
-        self.play_motion_goal_sent = False
-        # shutting down rospy
-        rospy.on_shutdown(self.shutdown)
-
-
-        # Starting playmotion action server:
-        self.play_motion = actionlib.SimpleActionClient("/play_motion", PlayMotionAction)
-        self.play_motion.wait_for_server(rospy.Duration(5))
-        rospy.loginfo("The play_motion action server is up")
-
+        rospy.loginfo("Interaction Utility Initialised")
 
         # self.tts_client = actionlib.SimpleActionClient("/tts", TtsAction)
         # self.tts_client.wait_for_server(rospy.Duration(5))
         #rospy.loginfo("The tts action server is up")
 
 
-
-    def lift_torso_head_default(self, wait=False):
-        # lift torso height and head to default
-        self.play_motion_goal_sent = True
-
-        # retrieveing play motion goal from motions.yaml
-        pm_goal = PlayMotionGoal("back_to_default", True, 0)
-
-        test_goal = PlayMotionGoal()
-        #print test_goal.priority
-
-        # Sending play motion goal
-        self.play_motion.send_goal(pm_goal)
-        
-        if wait:
-            self.play_motion.wait_for_result()
-
-        print("play motion: back_to_default completed")
-
-
-    def check_table(self, wait=False):
-        # lift torso height and head look down
-        self.play_motion_goal_sent = True
-
-        # retrieveing play motion goal from motions.yaml
-        pm_goal = PlayMotionGoal("check_table", True, 0)
-
-        test_goal = PlayMotionGoal()
-        #print test_goal.priority
-
-        # Sending play motion goal
-        self.play_motion.send_goal(pm_goal)
-
-        if wait:
-            self.play_motion.wait_for_result()
-
-        print("play motion: check_table completed")
-
-    def look_at_person(self, wait=False):
-        # lift torso height and head to default
-        self.play_motion_goal_sent = True
-
-        # retrieveing play motion goal from motions.yaml
-        pm_goal = PlayMotionGoal("look_at_person", True, 0)
-
-        test_goal = PlayMotionGoal()
-        #print test_goal.priority
-
-        # Sending play motion goal
-        self.play_motion.send_goal(pm_goal)
-        
-        if wait:
-            self.play_motion.wait_for_result()
-
-        print("play motion: back_to_default completed")
 
     def talk(self, speech_in):
         # Create the TTS goal and send it
@@ -168,22 +101,21 @@ class Interaction:
             for item in valid_responses:
                 if (item in words[0:]):
                     response_valid = True
-                    return user_response["transcription"]
+                    return item
                 
-                else:
-                    # if user response does not match the valid responses, error prompt to enter responses from possible options again
-                    print("Invalid entry")
-                    print("I am sorry, but " + user_response["transcription"] + " is not a valid entry for " + type_of_data)
-                    print("The valid responses for " + type_of_data + " are: ")
-                    print(valid_responses)
-                    print("\033[1;31;40m Please try again!  \n")
+            # if user response does not match the valid responses, error prompt to enter responses from possible options again
+            print("Invalid entry")
+            print("I am sorry, but " + user_response["transcription"] + " is not a valid entry for " + type_of_data)
+            print("The valid responses for " + type_of_data + " are: ")
+            print(valid_responses)
+            print("\033[1;31;40m Please try again!  \n")
 
-                    # Reinforces to the user, the attribute collected
-                    self.talk("I am sorry, but " + user_response["transcription"] + " is not a valid entry for " + type_of_data)
-                    self.talk("The valid responses for " + type_of_data + " are: ")
-                    for item in valid_responses:
-                        self.talk(item)
-                    self.talk("Please try again!")
+            # Reinforces to the user, the attribute collected
+            self.talk("I am sorry, but " + user_response["transcription"] + " is not a valid entry for " + type_of_data)
+            self.talk("The valid responses for " + type_of_data + " are: ")
+            for item in valid_responses:
+                self.talk(item)
+            self.talk("Please try again!")
 
     def get_start_command(self, request_type):
 
@@ -204,12 +136,3 @@ class Interaction:
 
             return user_response["transcription"]
 
-
-
-
-    def shutdown(self):
-
-        if self.play_motion_goal_sent:
-            self.play_motion.cancel_goal()
-            rospy.loginfo("Stop Robot")
-            rospy.sleep(1)

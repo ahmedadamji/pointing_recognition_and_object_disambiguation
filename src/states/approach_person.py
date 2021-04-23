@@ -51,7 +51,7 @@ class ApproachPerson(State):
         for index in range(len(yolo_detections)):
             if (yolo_detections[index].name.lower() == "person"):
                 x,y,w,h = yolo_detections[index].xywh
-                if ((w*h) > 100000):
+                if ((w*h) > 65000):
                     print("A person was found in frame")
                     return True
         print("No person was found in frame")
@@ -63,17 +63,17 @@ class ApproachPerson(State):
 
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
-        self.move.rotate_around_base(-30)
+        self.move.rotate_around_base(-15)
         if movebase == True:
-            self.interaction.talk("I have now reached the goal location" )
+            print("Reached the "  + current_table.get("name"))
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
-            self.interaction.talk("I have not been able to reach the goal location" )
+            self.interaction.talk("I have not been able to reach the " + current_table.get("name") )
 
 
     def check_person_around_table(self):
         degrees = 0
-        while (degrees <= 60):
+        while (degrees <= 35):
 
 
             # Sending Move class the angle to rotate about, and stores result in rotate, and also returns the final movebase location
@@ -91,7 +91,7 @@ class ApproachPerson(State):
                 # rospy.set_param("/pointing_person_approach", location)
 
                 return True
-            degrees += 15
+            degrees += 20
 
                 
         print("No Person was found at this table")
@@ -106,7 +106,7 @@ class ApproachPerson(State):
         self.tables = self.util.tables
 
         # CHANGE TABLE NAME HERE:
-        self.interaction.talk("I am now going to approach the person at the " +  self.table + ", to help them identify an object")
+        self.interaction.talk("I am now going to approach the " +  self.table + ", to help you identify an object")
 
         # create the action client:
         self.movebase_client = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
@@ -127,6 +127,7 @@ class ApproachPerson(State):
             status = self.get_table()
             if status == "table_checked":
                 table_checked = True
+                return "outcome2"
             current_table = rospy.get_param("/current_table")
             self.move_to_table(current_table)
 

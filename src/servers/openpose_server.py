@@ -211,6 +211,7 @@ class openpose_server():
         #print(img_msg2.height, img_msg2.width)
 
         try:
+            cv2.startWindowThread()
             cv_image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
             print(e)

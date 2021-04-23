@@ -76,10 +76,9 @@ class PointedObjectDetection(State):
         colour = (0,0,255)
         thickness = 1
         #cv2.rectangle(frame, self.box_start_point_2d, self.box_end_point_2d, (0,0,255), 1)
-        cv2.circle(frame, self.intersection_point_2d, self.radius_of_pointing_2d, colour, thickness)
 
         # Plotting the centre point of the bounding box
-        cv2.circle(frame,(self.intersection_point_2d[0],self.intersection_point_2d[1]), 4, (0,150,150), 1)
+        cv2.circle(frame, (self.intersection_point_2d[0],self.intersection_point_2d[1]), self.radius_of_pointing_2d, colour, thickness)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Bounding Box For Pointed Objects", frame)
         cv2.waitKey(5000)
@@ -115,12 +114,6 @@ class PointedObjectDetection(State):
             world_coordinate = self.get_world_coordinate_for_object(yolo_detections[i])
             # # need intersection_point_world as centre of bounding box
             #self.intersection_point_world
-
-            # Using the world location of the current table being pointed at to check which objects lie within this region
-            self.current_table
-            cuboid = self.current_table.get("cuboid")
-            cuboid_max = np.array(cuboid["max_xyz"])
-            cuboid_min = np.array(cuboid["min_xyz"])
 
 
             # xywh = yolo_detections[i].xywh
@@ -207,16 +200,14 @@ class PointedObjectDetection(State):
             
         if count == len(self.objects_within_pointing_bounding_box):
             self.interaction.talk("All " + previous_object_name + "s.")
-            return False
-
-
-            
+            return
 
         for i in range(len(self.objects_within_pointing_bounding_box)):
             if i == (len(self.objects_within_pointing_bounding_box)-1):
                 self.interaction.talk("and")
             object_name = self.objects_within_pointing_bounding_box[i].get("name")
             self.interaction.talk(object_name)
+        return
 
     def execute(self, userdata):
         rospy.loginfo("PointedObjectDetection state executing")
@@ -228,6 +219,8 @@ class PointedObjectDetection(State):
         self.draw_bounding_box_around_intersection_point()
 
         yolo_detections = self.detect_objects()
+
+        capable_of_disambiguation = self.get_objects_within_pointing_bounding_box(yolo_detections)
 
         if self.total_objects_within_pointing_bounding_box == 0:
             #print "No objects were found within pointing bounding box"
@@ -244,18 +237,19 @@ class PointedObjectDetection(State):
 
             return "outcome2"
         
-        elif not self.get_objects_within_pointing_bounding_box(yolo_detections):
+        if not capable_of_disambiguation:
             #print "Objects found are not capable of disambiguation"
-            if not (self.notify_all_objects()):
-                self.interaction.talk("unfortunately, I am unable to determine exactly which one of these you were referring to.")
+            self.notify_all_objects()
+            self.interaction.talk("unfortunately, I am unable to determine exactly which one of these you were referring to.")
 
             return "outcome2"
 
 
         else:
-            if not (self.notify_all_objects()):
-                #print"Further diasambiguation needed"
-                self.interaction.talk("To help you identify the object you were referring to, I will now ask you some simple questions.")
+            self.notify_all_objects()
+
+            #print"Further diasambiguation needed"
+            self.interaction.talk("I will now ask you some simple questions, to determine exactly which of the " + str(self.total_objects_within_pointing_bounding_box) + " objects is being pointed.")
         
         #rospy.set_param("/objects_on_table", objects_on_table)
         rospy.set_param("/objects_within_pointing_bounding_box", self.objects_within_pointing_bounding_box)  # CHECK IF THE FOLLOWING IS NEEDED.

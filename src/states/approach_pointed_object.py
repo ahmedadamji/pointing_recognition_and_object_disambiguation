@@ -53,7 +53,7 @@ class ApproachPointedObject(State):
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
         if movebase == True:
-            #self.interaction.talk("I have now reached the goal location" )
+            print("Reached the goal location" )
         else:
             # INSERT HERE THE ACTION IF GOAL NOT ACHIEVED
             self.interaction.talk("Sorry but I have not been able to reach close to the " + str(table.get("name")) )

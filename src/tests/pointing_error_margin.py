@@ -44,7 +44,18 @@ def main():
                         [-2.0070143924264814, -9.147401182760552, 1.0374064549889404],
                         [-1.9771102738388882, -9.118050895944734, 1.0663259865702628],
                         [-2.066505336820594, -9.148391051468094, 1.0457923371828364],
-                        [-1.97339265988, -9.06895183975, 1.03517302158]]
+                        [-1.97339265988, -9.06895183975, 1.03517302158],
+                        [-2.29112640253, -9.10623737105, 1.07327439936],
+                        [-2.10235936939, -9.0907713993, 1.04368418885],
+                        [-2.09209282835, -9.07683017543, 1.07425308052],
+                        [-2.14287114918, -9.0759884257, 1.0372928254],
+                        [-2.14200516601, -9.07208156316, 1.03703911615],
+                        [-2.12650094165, -9.07013841391, 1.03838341201],
+                        [-2.14680623735, -9.0876746155, 1.03548108184],
+                        [-2.10678319148, -9.15281085261, 1.04036324412],
+                        [-2.11432112522, -9.14995791599, 1.03727034255],
+                        [-2.14040461154, -9.09967010811, 1.03404819338],
+                        [-2.19089850132, -9.12886960628, 1.0386819417]]
 
     x = [item[0] for item in pointing_locations]
     y = [item[1] for item in pointing_locations]
@@ -119,7 +130,7 @@ def main():
         
 
     # Draw the plot
-    plt.hist(distances_x_y, color = 'blue', edgecolor = 'black')
+    plt.hist(distances_x_y, color = 'blue', edgecolor = 'black', bins = 25)
     
     # Title and labels
     plt.title('Histogram with distances in (x,y)')
@@ -131,7 +142,7 @@ def main():
 
 
     # Draw the plot
-    plt.hist(distances_x_y_z, color = 'blue', edgecolor = 'black')
+    plt.hist(distances_x_y_z, color = 'blue', edgecolor = 'black', bins = 25)
     
     # Title and labels
     plt.title('Histogram with distances in (x,y,z)')
@@ -142,7 +153,7 @@ def main():
     plt.show()
 
     # Draw the plot
-    plt.hist(log_distances_x_y, color = 'blue', edgecolor = 'black')
+    plt.hist(log_distances_x_y, color = 'blue', edgecolor = 'black', bins = 25)
     
     # Title and labels
     plt.title('Histogram with logarithmic distances in (x,y)')
@@ -153,7 +164,7 @@ def main():
     plt.show()
 
     # Draw the plot
-    plt.hist(log_distances_x_y_z, color = 'blue', edgecolor = 'black')
+    plt.hist(log_distances_x_y_z, color = 'blue', edgecolor = 'black', bins = 25)
     
     # Title and labels
     plt.title('Histogram with logarithmic distances in (x,y,z)')

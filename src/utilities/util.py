@@ -22,6 +22,7 @@ from nav_msgs.msg import OccupancyGrid
 
 class Util:
     def __init__(self):
+        rospy.loginfo("Util Utility Initialised")
 
         self.load_object_features()
         self.load_tables()
@@ -64,9 +65,10 @@ class Util:
         uvw = np.dot(np.array(camera_info.P).reshape((3, 4)), depth_array.transpose()).transpose()
         x = int(uvw[0] / uvw[2])
         y = int(uvw[1] / uvw[2])
-        camera_point = x,y
-
+        camera_point = [x,y]
         return camera_point
+
+
 
     def transform_from_camera_frame_to_world_frame(self, camera_point_3d):
         # http://wiki.ros.org/tf
@@ -111,9 +113,7 @@ class Util:
             {
                 "name":    objects["name"],
                 "colour":  objects["colour"],
-                "type":    objects["type"],
-                "texture": objects["texture"],
-                "size":    objects["size"],
+                "smooth":  objects["smooth"],
                 "shape":   objects["shape"]
             }
             for objects in object_attributes_parm
@@ -122,9 +122,7 @@ class Util:
         list_of_attributes_parm = rospy.get_param("/list_of_attributes")[0]
         self.list_of_attributes = {
             "colour":  list_of_attributes_parm["colour"],
-            "type":    list_of_attributes_parm["type"],
-            "texture": list_of_attributes_parm["texture"],
-            "size":    list_of_attributes_parm["size"],
+            "smooth":  list_of_attributes_parm["smooth"],
             "shape":   list_of_attributes_parm["shape"],
             "position": list_of_attributes_parm["position"]
         }
