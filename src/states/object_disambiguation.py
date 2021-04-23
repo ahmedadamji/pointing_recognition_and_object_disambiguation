@@ -155,12 +155,14 @@ class ObjectDisambiguation(State):
 
         object_with_unique_feature = None
         world_coordinate_of_object_with_unique_feature = None
+        
         if len(self.unique_features) is not 0:
             # HERE I CAN USE ANY OF THE UNIQUE FEATURES TO REFERNCE THE OBJECTS
             # using the first element only as there can be more than one unique feature found
             unique_feature = self.unique_features[0]
             # print unique_feature
-            for current_object in self.objects_within_pointing_bounding_region_with_attributes:
+            for current_object in self.objects_within_pointing_bounding_region_with_attributes_for_unique_features:
+                #print current_object
                 if unique_feature in current_object:
                     object_with_unique_feature = current_object[0]
             for current_object in self.objects_within_pointing_bounding_region:
@@ -186,17 +188,16 @@ class ObjectDisambiguation(State):
         # Gets the World coordinate of the object:
         current_object_world_coordinate = current_object.get("world_coordinate")
 
-        # Gets the World Coordinates of person's head:
-        self.person_head_world_coordinate
-
         # Finds the reference object that has a unique attribute compared to the rest and transfers the coordinate frame from the world frame
         # to a reference frame centred around this reference object and aligned with the line of sight of the person answering questions
         reference_object_world_coordinate = self.reference_object.get("world_coordinate")
+        # print current_object_world_coordinate
+        # print reference_object_world_coordinate
+        # print self.person_head_world_coordinate
         current_object_world_coordinate_transformed, view_point_transformed = self.transfer_coordinate_wrt_person_and_reference_object(current_object_world_coordinate, reference_object_world_coordinate, self.person_head_world_coordinate)        
 
         # Gets the pointing centre point, also the centre point in bounding box, to use as reference for directions
         # centre_point_of_bounding_region = rospy.get_param("/camera_point_after_object_detection_2d")
-
         compass_direction = self.calculate_compass_direction_between_two_points(current_object_world_coordinate_transformed, view_point_transformed)
         return compass_direction
 
@@ -205,7 +206,7 @@ class ObjectDisambiguation(State):
         # Can add here more conditions for example if attribute needs to be extracted by means of opencv / other means in the future.
         if not(attribute == "position"):
             attribute_of_current_object = current_object_attributes.get(attribute)
-        elif (attribute == "position"):
+        else:
             compass_direction = self.get_compass_direction(current_object)
 
             # This block of code if just for printing the direction found of the objects in the bounding box and are not essential to the functionality
@@ -219,12 +220,12 @@ class ObjectDisambiguation(State):
             attribute_of_current_object = [compass_direction, standard_direction]
             
         
-
         return attribute_of_current_object
         
 
 
     def compare_current_object_with_chosen_attribute(self, current_object, current_object_attributes, attribute, user_response):
+        # print self.get_attribute_of_current_object(attribute, current_object, current_object_attributes)
 
         if user_response.lower() in self.get_attribute_of_current_object(attribute, current_object, current_object_attributes):
             match = 1
@@ -313,7 +314,7 @@ class ObjectDisambiguation(State):
                     user_response = self.response.hand
 
 
-                    print user_response
+                    #print user_response
                     self.interaction.talk("I see that you have responded with your " + user_response + " hand")
                     return user_response
 
@@ -328,7 +329,7 @@ class ObjectDisambiguation(State):
                     rospy.logwarn(ex)
 
 
-        user_response = self.interaction.get_data_from_user("speech", valid_responses, attribute) # request_type, valid_responses, type_of_data
+        user_response = self.interaction.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
 
     
@@ -424,6 +425,7 @@ class ObjectDisambiguation(State):
                         unique_feature = shape
                         attribute = 'shape'
                         return unique_feature, attribute
+        return [],""
 
     
     def notify_status_of_other_objects(self):
@@ -445,17 +447,17 @@ class ObjectDisambiguation(State):
 
         for attribute in self.attributes:
             try:
-                indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
+                self.indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
             except Exception as e:
                 # This condition removes the need to ask the user for an input when the answer does not have any value for a particular attribute (i.e. all objects have the same value)
                 continue
 
             # The == condition ensures that even if it doesnt match for all objects it still goes to the next questions
-            if len(indices_for_attribute_match) == 1:
+            if len(self.indices_for_attribute_match) == 1:
 
                 ## Responding with disambiguation results
 
-                identified_object = compared_objects[indices_for_attribute_match[0]]
+                identified_object = compared_objects[self.indices_for_attribute_match[0]]
                 #print identified_object.get("name")
                 self.interaction.talk("The identified object is called " + str(identified_object.get("name")))
                 unique_feature, attribute = self.find_unique_feature_of_identified_object(identified_object.get("name"))
@@ -485,21 +487,36 @@ class ObjectDisambiguation(State):
 
                 return
             # This condition ensures that as soon as none of the objects match the provided attributes, it stops disambiguation.
-            elif len(indices_for_attribute_match) == 0:
+            elif len(self.indices_for_attribute_match) == 0:
                 # Code run if diambiguation couldn't find a unique object to suit the descriptions
                 self.interaction.talk("Sorry but none of the objects I could identify match this attribute")
                 self.notify_status_of_other_objects()
                 return
 
-        
-        # Code run if diambiguation couldn't find a unique object to suit the descriptions
-        self.interaction.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
-        # Notify of other objects that are not yet programmed to disambiguated
-        if len(self.objects_inside_bounding_region_not_compared) is not 0:
-            self.interaction.talk("The object you were pointing at might be a")
-            for objects in self.objects_inside_bounding_region_not_compared:
-                self.interaction.talk(objects.get("name"))
-            self.interaction.talk("But I am not programmed to help you with this yet.")
+        previous_object_name = compared_objects[self.indices_for_attribute_match[0]].get("name")
+        count = 1
+        for i in range(len(self.indices_for_attribute_match)-1):
+            object_name = compared_objects[self.indices_for_attribute_match[i+1]].get("name")
+            if previous_object_name == object_name:
+                count += 1
+            previous_object_name = object_name
+            
+        if count == len(self.indices_for_attribute_match):
+            self.interaction.talk("The object you were pointing at is a")
+            identified_object = compared_objects[self.indices_for_attribute_match[0]]
+            self.interaction.talk(identified_object.get("name"))
+            self.interaction.talk("But I am not able to determine which one you were pointing at, as there were multiple of these close to each other")
+
+        else:
+            # Code run if diambiguation couldn't find a unique object to suit the descriptions
+            self.interaction.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
+            # Notify of other objects that are not yet programmed to disambiguated
+            if len(self.objects_inside_bounding_region_not_compared) is not 0:
+                self.interaction.talk("The object you were pointing at might be a")
+                for objects in self.objects_inside_bounding_region_not_compared:
+                    self.interaction.talk(objects.get("name"))
+                self.interaction.talk("But I am not programmed to help you with this yet.")
+
 
         self.notify_status_of_other_objects()
 
@@ -538,7 +555,6 @@ class ObjectDisambiguation(State):
             if val in list_of_val:
                 return key
     
-        return "error"
 
     def get_objects_within_pointing_bounding_region_with_attributes(self):
 
@@ -552,6 +568,7 @@ class ObjectDisambiguation(State):
                     # This buffer list created so that the objects_within_pointing_bounding_region_with_attributes is not a dict and is just a list with all the attributes for the object
                     current_object_with_attributes = []
                     current_object_with_attributes_for_unique_features = []
+                    current_object_with_attributes_for_unique_features = [self.objects_with_attributes[object_id].get("name")]
                     
                     for attribute in self.attributes:
 
@@ -583,6 +600,7 @@ class ObjectDisambiguation(State):
         
         unique_features_attributes = []
         if len(unique_features) > 0:
+
             for unique_feature in unique_features:
                 if not self.get_key(unique_feature) == "shape":
                     unique_features_attributes.append(self.get_key(unique_feature))

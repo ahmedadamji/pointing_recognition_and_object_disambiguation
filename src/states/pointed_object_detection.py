@@ -29,7 +29,7 @@ class PointedObjectDetection(State):
         #creates an instance of util class to transform point frames
         self.util = util
     
-    def define_bounding_box_around_intersection_point(self):
+    def define_bounding_region_around_intersection_point(self):
         centre = np.array([self.intersection_point_world[0],self.intersection_point_world[1],self.intersection_point_world[2]])
         self.radius_of_pointing = rospy.get_param("/radius_of_pointing")
 
@@ -52,14 +52,14 @@ class PointedObjectDetection(State):
 
     
 
-    def draw_bounding_box_around_intersection_point(self):
+    def draw_bounding_region_around_intersection_point(self):
         
         #print self.intersection_point_world
         intersection_point_3d = self.util.transform_from_world_frame_to_camera_frame(self.intersection_point_world)
         #print intersection_point_3d
         self.intersection_point_2d = self.util.get_2d_camera_point_from_3d_depth_point(intersection_point_3d)
         # Finding the bounding box coordinates
-        self.define_bounding_box_around_intersection_point()
+        self.define_bounding_region_around_intersection_point()
         #print self.intersection_point_2d
 
         image_raw = rospy.wait_for_message("/xtion/rgb/image_raw", Image)
@@ -106,7 +106,7 @@ class PointedObjectDetection(State):
 
     def get_object_indices(self, yolo_detections):
 
-        objects_within_pointing_bounding_box_indices = []
+        objects_within_pointing_bounding_region_indices = []
 
         for i in range(len(yolo_detections)):
             #print yolo_detections[i]
@@ -131,32 +131,32 @@ class PointedObjectDetection(State):
             rad_sq = math.pow(self.radius_of_pointing, 2)
 
             if (distance_between_point_and_centre <= rad_sq):
-                self.total_objects_within_pointing_bounding_box += 1
-                objects_within_pointing_bounding_box_indices.append(i)
+                self.total_objects_within_pointing_bounding_region += 1
+                objects_within_pointing_bounding_region_indices.append(i)
 
                 
             # if ((self.box_start_point_3d[0] <= world_coordinate[0] <= self.box_end_point_3d[0]) and (self.box_start_point_3d[1] <= world_coordinate[1] <= self.box_end_point_3d[1]) 
             #     and (self.box_start_point_3d[2] <= world_coordinate[2] <= self.box_end_point_3d[2])):
 
-            #     self.total_objects_within_pointing_bounding_box += 1
-            #     objects_within_pointing_bounding_box_indices.append(i)
+            #     self.total_objects_within_pointing_bounding_region += 1
+            #     objects_within_pointing_bounding_region_indices.append(i)
         
-        return objects_within_pointing_bounding_box_indices
+        return objects_within_pointing_bounding_region_indices
 
 
 
 
-    def get_objects_within_pointing_bounding_box(self, yolo_detections):
+    def get_objects_within_pointing_bounding_region(self, yolo_detections):
 
-        self.total_objects_within_pointing_bounding_box = 0
-        self.objects_within_pointing_bounding_box =[]
+        self.total_objects_within_pointing_bounding_region = 0
+        self.objects_within_pointing_bounding_region =[]
 
-        self.objects_within_pointing_bounding_box_indices = self.get_object_indices(yolo_detections)
+        self.objects_within_pointing_bounding_region_indices = self.get_object_indices(yolo_detections)
 
 
 
         ## PARSING INTO NAME, CONFIDENCE AND COORDINATES OF DETECTION
-        for index in self.objects_within_pointing_bounding_box_indices:
+        for index in self.objects_within_pointing_bounding_region_indices:
 
             world_coordinate = self.get_world_coordinate_for_object(yolo_detections[index])
 
@@ -166,16 +166,16 @@ class PointedObjectDetection(State):
             "xywh": yolo_detections[index].xywh,
             "world_coordinate": [world_coordinate[0].item(), world_coordinate[1].item(), world_coordinate[2].item()]
             }
-            self.objects_within_pointing_bounding_box.append(current_object)
-            # self.objects_within_pointing_bounding_box.append([[yolo_detections[index].name],
+            self.objects_within_pointing_bounding_region.append(current_object)
+            # self.objects_within_pointing_bounding_region.append([[yolo_detections[index].name],
             #                                    [yolo_detections[index].confidence],
             #                                    [yolo_detections[index].xywh]])
         
         # Checking if any objects found are capable of disambiguation
         # if found object equals one, this does not need to be disambiguated.
-        if len(self.objects_within_pointing_bounding_box) > 1:
+        if len(self.objects_within_pointing_bounding_region) > 1:
             count = 0
-            for current_object in self.objects_within_pointing_bounding_box:
+            for current_object in self.objects_within_pointing_bounding_region:
                 # IF - ELSE block to ensure only objects capable of disambiguation are used for this state
                 if current_object.get("name") in self.util.list_of_objects_capable_of_disambiguation:
                     count +=1
@@ -188,24 +188,24 @@ class PointedObjectDetection(State):
 
 
     def notify_all_objects(self):
-        self.interaction.talk("I found " + str(self.total_objects_within_pointing_bounding_box) + " objects close to where you were pointing, which were ")
+        self.interaction.talk("I found " + str(self.total_objects_within_pointing_bounding_region) + " objects close to where you were pointing, which were ")
 
-        previous_object_name = self.objects_within_pointing_bounding_box[0].get("name")
+        previous_object_name = self.objects_within_pointing_bounding_region[0].get("name")
         count = 1
-        for i in range(len(self.objects_within_pointing_bounding_box)-1):
-            object_name = self.objects_within_pointing_bounding_box[i+1].get("name")
+        for i in range(len(self.objects_within_pointing_bounding_region)-1):
+            object_name = self.objects_within_pointing_bounding_region[i+1].get("name")
             if previous_object_name == object_name:
                 count += 1
             previous_object_name = object_name
             
-        if count == len(self.objects_within_pointing_bounding_box):
+        if count == len(self.objects_within_pointing_bounding_region):
             self.interaction.talk("All " + previous_object_name + "s.")
             return
 
-        for i in range(len(self.objects_within_pointing_bounding_box)):
-            if i == (len(self.objects_within_pointing_bounding_box)-1):
+        for i in range(len(self.objects_within_pointing_bounding_region)):
+            if i == (len(self.objects_within_pointing_bounding_region)-1):
                 self.interaction.talk("and")
-            object_name = self.objects_within_pointing_bounding_box[i].get("name")
+            object_name = self.objects_within_pointing_bounding_region[i].get("name")
             self.interaction.talk(object_name)
         return
 
@@ -216,23 +216,23 @@ class PointedObjectDetection(State):
         self.current_table = rospy.get_param("/current_table")
 
         self.interaction.talk("The objects I found close to where you were pointing are displayed within a circle in the image shown to you now" )
-        self.draw_bounding_box_around_intersection_point()
+        self.draw_bounding_region_around_intersection_point()
 
         yolo_detections = self.detect_objects()
 
-        capable_of_disambiguation = self.get_objects_within_pointing_bounding_box(yolo_detections)
+        capable_of_disambiguation = self.get_objects_within_pointing_bounding_region(yolo_detections)
 
-        if self.total_objects_within_pointing_bounding_box == 0:
+        if self.total_objects_within_pointing_bounding_region == 0:
             #print "No objects were found within pointing bounding box"
             self.interaction.talk("Sorry but I couldn't find any objects close to where you were pointing")
 
             return "outcome2"
 
-        elif self.total_objects_within_pointing_bounding_box == 1:
+        elif self.total_objects_within_pointing_bounding_region == 1:
             #print "This is the only object being pointed at:"
             self.interaction.talk("The object you asked me to identify was a ")
-            #print yolo_detections[self.objects_within_pointing_bounding_box_indices[0]]
-            for detected_object in self.objects_within_pointing_bounding_box:
+            #print yolo_detections[self.objects_within_pointing_bounding_region_indices[0]]
+            for detected_object in self.objects_within_pointing_bounding_region:
                 self.interaction.talk(detected_object.get("name"))
 
             return "outcome2"
@@ -249,10 +249,10 @@ class PointedObjectDetection(State):
             self.notify_all_objects()
 
             #print"Further diasambiguation needed"
-            self.interaction.talk("I will now ask you some simple questions, to determine exactly which of the " + str(self.total_objects_within_pointing_bounding_box) + " objects is being pointed.")
+            self.interaction.talk("I will now ask you some simple questions, to determine exactly which of the " + str(self.total_objects_within_pointing_bounding_region) + " objects is being pointed.")
         
         #rospy.set_param("/objects_on_table", objects_on_table)
-        rospy.set_param("/objects_within_pointing_bounding_box", self.objects_within_pointing_bounding_box)  # CHECK IF THE FOLLOWING IS NEEDED.
+        rospy.set_param("/objects_within_pointing_bounding_region", self.objects_within_pointing_bounding_region)  # CHECK IF THE FOLLOWING IS NEEDED.
         rospy.set_param("/camera_point_after_object_detection_2d", [self.intersection_point_2d[0], self.intersection_point_2d[1]])
 
 

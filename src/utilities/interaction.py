@@ -43,7 +43,7 @@ class Interaction:
         # tts_goal.rawtext.text = speech_in
         # self.tts_client.send_goal(tts_goal)
 
-    def get_data_from_speech(self, user_response):
+    def get_data_from_speech(self, user_response, time = 6):
         # Gathers user responses using speech
 
         recognizer = sr.Recognizer()
@@ -54,7 +54,7 @@ class Interaction:
                 # adjusts the recognizer sensitivity to ambient noise
                 recognizer.adjust_for_ambient_noise(source)
                 # records audio from the microphone
-                audio = recognizer.record(source, duration=7)
+                audio = recognizer.record(source, duration=time)
             
             try:
                 # Recognizes speech recorded
@@ -93,15 +93,16 @@ class Interaction:
             }
 
             if request_type == "speech":
-                user_response = self.get_data_from_speech(user_response)
+                user_response = self.get_data_from_speech(user_response, 2)
             elif request_type == "text":
                 user_response = self.get_data_from_text(user_response)
             
             words = user_response["transcription"].lower().split()
             for item in valid_responses:
-                if (item in words[0:]):
-                    response_valid = True
-                    return item
+                for word in words[0:]:
+                    if (item in word):
+                        response_valid = True
+                        return item
                 
             # if user response does not match the valid responses, error prompt to enter responses from possible options again
             print("Invalid entry")
@@ -130,7 +131,7 @@ class Interaction:
             }
 
             if request_type == "speech":
-                user_response = self.get_data_from_speech(user_response)
+                user_response = self.get_data_from_speech(user_response, 5)
             elif request_type == "text":
                 user_response = self.get_data_from_text(user_response)
 
