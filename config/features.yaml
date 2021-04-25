@@ -7,7 +7,7 @@ object_attributes:
   - name: 'banana'
     colour: ['yellow','green']
     smooth: 'yes'
-    shape: ['curved','long','curvey','thick','thin', 'fat']
+    shape: ['curved','long','curvy','thick','thin', 'fat']
 
   - name: 'orange'
     colour: ['orange','green']
@@ -19,7 +19,7 @@ object_attributes:
 list_of_attributes:
   - colour: ['red','orange','yellow','green']
     smooth: ['yes','no']
-    shape: ['round', 'conical', 'flat round', 'flat', 'long conical', 'round conical', 'round oblong', 'square oblong','curved','long','curvey','thick','thin', 'fat','sphere','oval']
+    shape: ['round', 'conical', 'flat round', 'flat', 'long conical', 'round conical', 'round oblong', 'square oblong','curved','long','curvy','thick','thin', 'fat','sphere','oval']
     position: ["north", "front", "right", "east", "behind", "south", "left", "west", "centre"]
 
 list_of_objects_capable_of_disambiguation: ['apple', 'banana', 'orange']

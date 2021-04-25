@@ -159,18 +159,20 @@ class PointedObjectDetection(State):
         for index in self.objects_within_pointing_bounding_region_indices:
 
             world_coordinate = self.get_world_coordinate_for_object(yolo_detections[index])
+            ## not classifying the table as an object
+            if (not yolo_detections[index].name == "diningtable") and (not yolo_detections[index].name == "person"):
 
-            current_object = {
-            "name": yolo_detections[index].name.lower(),
-            "confidence": yolo_detections[index].confidence,
-            "xywh": yolo_detections[index].xywh,
-            "world_coordinate": [world_coordinate[0].item(), world_coordinate[1].item(), world_coordinate[2].item()]
-            }
-            self.objects_within_pointing_bounding_region.append(current_object)
-            # self.objects_within_pointing_bounding_region.append([[yolo_detections[index].name],
-            #                                    [yolo_detections[index].confidence],
-            #                                    [yolo_detections[index].xywh]])
-        
+                current_object = {
+                "name": yolo_detections[index].name.lower(),
+                "confidence": yolo_detections[index].confidence,
+                "xywh": yolo_detections[index].xywh,
+                "world_coordinate": [world_coordinate[0].item(), world_coordinate[1].item(), world_coordinate[2].item()]
+                }
+                self.objects_within_pointing_bounding_region.append(current_object)
+            else:
+                self.total_objects_within_pointing_bounding_region -= 1
+            
+            
         # Checking if any objects found are capable of disambiguation
         # if found object equals one, this does not need to be disambiguated.
         if len(self.objects_within_pointing_bounding_region) > 1:
@@ -202,11 +204,16 @@ class PointedObjectDetection(State):
             self.interaction.talk("All " + previous_object_name + "s.")
             return
 
+        objects_found = ''
         for i in range(len(self.objects_within_pointing_bounding_region)):
             if i == (len(self.objects_within_pointing_bounding_region)-1):
-                self.interaction.talk("and")
+                objects_found += " and "
             object_name = self.objects_within_pointing_bounding_region[i].get("name")
-            self.interaction.talk(object_name)
+            objects_found += object_name
+            if not ((i == (len(self.objects_within_pointing_bounding_region)-1)) or (i == (len(self.objects_within_pointing_bounding_region)-2))):
+                objects_found += ", "
+
+        self.interaction.talk(objects_found)
         return
 
     def execute(self, userdata):

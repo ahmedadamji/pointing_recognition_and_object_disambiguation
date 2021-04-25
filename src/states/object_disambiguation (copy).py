@@ -367,12 +367,11 @@ class ObjectDisambiguation(State):
 
         features = []
         #print self.objects_within_pointing_bounding_region_with_attributes
-        print self.objects_within_pointing_bounding_region_with_attributes
         for current_object in self.objects_within_pointing_bounding_region_with_attributes:
             attribute_index = self.attributes.index(attribute)
             #indices = [i for i, x in enumerate(self.attributes) if x == attribute]
             #print "indices: " + str(indices)
-            features.append(current_object[0][attribute_index])
+            features.append(current_object[attribute_index])
             #print features
             #print current_object
 
@@ -453,7 +452,7 @@ class ObjectDisambiguation(State):
             eliminated_objects = ""
             #self.interaction.talk("The eliminated objects, in order of elimination, are: ")
             for i in range(len(self.eliminated_objects)):
-                if (i == (len(self.eliminated_objects)-1)and(len(self.eliminated_objects)>2)):
+                if i == (len(self.eliminated_objects)-1):
                     eliminated_objects += " and "
                 object_name = self.eliminated_objects[i]
                 eliminated_objects += object_name
@@ -480,6 +479,14 @@ class ObjectDisambiguation(State):
 
             # The == condition ensures that if there is only one match, it doesnt got o the next question
 
+
+            previous_object_name = compared_objects[self.indices_for_attribute_match[0]].get("name")
+            count = 1
+            for i in range(len(self.indices_for_attribute_match)-1):
+                object_name = compared_objects[self.indices_for_attribute_match[i+1]].get("name")
+                if previous_object_name == object_name:
+                    count += 1
+                previous_object_name = object_name
 
             if len(self.indices_for_attribute_match) == 1:
 
@@ -523,21 +530,12 @@ class ObjectDisambiguation(State):
                 return
             
                     
-            elif (len(unique_feature) == 0):
-
-                previous_object_name = compared_objects[self.indices_for_attribute_match[0]].get("name")
-                count = 1
-                for i in range(len(self.indices_for_attribute_match)-1):
-                    object_name = compared_objects[self.indices_for_attribute_match[i+1]].get("name")
-                    if previous_object_name == object_name:
-                        count += 1
-                    previous_object_name = object_name
-                if count == len(self.indices_for_attribute_match):
-                    self.interaction.talk("The object you were pointing at is a")
-                    identified_object = compared_objects[self.indices_for_attribute_match[0]]
-                    self.interaction.talk(identified_object.get("name"))
-                    self.interaction.talk("But I am not able to determine which one you were pointing at, as there were multiple of these close to each other")
-                    return
+            elif (len(unique_feature) == 0) and (count == len(self.indices_for_attribute_match)):
+                self.interaction.talk("The object you were pointing at is a")
+                identified_object = compared_objects[self.indices_for_attribute_match[0]]
+                self.interaction.talk(identified_object.get("name"))
+                self.interaction.talk("But I am not able to determine which one you were pointing at, as there were multiple of these close to each other")
+                return
 
 
         # Code run if diambiguation couldn't find a unique object to suit the descriptions

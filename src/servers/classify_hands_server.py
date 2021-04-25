@@ -159,8 +159,12 @@ class classify_hands_server:
                         classification = self.is_left_hand(hand_landmarks)
                         if classification == False:
                             self.right_hand_counter += 1
+                            cv2.rectangle(image, (0,0), (250,75), (255, 255, 255), cv2.FILLED)
+                            cv2.putText(image, "Right", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 0, 0))
                         elif classification == True:
                             self.left_hand_counter += 1
+                            cv2.rectangle(image, (0,0), (250,75), (255, 255, 255), cv2.FILLED)
+                            cv2.putText(image, "Left", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 0, 0))
 
                 cv2.imshow("MediaPipe Hands", image)
                 if self.right_hand_counter>30:

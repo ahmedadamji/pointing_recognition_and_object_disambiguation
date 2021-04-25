@@ -45,6 +45,7 @@ class Interaction:
 
     def get_data_from_speech(self, user_response, time = 6):
         # Gathers user responses using speech
+        print("Please respond via speech: ")
 
         recognizer = sr.Recognizer()
         microphone = sr.Microphone()
@@ -75,7 +76,7 @@ class Interaction:
 
     def get_data_from_text(self, user_response):
         # Gathers user responses using text
-        text = raw_input("Please type your response : ")
+        text = raw_input("Please type your Response: ")
         user_response["transcription"] = text
 
         return user_response
