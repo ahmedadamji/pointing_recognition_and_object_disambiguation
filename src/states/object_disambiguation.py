@@ -367,7 +367,7 @@ class ObjectDisambiguation(State):
 
         features = []
         #print self.objects_within_pointing_bounding_region_with_attributes
-        print self.objects_within_pointing_bounding_region_with_attributes
+        #print self.objects_within_pointing_bounding_region_with_attributes
         for current_object in self.objects_within_pointing_bounding_region_with_attributes:
             attribute_index = self.attributes.index(attribute)
             #indices = [i for i, x in enumerate(self.attributes) if x == attribute]
@@ -471,7 +471,7 @@ class ObjectDisambiguation(State):
         self.interaction.talk("While answering these questions, please only refer to the objects displayed to you previously within a circle.")
 
         for attribute in self.attributes:
-            print attribute
+            #print attribute
             try:
                 self.indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
             except Exception as e:
@@ -533,9 +533,8 @@ class ObjectDisambiguation(State):
                         count += 1
                     previous_object_name = object_name
                 if count == len(self.indices_for_attribute_match):
-                    self.interaction.talk("The object you were pointing at is a")
                     identified_object = compared_objects[self.indices_for_attribute_match[0]]
-                    self.interaction.talk(identified_object.get("name"))
+                    self.interaction.talk("The object you were pointing at was a " + identified_object.get("name"))
                     self.interaction.talk("But I am not able to determine which one you were pointing at, as there were multiple of these close to each other")
                     return
 

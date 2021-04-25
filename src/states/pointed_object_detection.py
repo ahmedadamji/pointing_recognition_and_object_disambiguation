@@ -237,10 +237,8 @@ class PointedObjectDetection(State):
 
         elif self.total_objects_within_pointing_bounding_region == 1:
             #print "This is the only object being pointed at:"
-            self.interaction.talk("The object you asked me to identify was a ")
+            self.interaction.talk("The object you asked me to identify was a " + self.objects_within_pointing_bounding_region[0].get("name"))
             #print yolo_detections[self.objects_within_pointing_bounding_region_indices[0]]
-            for detected_object in self.objects_within_pointing_bounding_region:
-                self.interaction.talk(detected_object.get("name"))
 
             return "outcome2"
         

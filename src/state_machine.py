@@ -66,7 +66,7 @@ def main():
     rospy.set_param("/intersection_point_world", intersection_point_world)
     person_head_world_coordinate = [-1.21, -8.26, 1.792557797900345]
     rospy.set_param("/person_head_world_coordinate", person_head_world_coordinate)
-    radius_of_pointing = 1
+    radius_of_pointing = 0.18
     rospy.set_param("/radius_of_pointing", radius_of_pointing)
     
 
@@ -79,7 +79,7 @@ def main():
         # StateMachine.add("approach_person", ApproachPerson(classify_objects, interaction, util, move, table), transitions={"outcome1":"detect_pointing_location", "outcome2": "detect_pointing_location"})
         # StateMachine.add("detect_pointing_location", PointingLocationDetection(interaction, util), transitions={"outcome1":"approach_object", "outcome2": "end"})
         # StateMachine.add("approach_object", ApproachPointedObject(interaction, util, move), transitions={"outcome1":"detect_pointed_object", "outcome2": "end"})
-        # StateMachine.add("detect_pointed_object", PointedObjectDetection(classify_objects, interaction, util), transitions={"outcome1":"disambiguate_objects", "outcome2": "end"})
+        StateMachine.add("detect_pointed_object", PointedObjectDetection(classify_objects, interaction, util), transitions={"outcome1":"disambiguate_objects", "outcome2": "end"})
         #StateMachine.add("look_at_person_for_interaction", LookAtPersonForInteraction(interaction, move), transitions={"outcome1":"disambiguate_objects", "outcome2": "disambiguate_objects"})
         StateMachine.add("disambiguate_objects", ObjectDisambiguation(interaction, util), transitions={"outcome1":"end", "outcome2": "end"})
         sm.execute()
