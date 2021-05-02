@@ -120,7 +120,7 @@ class openpose_server():
             return None
         
         # the self.get_keypoint function ensures that keypoints below confidence score of a certain value are returned as (nan,nan,nan) to eliminate erronous calculations
-        keypoint = self.get_keypoint(human[pnt_index],0.5)
+        keypoint = self.get_keypoint(human[pnt_index],0.2)
         if (math.isnan(keypoint[0]) or math.isnan(keypoint[0])):
             pnt = [float("NaN"),float("NaN")]
             return self.get_depth(pnt, xyz_array)

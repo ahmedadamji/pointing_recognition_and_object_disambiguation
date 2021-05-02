@@ -29,20 +29,11 @@ class ApproachPointedObject(State):
 
 
     def get_table(self, intersection_point_world):
-        #tables = rospy.get_param("/tables")
-        for table_id in range(0, len(self.tables)):
-            table_name = self.tables[table_id].get("name")
-            cuboid = self.tables[table_id].get("cuboid")
-            cuboid_max = np.array(cuboid["max_xyz"])
-            cuboid_min = np.array(cuboid["min_xyz"])
-            print cuboid_max
-            print cuboid_min
-            print intersection_point_world
-            if ((cuboid_min[0] <= intersection_point_world[0] <= cuboid_max[0]) and (cuboid_min[1] <= intersection_point_world[1] <= cuboid_max[1])  and (cuboid_min[2] <= intersection_point_world[2] <= cuboid_max[2])):
-                print table_name + " is being pointed at"
-                return self.tables[table_id]
-        ## RETURN OUTCOME 2 AFTER ERROR MESSAGE SAYING NO TABLE WAS FOUND BEING POINTED AT
-        print "Sorry, no table was found being pointed at"
+        current_table = rospy.get_param("/current_table")
+        table_name = current_table.get("name")
+        print("current table name: " + table_name)
+        return current_table
+
 
 
     def approach_table(self, table, wait=True):

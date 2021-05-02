@@ -12,6 +12,7 @@ import numpy as np
 from itertools import combinations
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scipy
 
 
 
@@ -130,7 +131,11 @@ def main():
         
 
     # Draw the plot
-    plt.hist(distances_x_y, color = 'blue', edgecolor = 'black', bins = 25)
+
+    _, bins, _  = plt.hist(distances_x_y, color = 'blue', edgecolor = 'black', bins = 25, normed=True)
+    mu, sigma = scipy.stats.norm.fit(distances_x_y)
+    best_fit_line = scipy.stats.norm.pdf(bins, mu, sigma)
+    plt.plot(bins, best_fit_line, color='red', linewidth=3)
     
     # Title and labels
     plt.title('Histogram with distances in (x,y)')
@@ -142,7 +147,11 @@ def main():
 
 
     # Draw the plot
-    plt.hist(distances_x_y_z, color = 'blue', edgecolor = 'black', bins = 25)
+    
+    _, bins, _  = plt.hist(distances_x_y_z, color = 'blue', edgecolor = 'black', bins = 25, normed=True)
+    mu, sigma = scipy.stats.norm.fit(distances_x_y_z)
+    best_fit_line = scipy.stats.norm.pdf(bins, mu, sigma)
+    plt.plot(bins, best_fit_line, color='red', linewidth=3)
     
     # Title and labels
     plt.title('Histogram with distances in (x,y,z)')
@@ -153,7 +162,11 @@ def main():
     plt.show()
 
     # Draw the plot
-    plt.hist(log_distances_x_y, color = 'blue', edgecolor = 'black', bins = 25)
+    
+    _, bins, _  = plt.hist(log_distances_x_y, color = 'blue', edgecolor = 'black', bins = 25, normed=True)
+    mu, sigma = scipy.stats.norm.fit(log_distances_x_y)
+    best_fit_line = scipy.stats.norm.pdf(bins, mu, sigma)
+    plt.plot(bins, best_fit_line, color='red', linewidth=3)
     
     # Title and labels
     plt.title('Histogram with logarithmic distances in (x,y)')
@@ -164,7 +177,11 @@ def main():
     plt.show()
 
     # Draw the plot
-    plt.hist(log_distances_x_y_z, color = 'blue', edgecolor = 'black', bins = 25)
+    
+    _, bins, _  = plt.hist(log_distances_x_y_z, color = 'blue', edgecolor = 'black', bins = 25, normed=True)
+    mu, sigma = scipy.stats.norm.fit(log_distances_x_y_z)
+    best_fit_line = scipy.stats.norm.pdf(bins, mu, sigma)
+    plt.plot(bins, best_fit_line, color='red', linewidth=3)
     
     # Title and labels
     plt.title('Histogram with logarithmic distances in (x,y,z)')

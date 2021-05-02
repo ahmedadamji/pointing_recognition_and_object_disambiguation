@@ -59,11 +59,11 @@ class ApproachPerson(State):
 
     def move_to_table(self,current_table):
         #location = rospy.get_param("/pointing_person_approach")
-        location = current_table.get("person_check_location")
+        location = current_table.get("table_default_location")
 
         # Sending Move class the location to move to, and stores result in movebase
         movebase = self.move.move_base(location)
-        self.move.rotate_around_base(-15)
+        #self.move.rotate_around_base(-20)
         if movebase == True:
             print("Reached the "  + current_table.get("name"))
         else:
@@ -91,7 +91,7 @@ class ApproachPerson(State):
                 # rospy.set_param("/pointing_person_approach", location)
 
                 return True
-            degrees += 20
+            degrees += 30
 
                 
         print("No Person was found at this table")
@@ -127,6 +127,8 @@ class ApproachPerson(State):
             status = self.get_table()
             if status == "table_checked":
                 table_checked = True
+                print("The person wasnt found at this table")
+                self.interaction.talk("Sorry, but I couldnt find you" )
                 return "outcome2"
             current_table = rospy.get_param("/current_table")
             self.move_to_table(current_table)

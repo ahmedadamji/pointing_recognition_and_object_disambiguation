@@ -30,8 +30,11 @@ class PointedObjectDetection(State):
         self.util = util
     
     def define_bounding_region_around_intersection_point(self):
-        centre = np.array([self.intersection_point_world[0],self.intersection_point_world[1],self.intersection_point_world[2]])
         self.radius_of_pointing = rospy.get_param("/radius_of_pointing")
+        radius_x = self.radius_of_pointing*math.cos(math.pi/4)
+        radius_y = self.radius_of_pointing*math.cos(math.pi/4)
+        intersection_depth_coordinate = self.util.transform_from_world_frame_to_camera_frame(self.intersection_point_world)
+        edge_of_bounding_area = self.util.get_2d_camera_point_from_3d_depth_point([intersection_depth_coordinate[0]+radius_x,intersection_depth_coordinate[1]+radius_y,intersection_depth_coordinate[2]])
 
         # sides = np.array([0.30,0.30,0.30])  # 30cm sides # Need to change this to a reasonable number
         # min_xyz = centre-(sides/2)
@@ -44,7 +47,7 @@ class PointedObjectDetection(State):
         # For visualisaition purposes on top of 2d image
 
         # TO FIND THE RADIUS IN PIXELS TO PLOT
-        distance = np.array(self.util.get_2d_pixel_coordinate_from_world_coordinate(self.radius_of_pointing + np.array(centre))) -  np.array(self.intersection_point_2d)
+        distance = np.array(np.array(edge_of_bounding_area)) -  np.array(self.intersection_point_2d)
         self.radius_of_pointing_2d = int(math.hypot(distance[0], distance[0]))
 
         # self.box_start_point_2d = self.util.get_2d_pixel_coordinate_from_world_coordinate(min_xyz)

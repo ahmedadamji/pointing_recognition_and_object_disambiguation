@@ -5,150 +5,36 @@
 tables:
   - name: 'dining table'
     approach_location:
-      position: { x: -2.1793, y: -7.7894, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.69781, w: 0.71628 }
-    person_check_location:
-      position: { x: -2.2353, y: -5.8291, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.70919, w: 0.70502 }
-    cuboid:
-      max_xyz: [ -1.61, -8.42, 3.0 ]
-      min_xyz: [ -2.61, -9.42, 0.00 ]
-    status: 'not checked'
-
-
-  - name: 'kitchen table'
-    approach_location:
-      position: { x: 0.11683, y: -9.8525, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
-    person_check_location:
-      position: { x: -0.239, y: -8.59, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.300, w: 0.954 }
-    cuboid:
-      max_xyz: [ 0.81, -10.77, 3.0 ]
-      min_xyz: [ -0.55, -11.53, 0.00 ]
-    status: 'not checked'
-      
-  - name: 'lounge table'
-    approach_location:
-      position: { x: 2.4824, y: -7.5183, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
-    person_check_location:
-      position: { x: 2.414, y: -6.6582, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.491, w: 0.871 }
-    cuboid:
-      max_xyz: [ 3.00, -8.23, 3 ]
-      min_xyz: [ 2.04, -8.99, 0.00 ]
+      position: { x: -0.29669, y: -2.9197, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: 0.99785, w: 0.065513 }
+    table_default_location:
+      position: { x: 0.59826, y: -2.9051, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: 0.99259, w: 0.12151 }
     status: 'not checked'
       
   - name: 'study table'
     approach_location:
-      position: { x: 3.0824, y: -4.4662, z: 3 }
-      orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
-    person_check_location:
-      position: { x: 2.919, y: -3.518, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.512, w: 0.859 }
-    cuboid:
-      max_xyz: [ 3.65, -5.10, 0.815 ]
-      min_xyz: [ 2.69, -5.86, 0.00 ]
+      position: { x: 0.74585, y: -0.24138, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.030327, w: 0.99954 }
+    table_default_location:
+      position: { x: -1.2757, y: -0.14126, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.03583, w: 0.99936 }
     status: 'not checked'
 
+  - name: 'kitchen table'
+    approach_location:
+      position: { x: 0.025094, y: 3.0263, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: 0.0016216, w: 1 }
+    table_default_location:
+      position: { x: -1.4985, y: 3.0268, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.023978, w: 0.99971 }
+    status: 'not checked'
 
-
-# # This is actually the approach point for tiago, I need to change the name for this so that is either actually is relative to the girl_pointing or change the name to approach_point
-# pointing_person_approach:
-#   position: 
-#     x: -2.456
-#     y: -6.697
-#     z: 0.0985
-#   orientation: 
-#     x: 0.0
-#     y: 0.0
-#     z: -0.586
-#     w: 0.810
-
-
-  # table0:
-  #   id: 0
-  #   location:
-  #     position: { x: -2.1598, y: -7.8729, z: 0.0 }
-  #     orientation: { x: 0.0, y: 0.0, z: -0.70784, w: 0.70637 }
-  #   cuboid:
-  #     frame: 'map'
-  #     max_xyz: [ -1.61, -8.42, 3.0 ]
-  #     min_xyz: [ -2.61, -9.42, 0.00 ]
-  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
-
-  # table1:
-  #   id: 1
-  #   location:
-  #     position: { x: 0.11683, y: -9.8525, z: 0.0 }
-  #     orientation: { x: 0.0, y: 0.0, z: -0.67786, w: 0.73519 }
-  #   cuboid:
-  #     frame: 'map'
-  #     max_xyz: [ 0.81, -10.77, 3.0 ]
-  #     min_xyz: [ -0.55, -11.53, 0.00 ]
-  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
-
-  # table2:
-  #   id: 2
-  #   location:
+  # - name: 'lounge table'
+  #   approach_location:
   #     position: { x: 2.4824, y: -7.5183, z: 0.0 }
   #     orientation: { x: 0.0, y: 0.0, z: -0.72898, w: 0.68453 }
-  #   cuboid:
-  #     frame: 'map'
-  #     max_xyz: [ 3.00, -8.23, 3 ]
-  #     min_xyz: [ 2.04, -8.99, 0.00 ]
-  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
-
-  # table3:
-  #   id: 3
-  #   location:
-  #     position: { x: 3.0824, y: -4.4662, z: 3 }
-  #     orientation: { x: 0.0, y: 0.0, z: -0.68123, w: 0.73207 }
-  #   cuboid:
-  #     frame: 'map'
-  #     max_xyz: [ 3.65, -5.10, 0.815 ]
-  #     min_xyz: [ 2.69, -5.86, 0.00 ]
-  #   # lookLR: [[6.17, 1.66], [7.29, 1.66]]
-
-
-
-  
-# hand_gesture_approach:
-#   position: 
-#     x: -2.1598
-#     y: -7.8729
-#     z: 0.0985
-#   orientation: 
-#     x: 0.0
-#     y: 0.0
-#     z: -0.35404
-#     w: 0.93523
-
-
-# This is calculated by finding the center point of the table, which is pose in gazebo, and then the pose of the links gives us the relative position of each leg to the center, we just need to calculate it
-# tables:
-#   - name: 'Table 0'
-#     bottom_left: { x: -1.63, y: -8.54, z: 0.0 }
-#     bottom_right: { x: -2.59, y: -8.54, z: 0.0 }
-#     top_left: { x: -1.63, y: -9.30, z: 0.0 }
-#     top_right: { x: -2.59, y: -9.30, z: 0.0 }
-
-#   - name: 'Table 1'
-#     bottom_left: { x: 0.81, y: -10.77, z: 0.0 }
-#     bottom_right: { x: -0.55, y: -10.77, z: 0.0 }
-#     top_left: { x: 0.81, y: -11.53, z: 0.0 }
-#     top_right: { x: -0.55, y: -11.53, z: 0.0 }
-
-#   - name: 'Table 2'
-#     bottom_left: { x: 3.00, y: -8.23, z: 0.0 }
-#     bottom_right: { x: 2.04, y: -8.23, z: 0.0 }
-#     top_left: { x: 3.00, y: -8.99, z: 0.0 }
-#     top_right: { x: 2.04, y: -8.99, z: 0.0 }
-
-#   - name: 'Table 3'
-#     bottom_left: { x: 3.65, y: -5.10, z: 0.0 }
-#     bottom_right: { x: 2.69, y: -5.10, z: 0.0 }
-#     top_left: { x: 3.65, y: -5.86, z: 0.0 }
-#     top_right: { x: 2.69, y: -5.86, z: 0.0 }
-
+  #   table_default_location:
+  #     position: { x: 2.414, y: -6.6582, z: 0.0 }
+  #     orientation: { x: 0.0, y: 0.0, z: -0.491, w: 0.871 }
+  #   status: 'not checked'

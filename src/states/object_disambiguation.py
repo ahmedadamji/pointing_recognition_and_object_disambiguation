@@ -341,7 +341,7 @@ class ObjectDisambiguation(State):
                     rospy.logwarn(ex)
 
 
-        user_response = self.interaction.get_data_from_user("text", valid_responses, attribute) # request_type, valid_responses, type_of_data
+        user_response = self.interaction.get_data_from_user("speech", valid_responses, attribute) # request_type, valid_responses, type_of_data
         return user_response
 
     
@@ -471,7 +471,7 @@ class ObjectDisambiguation(State):
         self.interaction.talk("While answering these questions, please only refer to the objects displayed to you previously within a circle.")
 
         for attribute in self.attributes:
-            #print attribute
+            print attribute
             try:
                 self.indices_for_attribute_match, compared_objects = self.compare_all_objects_with_chosen_attribute(attribute)
             except Exception as e:
@@ -480,6 +480,8 @@ class ObjectDisambiguation(State):
 
             # The == condition ensures that if there is only one match, it doesnt got o the next question
 
+            pos_index = self.attributes.index("position")
+            att_index = self.attributes.index(attribute)
 
             if len(self.indices_for_attribute_match) == 1:
 
@@ -523,7 +525,7 @@ class ObjectDisambiguation(State):
                 return
             
                     
-            elif (len(unique_feature) == 0):
+            elif ((len(unique_feature) == 0) and (att_index>pos_index)):
 
                 previous_object_name = compared_objects[self.indices_for_attribute_match[0]].get("name")
                 count = 1
@@ -536,6 +538,7 @@ class ObjectDisambiguation(State):
                     identified_object = compared_objects[self.indices_for_attribute_match[0]]
                     self.interaction.talk("The object you were pointing at was a " + identified_object.get("name"))
                     self.interaction.talk("But I am not able to determine which one you were pointing at, as there were multiple of these close to each other")
+                    self.notify_status_of_other_objects()
                     return
 
 
@@ -688,7 +691,7 @@ class ObjectDisambiguation(State):
 
 
         # To destroy cv2 window at the end of state
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
 
         return "outcome1"
 

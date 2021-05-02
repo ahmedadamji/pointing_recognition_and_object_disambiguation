@@ -136,8 +136,7 @@ class Util:
             {
                 "name":     table["name"],
                 "approach_location": table["approach_location"],
-                "person_check_location": table["person_check_location"],
-                "cuboid":   table["cuboid"],
+                "table_default_location": table["table_default_location"],
                 "status":   table["status"]
             }
             for table in tables_param
