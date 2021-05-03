@@ -53,8 +53,8 @@ def main():
     #creates an instance of util class to use featues such as extract attributes of objects from yaml file and transform point frames
     util = Util()
 
-    #table = wait_for_command(interaction)
-    table = 'dining table'
+    table = wait_for_command(interaction)
+    #table = 'kitchen table'
 
 
     # REMOVE FOLLOWING CODE WHEN RUNNING POSE DETECTION AS THESE ARE DEFAULT VALUES TO USE FOR TESTING
@@ -76,7 +76,7 @@ def main():
 
     with sm:
         # Add states to the container
-        #StateMachine.add("approach_person", ApproachPerson(classify_objects, interaction, util, move, table), transitions={"outcome1":"detect_pointing_location", "outcome2": "end"})
+        StateMachine.add("approach_person", ApproachPerson(classify_objects, interaction, util, move, table), transitions={"outcome1":"detect_pointing_location", "outcome2": "end"})
         StateMachine.add("detect_pointing_location", PointingLocationDetection(interaction, util), transitions={"outcome1":"approach_object", "outcome2": "end"})
         StateMachine.add("approach_object", ApproachPointedObject(interaction, util, move), transitions={"outcome1":"detect_pointed_object", "outcome2": "end"})
         StateMachine.add("detect_pointed_object", PointedObjectDetection(classify_objects, interaction, util), transitions={"outcome1":"look_at_person_for_interaction", "outcome2": "end"})

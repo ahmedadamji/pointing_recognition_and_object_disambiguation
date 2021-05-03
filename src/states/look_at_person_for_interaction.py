@@ -34,7 +34,12 @@ class LookAtPersonForInteraction(State):
         robot_world_coordinate = [robot_pose.position.x,robot_pose.position.y]
         delta_y = person_head_world_coordinate[1] - robot_world_coordinate[1]
         delta_x = person_head_world_coordinate[0] - robot_world_coordinate[0]
-        theta = -math.atan2(delta_y,delta_x)/(math.pi/180)
+        theta = math.atan2(delta_y,delta_x)/(math.pi/180)
+        if delta_y > delta_y:
+            theta = 2*(math.pi) - theta
+        
+        #theta_a_b  # - (pi/2) because the y axis of the new coordinate frame is aligned with the rotation vector and therefore the x axis will be rotated by 90 degrees less than this.
+        theta = theta-((math.pi)/2.0)
         self.move.rotate_around_base(theta)
 
 

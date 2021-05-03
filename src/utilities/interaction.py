@@ -132,7 +132,7 @@ class Interaction:
             }
 
             if request_type == "speech":
-                user_response = self.get_data_from_speech(user_response, 5)
+                user_response = self.get_data_from_speech(user_response, 7)
             elif request_type == "text":
                 user_response = self.get_data_from_text(user_response)
 

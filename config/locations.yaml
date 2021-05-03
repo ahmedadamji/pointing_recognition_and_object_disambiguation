@@ -14,11 +14,11 @@ tables:
       
   - name: 'study table'
     approach_location:
-      position: { x: 0.74585, y: -0.24138, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.030327, w: 0.99954 }
+      position: { x: 0.83675, y: -0.28629, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: 0, w: 0.9998 }
     table_default_location:
-      position: { x: -1.2757, y: -0.14126, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.03583, w: 0.99936 }
+      position: { x: -0.57985, y: -0.117, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.20, w: 0.97}
     status: 'not checked'
 
   - name: 'kitchen table'
@@ -26,8 +26,8 @@ tables:
       position: { x: 0.025094, y: 3.0263, z: 0.0 }
       orientation: { x: 0.0, y: 0.0, z: 0.0016216, w: 1 }
     table_default_location:
-      position: { x: -1.4985, y: 3.0268, z: 0.0 }
-      orientation: { x: 0.0, y: 0.0, z: -0.023978, w: 0.99971 }
+      position: { x: -1.1372, y: 2.9074, z: 0.0 }
+      orientation: { x: 0.0, y: 0.0, z: -0.13325, w: 0.99108 }
     status: 'not checked'
 
   # - name: 'lounge table'

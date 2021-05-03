@@ -355,7 +355,7 @@ class PointingLocationDetection(State):
         # cv2.rectangle(open_pose_output_image, box_start_point, box_end_point, (0,0,255), 1)
         # Plots all figures on top of an opencv image of openpose keypoints
         cv2.imshow("Pointing Line Results", open_pose_output_image)
-        cv2.waitKey(0)
+        cv2.waitKey(5000)
 
     def set_params(self, intersection_point_3d, head):
         

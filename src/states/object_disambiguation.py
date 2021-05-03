@@ -160,14 +160,16 @@ class ObjectDisambiguation(State):
             # HERE I CAN USE ANY OF THE UNIQUE FEATURES TO REFERNCE THE OBJECTS
             # using the first element only as there can be more than one unique feature found
             for feature in self.unique_features:
-                if not ((feature == "yes") or (feature == "no")):
+                is_name = feature in self.util.list_of_objects_capable_of_disambiguation
+                print is_name
+                if not ((feature == "yes") or (feature == "no") or (feature in self.util.list_of_objects_capable_of_disambiguation)):
                     unique_feature = feature
                 else:
                     reference_object = self.closest_object
                     # only right or left directions as all of them will essentially be front the nearest object
                     self.directions = 2
             
-            unique_feature = self.unique_features[0]
+            #unique_feature = self.unique_features[0]
             # print unique_feature
             for current_object in self.objects_within_pointing_bounding_region_with_attributes_for_unique_features:
                 #print current_object
@@ -460,13 +462,19 @@ class ObjectDisambiguation(State):
                 if not ((i == (len(self.eliminated_objects)-1)) or (i == (len(self.eliminated_objects)-2))):
                     eliminated_objects += ", "
             print eliminated_objects
+        # Notify of other objects that are not yet programmed to disambiguated
+        if len(self.objects_inside_bounding_region_not_compared) is not 0:
+            self.interaction.talk("The object you were pointing at might be a")
+            for objects in self.objects_inside_bounding_region_not_compared:
+                self.interaction.talk(objects.get("name"))
+            self.interaction.talk("But I am not programmed to help you with this yet.")
 
 
 
 
 
     def disambiguate_until_object_identified(self):
-        unique_feature = []
+        self.unique_feature = []
 
         self.interaction.talk("While answering these questions, please only refer to the objects displayed to you previously within a circle.")
 
@@ -482,6 +490,7 @@ class ObjectDisambiguation(State):
 
             pos_index = self.attributes.index("position")
             att_index = self.attributes.index(attribute)
+            #print att_index, pos_index
 
             if len(self.indices_for_attribute_match) == 1:
 
@@ -490,15 +499,15 @@ class ObjectDisambiguation(State):
                 identified_object = compared_objects[self.indices_for_attribute_match[0]]
                 #print identified_object.get("name")
                 self.interaction.talk("The identified object is called " + str(identified_object.get("name")))
-                unique_feature, attribute = self.find_unique_feature_of_identified_object(identified_object.get("name"))
+                self.unique_feature, attribute = self.find_unique_feature_of_identified_object(identified_object.get("name"))
 
 
-                if not len(unique_feature) == 0:
+                if not len(self.unique_feature) == 0:
                     if (not attribute is "smooth"):
-                        print("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
-                        self.interaction.talk("The unique feature of this object is that its " + attribute + " is " + str(unique_feature))
+                        print("The unique feature of this object is that its " + attribute + " is " + str(self.unique_feature))
+                        self.interaction.talk("The unique feature of this object is that its " + attribute + " is " + str(self.unique_feature))
                     else:
-                        if unique_feature == "no":
+                        if self.unique_feature == "no":
                             print("The unique efature of this object is that it's texture is not smooth")
                             self.interaction.talk("The unique feature of this object is that it's texture is not smooth")
                         else:
@@ -525,7 +534,8 @@ class ObjectDisambiguation(State):
                 return
             
                     
-            elif ((len(unique_feature) == 0) and (att_index>pos_index)):
+            elif (len(self.unique_feature) == 0) and (att_index>0):
+                #print "a"
 
                 previous_object_name = compared_objects[self.indices_for_attribute_match[0]].get("name")
                 count = 1
@@ -544,12 +554,7 @@ class ObjectDisambiguation(State):
 
         # Code run if diambiguation couldn't find a unique object to suit the descriptions
         self.interaction.talk("Sorry but I couldn't disambiguate the object for you, given the provided descriptions")
-        # Notify of other objects that are not yet programmed to disambiguated
-        if len(self.objects_inside_bounding_region_not_compared) is not 0:
-            self.interaction.talk("The object you were pointing at might be a")
-            for objects in self.objects_inside_bounding_region_not_compared:
-                self.interaction.talk(objects.get("name"))
-            self.interaction.talk("But I am not programmed to help you with this yet.")
+
 
 
         self.notify_status_of_other_objects()
