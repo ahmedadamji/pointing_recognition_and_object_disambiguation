@@ -8,108 +8,9 @@ It is authored by [**Ahmed Adamjee**](https://www.linkedin.com/in/ahmedadamjee/)
 Please contact the author via the E-Mail IDs provided below regarding any requests relating to the topic:
 Email: [el17ana@leeds.ac.uk](mailto:el17ana@leeds.ac.uk); [adamjiahmed@gmail.com](mailto:adamjiahmed@gmail.com)
 
-<br>
-
-<sup>An Image and some description (Add something here)</a></sup>
-
-</p>
-
-  
-  
-  
-
-## Contents
-
-1.  [Features](#features)
-
-2.  [Testing Videos](#testing videos)
-
-3.  [Results](#results)
-
-4.  [Installation](#installation)
-
-5.  [Quick Start](#quick-start)
-
-
-
-## Features
-
--  **Main Functionality**:
-
--  **ABCD**:
-
-- ABCD.
-
--  **Input**:
-
--  **Output**:
-
--  **OS**:
-
--  **Hardware compatibility**:
-
-
 ## Testing Videos
 
-Please visit [YouTube](linkhere)
-
-
-## Results
-
-### Pointing
-
-<p  align="center">
-
-<img  src=".github/media/dance_foot.gif",  width="360">
-
-<br>
-
-<sup>An Image and some description (Add something here)</a></sup>
-
-</p>
-
-  
-
-### Object recognition
-
-<p  align="center">
-
-<img  src=".github/media/openpose3d.gif",  width="360">
-
-<br>
-
-<sup>Testing the 3D Reconstruction Module of OpenPose</sup>
-
-</p>
-
-  
-
-### HRI
-
-<p  align="center">
-
-<img  src=".github/media/pose_face.gif",  width="360">
-
-<img  src=".github/media/pose_hands.gif",  width="360">
-
-<br>
-
-<sup>Testing the 3D Reconstruction Module of OpenPose</sup>
-
-</p>
-
-  
-
-### Runtime Analysis
-
-DESCRIPTION
-
-<p  align="center">
-
-<img  src=".github/media/openpose_vs_competition.png",  width="360">
-
-</p>
-
+Please visit [YouTube](https://www.youtube.com/watch?v=1f78WHAk3IQ)
 
 ## Installation
 
@@ -134,8 +35,6 @@ return to the workspace and run this command:
 ```
 catkin_make
 ```
-Before you can start, you will need to modify a file located in `project_src/src/cylinder_manipulation.py`
-In line 18 change file link to contain correct full path to the `cylinder_detector.launch` file. `*path_to_workspace*/*workspace*/src/project_src/launch/cylinder_detector.launch`
 
 ## Quick Start
 
