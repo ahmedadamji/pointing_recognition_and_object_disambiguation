@@ -18,11 +18,11 @@ For users part of the University of Leeds, please request access to the [LASR](h
 
 For users outside the University of Leeds, these packages need to be installed sperately. These will have to be installed seperately. After you install ROS you can then proceed to install TIAGo simulation using [this](http://wiki.ros.org/Robots/TIAGo/Tutorials/Installation/TiagoSimulation) guide, following the instructions for ROS Kinetic which shold contain most of the required packages for this project to run.
 
-You will have to request access to the [sensible robotics](https://gitlab.com/sensible-robots) gitalb page to install relevant support packages for [object recognition](https://gitlab.com/sensible-robots/lasr_object_detection_yolo), [Custom Worlds](https://gitlab.com/sensible-robots/lasr_object_detection_yolo) and ...........
+You will have to request access to the [sensible robotics](https://gitlab.com/sensible-robots) gitalb page to install relevant support packages for [object recognition](https://gitlab.com/sensible-robots/lasr_object_detection_yolo) and [configured test environments](https://gitlab.com/sensible-robots/custom_worlds/-/tree/for_pointing_recognition/).
 
 For users using the Tiago Singularity Container, you need to install python packages by shelling into the writable workspace of the Tiago container by typing `./write.sh`
 
-To install OpenPose, please follow: 
+To install OpenPose, please follow: [OpenPose Library - Compilation and Installation](https://github.com/tramper2/openpose/blob/master/doc/installation.md).
 
 You can install MediaPipe by typing `pip install mediapipe` in your command line, please note that you need python 3.6 or higher to install this.
 
