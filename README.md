@@ -15,7 +15,8 @@ Email: [el17ana@leeds.ac.uk](mailto:el17ana@leeds.ac.uk); [adamjiahmed@gmail.com
 
 ## Watch The Presentation at RoboCup@Home 2021
 
-[![LASR](https://i3.ytimg.com/vi/-IYFWRORLpc/maxresdefault.jpg)](https://youtu.be/-IYFWRORLpc)
+[![LASR
+](http://i3.ytimg.com/vi/-IYFWRORLpc/hqdefault.jpg)](https://youtu.be/-IYFWRORLpc)
 
 ## Installation
 
