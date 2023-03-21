@@ -10,13 +10,11 @@ Email: [el17ana@leeds.ac.uk](mailto:el17ana@leeds.ac.uk); [adamjiahmed@gmail.com
 
 ## Testing Videos
 
-Please visit [YouTube](https://www.youtube.com/watch?v=1f78WHAk3IQ)
+[![Presentation Demonstration Video](https://i3.ytimg.com/vi/rn6iy68skfg/maxresdefault.jpg)](https://youtu.be/rn6iy68skfg)
 
 ## Watch The Presentation at RoboCup@Home 2021
 
-Please visit
-
-[![YouTube](https://img.youtube.com/vi/-IYFWRORLpc/maxresdefault.jpg)](https://youtu.be/-IYFWRORLpc)
+[![LASR](https://i3.ytimg.com/vi/-IYFWRORLpc/maxresdefault.jpg)](https://youtu.be/-IYFWRORLpc)
 
 ## Installation
 
