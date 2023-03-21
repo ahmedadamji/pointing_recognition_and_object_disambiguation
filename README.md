@@ -8,15 +8,15 @@ It is authored by [**Ahmed Adamjee**](https://www.linkedin.com/in/ahmedadamjee/)
 Please contact the author via the E-Mail IDs provided below regarding any requests relating to the topic:
 Email: [el17ana@leeds.ac.uk](mailto:el17ana@leeds.ac.uk); [adamjiahmed@gmail.com](mailto:adamjiahmed@gmail.com)
 
-## Testing Videos
-
-[![Pointing Based Object Recognition and Disambiguation for Autonomous Service Robots - Test Videos
-](http://i3.ytimg.com/vi/1f78WHAk3IQ/hqdefault.jpg)](https://youtu.be/1f78WHAk3IQ)
-
 ## Watch The Presentation at RoboCup@Home 2021
 
 [![LASR
 ](http://i3.ytimg.com/vi/-IYFWRORLpc/hqdefault.jpg)](https://youtu.be/-IYFWRORLpc)
+
+## Testing Videos
+
+[![Pointing Based Object Recognition and Disambiguation for Autonomous Service Robots - Test Videos
+](http://i3.ytimg.com/vi/1f78WHAk3IQ/hqdefault.jpg)](https://youtu.be/1f78WHAk3IQ)
 
 ## Installation
 
