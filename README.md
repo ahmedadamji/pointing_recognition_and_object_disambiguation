@@ -10,7 +10,8 @@ Email: [el17ana@leeds.ac.uk](mailto:el17ana@leeds.ac.uk); [adamjiahmed@gmail.com
 
 ## Testing Videos
 
-[![Presentation Demonstration Video](https://i3.ytimg.com/vi/rn6iy68skfg/maxresdefault.jpg)](https://youtu.be/rn6iy68skfg)
+[![Pointing Based Object Recognition and Disambiguation for Autonomous Service Robots - Test Videos
+](https://i3.ytimg.com/vi/1f78WHAk3IQ/maxresdefault.jpg)](https://youtu.be/1f78WHAk3IQ)
 
 ## Watch The Presentation at RoboCup@Home 2021
 
