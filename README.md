@@ -25,11 +25,12 @@ Our repository includes detailed information on the following objectives:
  - Analyzing and evaluating the workability and effectiveness of the system.
  
 ### Additional Techniques and Tools
+
 To support the completion of this project, we have employed several cutting-edge techniques and tools, such as:
 
-Training image classification using YOLOv4 to improve object recognition and identification.
-Implementing SLAM-based Occupancy Grid Mapping for efficient robot navigation within the environment.
-Creating 3D models using Blender for realistic simulations and incorporating them into Gazebo with assigned physics for accurate testing and evaluation.
+ - Training image classification using YOLOv4 to improve object recognition and identification.
+ - Implementing SLAM-based Occupancy Grid Mapping for efficient robot navigation within the environment.
+ - Creating 3D models using Blender for realistic simulations and incorporating them into Gazebo with assigned physics for accurate testing and evaluation.
 
 Feel free to explore the repository, learn about our approach, and contribute to this groundbreaking project in human-robot interaction!
 
