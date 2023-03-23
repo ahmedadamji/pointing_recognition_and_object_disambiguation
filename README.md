@@ -2,26 +2,18 @@
 # Pointing Recognition
 ----------------- 
 
-[**Pointing Recognition**](https://gitlab.com/el17ana/pointing_recognition) is a project focused on **recognising objects being pointied at.**
+Welcome to the [**Pointing Based Object Recognition and Disambiguation for Autonomous Service Robots Repository**](https://gitlab.com/el17ana/pointing_recognition)! Our system, designed for the PAL Robotics' TIAGo robot, focuses on enabling robots to understand and act upon human pointing gestures to achieve joint attention and facilitate natural, effective communication. 
 
 It is authored by [**Ahmed Adamjee**](https://www.linkedin.com/in/ahmedadamjee/) and is licensed under the [MIT License](https://gitlab.com/el17ana/pointing_recognition/-/blob/master/LICENSE).
 Please contact the author via the E-Mail IDs provided below regarding any requests relating to the topic:
 Email: [el17ana@leeds.ac.uk](mailto:el17ana@leeds.ac.uk); [adamjiahmed@gmail.com](mailto:adamjiahmed@gmail.com)
 
-## Watch The Presentation at RoboCup@Home 2021
-
-[![LASR
-](http://i3.ytimg.com/vi/-IYFWRORLpc/hqdefault.jpg)](https://youtu.be/-IYFWRORLpc)
-
-## Testing Videos
-
-[![Pointing Based Object Recognition and Disambiguation for Autonomous Service Robots - Test Videos
-](http://i3.ytimg.com/vi/1f78WHAk3IQ/hqdefault.jpg)](https://youtu.be/1f78WHAk3IQ)
 
 ## Introduction
-Welcome to the Pointing Based Object Recognition and Disambiguation for Autonomous Service Robots Repository! This project addresses the growing demand for domestic service robots that can assist humans in their daily lives, particularly in household tasks and monitoring people in need. The ongoing demographic shift towards an aging population and the increased acceptance of service robots due to the COVID-19 pandemic have further motivated the need for seamless and intuitive Human-Robot Interaction (HRI).
 
-Our system, designed for the PAL Robotics' TIAGo robot, focuses on enabling robots to understand and act upon human pointing gestures to achieve joint attention and facilitate natural, effective communication. This project combines various technologies, including Gesture Recognition, Computer Vision, Object Recognition, and Autonomous Navigation, to meet the objectives of competitions like RoboCup@Home and the goals of the Leeds Autonomous Service Robots (LASR) team.
+This project addresses the growing demand for domestic service robots that can assist humans in their daily lives, particularly in household tasks and monitoring people in need. The ongoing demographic shift towards an aging population and the increased acceptance of service robots due to the COVID-19 pandemic have further motivated the need for seamless and intuitive Human-Robot Interaction (HRI).
+
+This project combines various technologies, including Gesture Recognition, Computer Vision, Object Recognition, and Autonomous Navigation, to meet the objectives of competitions like RoboCup@Home and the goals of the Leeds Autonomous Service Robots (LASR) team.
 
 The primary aims of this project are to develop a robotic system capable of identifying objects pointed at in a domestic setting and disambiguating between closely placed objects by asking appropriate questions based on their attributes. The system should also be able to recognize and respond to multiple modes of human communication, such as speech and hand gestures.
 
@@ -40,6 +32,17 @@ Implementing SLAM-based Occupancy Grid Mapping for efficient robot navigation wi
 Creating 3D models using Blender for realistic simulations and incorporating them into Gazebo with assigned physics for accurate testing and evaluation.
 
 Feel free to explore the repository, learn about our approach, and contribute to this groundbreaking project in human-robot interaction!
+
+
+## Watch The Presentation at RoboCup@Home 2021
+
+[![LASR
+](http://i3.ytimg.com/vi/-IYFWRORLpc/hqdefault.jpg)](https://youtu.be/-IYFWRORLpc)
+
+## Testing Videos
+
+[![Pointing Based Object Recognition and Disambiguation for Autonomous Service Robots - Test Videos
+](http://i3.ytimg.com/vi/1f78WHAk3IQ/hqdefault.jpg)](https://youtu.be/1f78WHAk3IQ)
 
 ## Installation
 
